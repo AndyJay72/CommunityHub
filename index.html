@@ -355,13 +355,29 @@
 
     <script>
         // IMPORTANT: Replace this with your actual n8n webhook URL
-        const WEBHOOK_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook-test/function-room-booking';
-
+        const WEBHOOK_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/function-room-booking';
+        
         const form = document.getElementById('bookingForm');
         const submitBtn = document.getElementById('submitBtn');
         const messageBox = document.getElementById('messageBox');
         const loadingSpinner = document.getElementById('loadingSpinner');
 
+        // Submit to n8n webhook
+        async function submitToN8N(data) {
+          const response = await fetch(N8N_WEBHOOK_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Submission failed: ${response.status}`);
+            }
+            
+            return await response.json();
+        }        
         // Set minimum date to today
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('event_date').setAttribute('min', today);
