@@ -3,208 +3,277 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Function Room Booking Request</title>
+    <title>Event Room Enquiry Form</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary: #0a0e27;
+            --primary-light: #1a1f3a;
+            --accent: #00d4ff;
+            --accent-glow: rgba(0, 212, 255, 0.3);
+            --success: #00ff88;
+            --danger: #ff3366;
+            --text-light: #e0e7ff;
+            --text-dark: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+            --card-bg: rgba(26, 31, 58, 0.8);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0f1628 100%);
             min-height: 100vh;
             padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            position: relative;
+            overflow-x: hidden;
         }
 
-        .container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 700px;
-            width: 100%;
-            padding: 40px;
+        /* Animated background grid */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
         }
 
+        .form-container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
         .header {
-            text-align: center;
+            background: linear-gradient(135deg, var(--card-bg), rgba(0, 212, 255, 0.1));
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            color: white;
+            padding: 40px;
             margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                        0 0 60px var(--accent-glow);
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 200%; }
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
         }
 
         .header h1 {
-            color: #333;
-            font-size: 28px;
+            font-size: 2.5rem;
             margin-bottom: 10px;
-        }
-
-        .header p {
-            color: #666;
-            font-size: 16px;
-        }
-
-        .form-section {
-            margin-bottom: 30px;
-        }
-
-        .section-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #667eea;
-            margin-bottom: 15px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #667eea;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             gap: 15px;
         }
 
-        label {
+        .header h1 i {
+            color: var(--accent);
+            filter: drop-shadow(0 0 10px var(--accent));
+            -webkit-text-fill-color: var(--accent);
+        }
+
+        .header p {
+            color: var(--text-dark);
+            font-size: 1rem;
+            margin-top: 10px;
+        }
+
+        /* Form Card */
+        .form-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
             display: block;
+            color: var(--text-light);
             font-weight: 600;
-            color: #333;
-            margin-bottom: 8px;
-            font-size: 14px;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .required {
-            color: #e74c3c;
-            margin-left: 3px;
+        .form-group label .required {
+            color: var(--danger);
+            margin-left: 4px;
         }
 
-        input[type="text"],
-        input[type="email"],
-        input[type="tel"],
-        input[type="date"],
-        input[type="time"],
-        input[type="number"],
-        select,
-        textarea {
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
             width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            font-family: inherit;
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-light);
+            font-size: 1rem;
             transition: all 0.3s ease;
-            background-color: #f9f9f9;
-        }
-
-        input:focus,
-        select:focus,
-        textarea:focus {
             outline: none;
-            border-color: #667eea;
-            background-color: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        textarea {
-            resize: vertical;
-            min-height: 100px;
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px var(--accent-glow);
+            background: rgba(0, 0, 0, 0.4);
         }
 
-        select {
+        .form-group input::placeholder {
+            color: var(--text-dark);
+        }
+
+        .form-group select {
             cursor: pointer;
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            background-size: 18px;
-            padding-right: 40px;
         }
 
+        .form-group select option {
+            background: var(--primary);
+            color: var(--text-light);
+        }
+
+        /* Time and People Grid */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        /* Info Box */
+        .info-box {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid var(--accent);
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-top: 10px;
+            color: var(--text-dark);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-box i {
+            color: var(--accent);
+            font-size: 1.2rem;
+        }
+
+        .capacity-info {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .capacity-badge {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            padding: 8px 16px;
+            color: var(--text-light);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .capacity-badge i {
+            color: var(--accent);
+        }
+
+        /* Submit Button */
         .submit-btn {
             width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            padding: 18px;
+            background: var(--accent);
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
+            border-radius: 12px;
+            color: var(--primary);
+            font-size: 1.1rem;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 4px 20px var(--accent-glow);
         }
 
         .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-        }
-
-        .submit-btn:active {
-            transform: translateY(0);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px var(--accent-glow);
+            background: var(--text-light);
         }
 
         .submit-btn:disabled {
-            background: #ccc;
+            opacity: 0.6;
             cursor: not-allowed;
             transform: none;
         }
 
-        .message {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .message.success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-            display: block;
-        }
-
-        .message.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-            display: block;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .loading.active {
-            display: block;
-        }
-
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+        .submit-btn .spinner {
+            border: 3px solid rgba(10, 14, 39, 0.3);
+            border-top: 3px solid var(--primary);
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 20px;
+            height: 20px;
             animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
         }
 
         @keyframes spin {
@@ -212,18 +281,119 @@
             100% { transform: rotate(360deg); }
         }
 
-        .info-box {
-            background: #e7f3ff;
-            border-left: 4px solid #2196F3;
-            padding: 12px 15px;
-            margin-bottom: 20px;
-            border-radius: 4px;
-            font-size: 14px;
-            color: #0c5460;
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            max-width: 400px;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 15px;
+            padding: 20px 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transform: translateX(500px);
+            transition: transform 0.4s ease;
+            z-index: 1000;
+            border: 1px solid;
         }
 
-        @media (max-width: 600px) {
-            .container {
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            border-color: var(--success);
+            box-shadow: 0 8px 32px rgba(0, 255, 136, 0.3);
+        }
+
+        .notification.error {
+            border-color: var(--danger);
+            box-shadow: 0 8px 32px rgba(255, 51, 102, 0.3);
+        }
+
+        .notification-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .notification.success .notification-icon {
+            background: rgba(0, 255, 136, 0.2);
+            color: var(--success);
+        }
+
+        .notification.error .notification-icon {
+            background: rgba(255, 51, 102, 0.2);
+            color: var(--danger);
+        }
+
+        .notification-content h3 {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .notification-content p {
+            color: var(--text-dark);
+            font-size: 0.9rem;
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            color: var(--text-dark);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            margin-left: auto;
+        }
+
+        .notification-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-light);
+        }
+
+        /* Validation Error */
+        .error-message {
+            color: var(--danger);
+            font-size: 0.85rem;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .form-group.error input,
+        .form-group.error select {
+            border-color: var(--danger);
+        }
+
+        .form-group.error .error-message {
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+                flex-direction: column;
+            }
+
+            .form-card {
                 padding: 25px;
             }
 
@@ -231,140 +401,301 @@
                 grid-template-columns: 1fr;
             }
 
-            .header h1 {
-                font-size: 24px;
+            .notification {
+                left: 20px;
+                right: 20px;
+                max-width: none;
+            }
+
+            .capacity-info {
+                flex-direction: column;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="form-container">
+        <!-- Header -->
         <div class="header">
-            <h1>Function Room Booking Request</h1>
-            <p>Fill out the form below and we'll send you a detailed quote</p>
-        </div>
-
-        <div id="messageBox" class="message"></div>
-
-        <div class="loading" id="loadingSpinner">
-            <div class="spinner"></div>
-            <p>Submitting your booking request...</p>
-        </div>
-
-        <form id="bookingForm">
-            <!-- Customer Information Section -->
-            <div class="form-section">
-                <h2 class="section-title">Contact Information</h2>
-                
-                <div class="form-group">
-                    <label for="full_name">Full Name <span class="required">*</span></label>
-                    <input type="text" id="full_name" name="full_name" required placeholder="Enter your full name">
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="email">Email Address <span class="required">*</span></label>
-                        <input type="email" id="email" name="email" required placeholder="your@email.com">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="phone">Phone Number</label>
-                        <input type="tel" id="phone" name="phone" placeholder="+1 (555) 123-4567">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="company">Company / Organization</label>
-                    <input type="text" id="company" name="company" placeholder="Optional">
-                </div>
+            <div class="header-content">
+                <h1>
+                    <i class="fas fa-calendar-alt"></i>
+                    Event Room Enquiry
+                </h1>
+                <p>Complete the form below to submit your event enquiry</p>
             </div>
+        </div>
 
-            <!-- Event Details Section -->
-            <div class="form-section">
-                <h2 class="section-title">Event Details</h2>
-
+        <!-- Form Card -->
+        <div class="form-card">
+            <form id="enquiryForm">
+                <!-- Name -->
                 <div class="form-group">
-                    <label for="event_type">Event Type <span class="required">*</span></label>
-                    <select id="event_type" name="event_type" required>
+                    <label for="name">
+                        Full Name
+                        <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="name" 
+                        name="name" 
+                        placeholder="Enter your full name"
+                        required
+                    >
+                    <span class="error-message">Please enter your name</span>
+                </div>
+
+                <!-- Email -->
+                <div class="form-group">
+                    <label for="email">
+                        Email Address
+                        <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        placeholder="your.email@example.com"
+                        required
+                    >
+                    <span class="error-message">Please enter a valid email address</span>
+                </div>
+
+                <!-- Contact Number -->
+                <div class="form-group">
+                    <label for="contact">
+                        Contact Number
+                        <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="tel" 
+                        id="contact" 
+                        name="contact" 
+                        placeholder="+44 7700 900000"
+                        required
+                    >
+                    <span class="error-message">Please enter your contact number</span>
+                </div>
+
+                <!-- Event Type -->
+                <div class="form-group">
+                    <label for="eventType">
+                        What event are you planning?
+                        <span class="required">*</span>
+                    </label>
+                    <select id="eventType" name="eventType" required>
                         <option value="">Select event type...</option>
                         <option value="Wedding">Wedding</option>
-                        <option value="Conference">Conference</option>
-                        <option value="Meeting">Meeting</option>
-                        <option value="Birthday">Birthday Party</option>
+                        <option value="Birthday Party">Birthday Party</option>
+                        <option value="Anniversary">Anniversary</option>
                         <option value="Corporate Event">Corporate Event</option>
+                        <option value="Conference">Conference</option>
+                        <option value="Team Building">Team Building</option>
+                        <option value="Product Launch">Product Launch</option>
+                        <option value="Networking Event">Networking Event</option>
+                        <option value="Training Session">Training Session</option>
+                        <option value="Holiday Party">Holiday Party</option>
+                        <option value="Charity Event">Charity Event</option>
                         <option value="Other">Other</option>
                     </select>
+                    <span class="error-message">Please select an event type</span>
                 </div>
 
+                <!-- Event Date -->
+                <div class="form-group">
+                    <label for="eventDate">
+                        Select Date
+                        <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="date" 
+                        id="eventDate" 
+                        name="eventDate" 
+                        required
+                    >
+                    <div class="info-box" id="availabilityMessage" style="display: none;">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Date availability will be checked upon submission</span>
+                    </div>
+                    <span class="error-message">Please select a date</span>
+                </div>
+
+                <!-- Time From & To -->
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="event_date">Event Date <span class="required">*</span></label>
-                        <input type="date" id="event_date" name="event_date" required>
+                        <label for="timeFrom">
+                            Time From (24hr)
+                            <span class="required">*</span>
+                        </label>
+                        <input 
+                            type="time" 
+                            id="timeFrom" 
+                            name="timeFrom" 
+                            required
+                        >
+                        <span class="error-message">Please select start time</span>
                     </div>
 
                     <div class="form-group">
-                        <label for="number_of_guests">Number of Guests <span class="required">*</span></label>
-                        <input type="number" id="number_of_guests" name="number_of_guests" required min="1" placeholder="50">
+                        <label for="timeTo">
+                            Time To (24hr)
+                            <span class="required">*</span>
+                        </label>
+                        <input 
+                            type="time" 
+                            id="timeTo" 
+                            name="timeTo" 
+                            required
+                        >
+                        <span class="error-message">Please select end time</span>
                     </div>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="start_time">Start Time <span class="required">*</span></label>
-                        <input type="time" id="start_time" name="start_time" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="end_time">End Time <span class="required">*</span></label>
-                        <input type="time" id="end_time" name="end_time" required>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Room Preference Section -->
-            <div class="form-section">
-                <h2 class="section-title">Room Preference</h2>
-
+                <!-- Number of People -->
                 <div class="form-group">
-                    <label for="room_preference">Preferred Room <span class="required">*</span></label>
-                    <select id="room_preference" name="room_preference" required>
-                        <option value="">Select a room...</option>
-                        <option value="Grand Ballroom">Grand Ballroom</option>
-                        <option value="Conference Hall">Conference Hall</option>
-                        <option value="Intimate Suite">Intimate Suite</option>
-                        <option value="Garden Pavilion">Garden Pavilion</option>
-                        <option value="Executive Boardroom">Executive Boardroom</option>
-                    </select>
+                    <label for="numPeople">
+                        Number of People
+                        <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="number" 
+                        id="numPeople" 
+                        name="numPeople" 
+                        placeholder="Enter expected number of attendees"
+                        min="1"
+                        max="135"
+                        required
+                    >
+                    <div class="capacity-info">
+                        <div class="capacity-badge">
+                            <i class="fas fa-chair"></i>
+                            <span>Max 120 Sitting</span>
+                        </div>
+                        <div class="capacity-badge">
+                            <i class="fas fa-users"></i>
+                            <span>Max 135 Standing</span>
+                        </div>
+                    </div>
+                    <span class="error-message">Please enter number of people (1-135)</span>
                 </div>
 
-                <div class="info-box">
-                    💡 Not sure which room? Don't worry! We'll recommend the best option based on your requirements.
-                </div>
+                <!-- Submit Button -->
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <i class="fas fa-paper-plane"></i>
+                    Submit Enquiry
+                </button>
+            </form>
+        </div>
+    </div>
 
-                <div class="form-group">
-                    <label for="special_requirements">Special Requirements / Additional Information</label>
-                    <textarea id="special_requirements" name="special_requirements" placeholder="E.g., Need projector, catering preferences, accessibility requirements, setup preferences..."></textarea>
-                </div>
-            </div>
-
-            <button type="submit" class="submit-btn" id="submitBtn">
-                Submit Booking Request
-            </button>
-        </form>
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <div class="notification-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="notification-content">
+            <h3>Success!</h3>
+            <p>Your enquiry has been submitted successfully.</p>
+        </div>
+        <button class="notification-close" onclick="closeNotification()">
+            <i class="fas fa-times"></i>
+        </button>
     </div>
 
     <script>
-        // IMPORTANT: Replace this with your actual n8n webhook URL
-        const WEBHOOK_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook-test/d057a40e-fb3e-402a-8ed7-fe16bce70feb';
-        
-        const form = document.getElementById('bookingForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const messageBox = document.getElementById('messageBox');
-        const loadingSpinner = document.getElementById('loadingSpinner');
+        // Set minimum date to today
+        document.getElementById('eventDate').min = new Date().toISOString().split('T')[0];
+
+        // Show availability message when date is selected
+        document.getElementById('eventDate').addEventListener('change', function() {
+            const availabilityMsg = document.getElementById('availabilityMessage');
+            if (this.value) {
+                availabilityMsg.style.display = 'flex';
+            }
+        });
+
+        // Form validation
+        function validateForm() {
+            let isValid = true;
+            const form = document.getElementById('enquiryForm');
+            const formGroups = form.querySelectorAll('.form-group');
+
+            // Remove previous error states
+            formGroups.forEach(group => group.classList.remove('error'));
+
+            // Name validation
+            const name = document.getElementById('name');
+            if (!name.value.trim()) {
+                name.closest('.form-group').classList.add('error');
+                isValid = false;
+            }
+
+            // Email validation
+            const email = document.getElementById('email');
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email.value.trim() || !emailRegex.test(email.value)) {
+                email.closest('.form-group').classList.add('error');
+                isValid = false;
+            }
+
+            // Contact validation
+            const contact = document.getElementById('contact');
+            if (!contact.value.trim()) {
+                contact.closest('.form-group').classList.add('error');
+                isValid = false;
+            }
+
+            // Event type validation
+            const eventType = document.getElementById('eventType');
+            if (!eventType.value) {
+                eventType.closest('.form-group').classList.add('error');
+                isValid = false;
+            }
+
+            // Date validation
+            const eventDate = document.getElementById('eventDate');
+            if (!eventDate.value) {
+                eventDate.closest('.form-group').classList.add('error');
+                isValid = false;
+            }
+
+            // Time validation
+            const timeFrom = document.getElementById('timeFrom');
+            const timeTo = document.getElementById('timeTo');
+            if (!timeFrom.value) {
+                timeFrom.closest('.form-group').classList.add('error');
+                isValid = false;
+            }
+            if (!timeTo.value) {
+                timeTo.closest('.form-group').classList.add('error');
+                isValid = false;
+            }
+
+            // Time logic validation
+            if (timeFrom.value && timeTo.value && timeFrom.value >= timeTo.value) {
+                timeTo.closest('.form-group').classList.add('error');
+                timeTo.closest('.form-group').querySelector('.error-message').textContent = 'End time must be after start time';
+                isValid = false;
+            }
+
+            // Number of people validation
+            const numPeople = document.getElementById('numPeople');
+            const peopleCount = parseInt(numPeople.value);
+            if (!numPeople.value || peopleCount < 1 || peopleCount > 135) {
+                numPeople.closest('.form-group').classList.add('error');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        // n8n Webhook Configuration
+        // TODO: Replace with your actual n8n webhook URL
+        const N8N_WEBHOOK_URL = 'https://your-n8n-instance.com/webhook/event-enquiry';
 
         // Submit to n8n webhook
         async function submitToN8N(data) {
-          const response = await fetch(N8N_WEBHOOK_URL, {
+            const response = await fetch(N8N_WEBHOOK_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -377,136 +708,178 @@
             }
             
             return await response.json();
-        }        
-        // Set minimum date to today
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('event_date').setAttribute('min', today);
-
-        // Form validation
-        function validateForm(data) {
-            const startTime = data.start_time;
-            const endTime = data.end_time;
-
-            if (startTime >= endTime) {
-                showMessage('End time must be after start time', 'error');
-                return false;
-            }
-
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(data.email)) {
-                showMessage('Please enter a valid email address', 'error');
-                return false;
-            }
-
-            return true;
-        }
-
-        // Show message
-        function showMessage(text, type) {
-            messageBox.textContent = text;
-            messageBox.className = `message ${type}`;
-            messageBox.style.display = 'block';
-            
-            // Auto-hide success messages after 10 seconds
-            if (type === 'success') {
-                setTimeout(() => {
-                    messageBox.style.display = 'none';
-                }, 10000);
-            }
-
-            // Scroll to message
-            messageBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
         // Form submission
-        form.addEventListener('submit', async (e) => {
+        document.getElementById('enquiryForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            // Clear previous messages
-            messageBox.style.display = 'none';
-
-            // Collect form data
-            const formData = new FormData(form);
-            const data = Object.fromEntries(formData);
-
-            // Validate form
-            if (!validateForm(data)) {
+            if (!validateForm()) {
                 return;
             }
 
-            // Show loading state
+            const submitBtn = document.getElementById('submitBtn');
+            const originalContent = submitBtn.innerHTML;
+            
+            // Disable button and show loading
             submitBtn.disabled = true;
-            submitBtn.textContent = 'SUBMITTING...';
-            loadingSpinner.classList.add('active');
-            form.style.opacity = '0.5';
+            submitBtn.innerHTML = '<span class="spinner"></span> Submitting...';
+
+            // Collect form data
+            const formData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                contact: document.getElementById('contact').value,
+                eventType: document.getElementById('eventType').value,
+                eventDate: document.getElementById('eventDate').value,
+                timeFrom: document.getElementById('timeFrom').value,
+                timeTo: document.getElementById('timeTo').value,
+                numPeople: document.getElementById('numPeople').value,
+                timestamp: new Date().toISOString()
+            };
 
             try {
-                const response = await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data)
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const result = await response.json();
-
-                // Success!
-                showMessage(
-                    '✅ Booking request submitted successfully! Check your email for a detailed quote. We\'ll respond within 24 hours.',
-                    'success'
-                );
-
+                // Submit to n8n webhook
+                await submitToN8N(formData);
+                
+                // Show success notification
+                showNotification('success', 'Success!', 'Your enquiry has been submitted successfully. We\'ll get back to you soon!');
+                
                 // Reset form
-                form.reset();
-
+                document.getElementById('enquiryForm').reset();
+                document.getElementById('availabilityMessage').style.display = 'none';
+                
             } catch (error) {
                 console.error('Submission error:', error);
-                showMessage(
-                    '❌ Sorry, there was an error submitting your request. Please try again or contact us directly at bookings@venue.com',
-                    'error'
-                );
+                // Show error notification
+                showNotification('error', 'Submission Failed', 'There was an error submitting your enquiry. Please try again or contact us directly.');
             } finally {
-                // Reset button state
+                // Re-enable button
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'SUBMIT BOOKING REQUEST';
-                loadingSpinner.classList.remove('active');
-                form.style.opacity = '1';
+                submitBtn.innerHTML = originalContent;
             }
         });
 
-        // Add input animations
-        const inputs = document.querySelectorAll('input, select, textarea');
-        inputs.forEach(input => {
-            input.addEventListener('focus', function() {
-                this.parentElement.style.transform = 'scale(1.01)';
-                this.parentElement.style.transition = 'transform 0.2s ease';
-            });
+        // Show notification
+        function showNotification(type, title, message) {
+            const notification = document.getElementById('notification');
+            const icon = notification.querySelector('.notification-icon i');
+            const titleEl = notification.querySelector('.notification-content h3');
+            const messageEl = notification.querySelector('.notification-content p');
 
-            input.addEventListener('blur', function() {
-                this.parentElement.style.transform = 'scale(1)';
-            });
-        });
+            // Update notification content
+            notification.className = `notification ${type}`;
+            titleEl.textContent = title;
+            messageEl.textContent = message;
 
-        // Phone number formatting (optional)
-        const phoneInput = document.getElementById('phone');
-        phoneInput.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length > 0) {
-                if (value.length <= 3) {
-                    value = value;
-                } else if (value.length <= 6) {
-                    value = `(${value.slice(0, 3)}) ${value.slice(3)}`;
-                } else {
-                    value = `(${value.slice(0, 3)}) ${value.slice(3, 6)}-${value.slice(6, 10)}`;
-                }
+            // Update icon
+            if (type === 'success') {
+                icon.className = 'fas fa-check-circle';
+            } else {
+                icon.className = 'fas fa-exclamation-circle';
             }
-            e.target.value = value;
-        });
+
+            // Show notification
+            setTimeout(() => notification.classList.add('show'), 100);
+
+            // Auto-hide after 5 seconds
+            setTimeout(() => closeNotification(), 5000);
+        }
+
+        // Close notification
+        function closeNotification() {
+            const notification = document.getElementById('notification');
+            notification.classList.remove('show');
+        }
+
+        // Make function globally available
+        window.closeNotification = closeNotification;
     </script>
+
+        <!-- Iframe auto-resize helper: posts document height to parent via postMessage -->
+        <script>
+        (function () {
+            // In production replace '*' with your parent page origin, e.g. 'https://www.example.com'
+            const allowedParentOrigin = '*';
+
+            function debounce(fn, wait) {
+                let t;
+                return function () {
+                    const args = arguments;
+                    clearTimeout(t);
+                    t = setTimeout(function () { fn.apply(null, args); }, wait);
+                };
+            }
+
+            function getDocumentHeight() {
+                const body = document.body;
+                const html = document.documentElement;
+                return Math.max(
+                    body.scrollHeight, body.offsetHeight,
+                    html.clientHeight, html.scrollHeight, html.offsetHeight
+                );
+            }
+
+            const postHeight = debounce(function () {
+                const height = Math.round(getDocumentHeight());
+                try {
+                    parent.postMessage({ type: 'FORM_HEIGHT', height: height }, allowedParentOrigin);
+                } catch (e) {
+                    // ignore cross-origin errors in development
+                }
+            }, 80);
+
+            function sendInitialHeights() {
+                postHeight();
+                setTimeout(postHeight, 120);
+                setTimeout(postHeight, 500);
+            }
+
+            if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                sendInitialHeights();
+            } else {
+                window.addEventListener('DOMContentLoaded', sendInitialHeights);
+                window.addEventListener('load', sendInitialHeights);
+            }
+
+            // Use ResizeObserver when available for best responsiveness
+            try {
+                if ('ResizeObserver' in window) {
+                    const ro = new ResizeObserver(postHeight);
+                    ro.observe(document.documentElement);
+                    ro.observe(document.body);
+                } else {
+                    throw new Error('no ResizeObserver');
+                }
+            } catch (e) {
+                try {
+                    const mo = new MutationObserver(postHeight);
+                    mo.observe(document.documentElement, { childList: true, subtree: true, attributes: true });
+                } catch (err) {
+                    // ignore
+                }
+                // Poll as a last resort
+                setInterval(postHeight, 700);
+            }
+
+            // Respond to explicit parent requests for height
+            window.addEventListener('message', function (event) {
+                try {
+                    const data = event.data || {};
+                    if (data && data.type === 'REQUEST_HEIGHT') {
+                        postHeight();
+                    }
+                } catch (err) {
+                    // ignore
+                }
+            }, false);
+
+            // Expose helpers for debugging in DevTools
+            window.__iframeResizer = {
+                sendHeight: postHeight,
+                getHeight: getDocumentHeight
+            };
+        })();
+        </script>
 </body>
 </html>
