@@ -1,5 +1,5 @@
 // === CONFIGURATION ===
-const WEBHOOK_URL = 'https://n8n.srv1090894.hstgr.cloud:5678/webhook-test/dashboard';
+const WEBHOOK_URL = 'https://n8n.srv1090894.hstgr.cloud:5678/webhook/dashboard';
 const STAFF_NAME = "Manager";
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 2000;
