@@ -345,8 +345,8 @@
 
     <script>
         // === CONFIGURATION ===
-        // The URL of your sequential workflow
-        const API_BASE_URL = 'https://n8n.srv1090894.hstgr.cloud:5678/webhook-test/dashboard'; 
+        // The URL of your n8n workflow webhook
+        const WEBHOOK_URL = 'http://localhost:5678/webhook/staff-dashboard'; 
         const STAFF_NAME = "Manager"; 
 
         // === UTILITIES ===
@@ -370,9 +370,9 @@
             refreshIcon.classList.add('fa-spin');
 
             try {
-                // Fetch from the Sequential Workflow
-                const response = await fetch(`${API_BASE_URL}/staff-dashboard`);
-                if (!response.ok) throw new Error("API connection failed");
+                // Fetch from the n8n Webhook
+                const response = await fetch(WEBHOOK_URL);
+                if (!response.ok) throw new Error("Webhook connection failed");
 
                 const data = await response.json();
                 
@@ -454,11 +454,11 @@
             btn.disabled = true;
 
             try {
-                // Hit the specific endpoint for updates
-                const response = await fetch(`${API_BASE_URL}/update-status`, {
+                // Send update to n8n webhook
+                const response = await fetch(WEBHOOK_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: id, staff_name: STAFF_NAME })
+                    body: JSON.stringify({ action: 'update-status', id: id, staff_name: STAFF_NAME })
                 });
 
                 if (response.ok) {
