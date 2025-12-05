@@ -346,22 +346,6 @@
     <script>
         // === CONFIGURATION ===
         const WEBHOOK_URL = 'https://n8n.srv1090894.hstgr.cloud:5678/webhook/dashboard';
-        const STAFF_NAME = "Manager"; 
-
-        // === UTILITIES ===
-        const formatCurrency = (num) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(num);
-        
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i> ${message}`;
-            container.appendChild(toast);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
 
         // === MAIN LOGIC ===
         async function loadDashboard() {
@@ -369,145 +353,34 @@
             refreshIcon.classList.add('fa-spin');
 
             try {
-                // Fetch from n8n webhook
-                console.log('Connecting to:', WEBHOOK_URL);
+                // Fetch from webhook
                 const response = await fetch(WEBHOOK_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ action: 'get-dashboard-data' })
+                    body: JSON.stringify({ key: 'value' })
                 });
                 
-                console.log('Response status:', response.status);
-                
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Error response:', errorText);
-                    throw new Error(`Webhook failed: ${response.status} ${response.statusText}`);
+                    throw new Error(`Request failed: ${response.status}`);
                 }
 
                 const data = await response.json();
-                console.log('Data received from n8n:', data);
+                console.log(data);
                 
-                // Handle the data returned by n8n (which can include data from FastAPI)
-                const bookings = data.bookings || [];
-                const metrics = data.metrics || {};
-                
-                console.log('Bookings:', bookings);
-                
-                // 1. Populate Metrics
-                document.getElementById('val-revenue').innerText = formatCurrency(metrics.total_revenue_month || 0);
-                document.getElementById('val-pending').innerText = metrics.pending_requests || 0;
-                document.getElementById('val-contacted').innerText = metrics.contacted_today || 0;
-
-                // 2. Populate Requests Table
-                const reqBody = document.getElementById('table-requests');
-                const requests = data.recent_customers || bookings.filter(b => b.status === 'pending' || b.status === 'contacted');
-                
-                if (requests.length === 0) {
-                    reqBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding: 2rem;">No pending requests</td></tr>`;
-                } else {
-                    reqBody.innerHTML = requests.map(c => `
-                        <tr>
-                            <td>
-                                <div style="font-weight: 600;">${c.customer_name || c.full_name || 'N/A'}</div>
-                                <div style="font-size: 0.8rem; color: var(--text-muted);">${new Date(c.booking_date || c.event_date).toLocaleDateString()}</div>
-                            </td>
-                            <td>${c.event_type || 'General'}</td>
-                            <td><i class="fa-solid fa-user-group" style="font-size: 0.7rem; margin-right:5px"></i> ${c.guests_count || c.guest_count || 0}</td>
-                            <td>
-                                <span class="status-badge ${c.status === 'pending' ? 'pending' : 'contacted'}">
-                                    ${c.status || 'pending'}
-                                </span>
-                            </td>
-                            <td style="text-align: right;">
-                                <button id="btn-${c.id}" class="btn-action" 
-                                    style="margin-left: auto;"
-                                    onclick="markContacted('${c.id}', '${(c.customer_name || c.full_name || 'Customer').replace(/'/g, "\\'")}')" 
-                                    ${c.status !== 'pending' ? 'disabled' : ''}>
-                                    ${c.status === 'pending' ? '<i class="fa-solid fa-check"></i> Accept' : '<i class="fa-solid fa-check-double"></i> Done'}
-                                </button>
-                            </td>
-                        </tr>
-                    `).join('');
-                }
-
-                // 3. Populate Bookings Table
-                const bookBody = document.getElementById('table-bookings');
-                const upcomingBookings = data.upcoming_bookings || bookings.filter(b => new Date(b.booking_date || b.event_date) >= new Date());
-
-                if (upcomingBookings.length === 0) {
-                    bookBody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-muted); padding: 2rem;">No upcoming events</td></tr>`;
-                } else {
-                    bookBody.innerHTML = upcomingBookings.slice(0, 10).map(b => `
-                        <tr>
-                            <td>
-                                <div style="font-weight: 600;">${new Date(b.booking_date || b.event_date).toLocaleDateString('en-GB', {day: 'numeric', month: 'short'})}</div>
-                                <div style="font-size: 0.8rem; color: var(--text-muted);">${b.customer_name || b.full_name || 'N/A'}</div>
-                            </td>
-                            <td>${b.room_name || b.venue || 'Main Hall'}</td>
-                            <td>
-                                <span class="status-badge ${(b.balance_due || 0) > 0 ? 'balance' : 'paid'}">
-                                    ${(b.balance_due || 0) > 0 ? formatCurrency(b.balance_due) + ' Due' : 'Paid'}
-                                </span>
-                            </td>
-                        </tr>
-                    `).join('');
-                }
+                // Update your HTML with the data
+                document.getElementById('result').textContent = JSON.stringify(data);
 
             } catch (error) {
-                console.error('Dashboard load error:', error);
-                console.error('Error details:', error.message, error.stack);
-                showToast(`Connection error: ${error.message}`, "error");
+                console.error('Error:', error);
             } finally {
                 refreshIcon.classList.remove('fa-spin');
             }
         }
 
-        // === ACTION LOGIC ===
-        async function markContacted(id, name) {
-            // Visual feedback immediately
-            const btn = document.getElementById(`btn-${id}`);
-            const originalContent = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
-            btn.disabled = true;
-
-            try {
-                // Send update to n8n webhook
-                console.log('Sending update for ID:', id);
-                const response = await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    mode: 'cors',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({ action: 'update-status', id: id, staff_name: STAFF_NAME })
-                });
-
-                console.log('Update response status:', response.status);
-                
-                if (response.ok) {
-                    showToast(`${name} marked as contacted`);
-                    // Reload data to reflect changes
-                    setTimeout(loadDashboard, 500);
-                } else {
-                    throw new Error("Update failed");
-                }
-            } catch (error) {
-                console.error('Update error:', error);
-                showToast(`Failed to update: ${error.message}`, "error");
-                btn.innerHTML = originalContent;
-                btn.disabled = false;
-            }
-        }
-
         // Initialize on Load
         loadDashboard();
-        
-        // Auto-refresh every 60 seconds
-        setInterval(loadDashboard, 60000);
 
     </script>
 </body>
