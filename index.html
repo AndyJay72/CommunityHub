@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* YOUR EXISTING CSS (UNCHANGED) */
         :root {
             --bg-dark: #0f172a;
             --bg-card: rgba(30, 41, 59, 0.7);
@@ -34,6 +33,7 @@
             display: flex;
         }
 
+        /* --- Sidebar --- */
         aside {
             width: 260px;
             background: rgba(15, 23, 42, 0.8);
@@ -74,6 +74,7 @@
             color: var(--primary);
         }
 
+        /* --- Main Content --- */
         main {
             margin-left: 260px;
             flex: 1;
@@ -106,6 +107,7 @@
         }
         .refresh-btn:hover { background: rgba(255,255,255,0.05); color: white; }
 
+        /* --- KPI Cards --- */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -148,6 +150,7 @@
         .stat-value { font-size: 2.5rem; font-weight: 700; color: white; margin-bottom: 0.5rem; }
         .stat-label { color: var(--text-muted); font-size: 0.9rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
 
+        /* --- Tables --- */
         .grid-split {
             display: grid;
             grid-template-columns: 1.2fr 0.8fr;
@@ -182,6 +185,7 @@
         tr:last-child td { border-bottom: none; }
         tr:hover td { background: rgba(255,255,255,0.02); }
 
+        /* --- Components --- */
         .status-badge {
             padding: 4px 10px;
             border-radius: 20px;
@@ -212,6 +216,7 @@
         .btn-action:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
         .btn-action:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; transform: none; box-shadow: none; }
 
+        /* --- Toast Notification --- */
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
         .toast {
             background: #1e293b;
@@ -228,6 +233,7 @@
         .toast.success { border-color: var(--success); }
         .toast.error { border-color: var(--danger); }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
     </style>
 </head>
 <body>
@@ -264,7 +270,6 @@
                     <span class="stat-label">Monthly Revenue</span>
                     <div class="stat-icon" style="color: var(--success);"><i class="fa-solid fa-sterling-sign"></i></div>
                 </div>
-                <!-- ID Added here for JS -->
                 <div class="stat-value" id="val-revenue">--</div>
             </div>
             
@@ -273,7 +278,6 @@
                     <span class="stat-label">Pending Reviews</span>
                     <div class="stat-icon" style="color: var(--warning);"><i class="fa-solid fa-clipboard-list"></i></div>
                 </div>
-                <!-- ID Added here for JS -->
                 <div class="stat-value" id="val-pending">--</div>
             </div>
 
@@ -282,7 +286,6 @@
                     <span class="stat-label">Tasks Completed</span>
                     <div class="stat-icon" style="color: var(--primary);"><i class="fa-solid fa-check-double"></i></div>
                 </div>
-                <!-- ID Added here for JS -->
                 <div class="stat-value" id="val-contacted">--</div>
             </div>
         </div>
@@ -305,7 +308,7 @@
                             </tr>
                         </thead>
                         <tbody id="table-requests">
-                            <!-- JS will inject rows here -->
+                            <!-- JS Injection -->
                         </tbody>
                     </table>
                 </div>
@@ -326,7 +329,7 @@
                             </tr>
                         </thead>
                         <tbody id="table-bookings">
-                             <!-- JS will inject rows here -->
+                            <!-- JS Injection -->
                         </tbody>
                     </table>
                 </div>
@@ -336,11 +339,10 @@
 
     <div id="toast-container"></div>
 
-    <!-- IMPORTANT: UPDATED JAVASCRIPT -->
     <script>
         // === CONFIGURATION ===
-        // IMPORTANT: Ensure your n8n webhook node is set to GET or POST. 
-        // If your n8n node is "GET", remove the method: 'POST' below.
+        // Note: Using standard HTTPS port 443 implicit in the domain if configured
+        // If your URL really requires port 5678, keep it, but ensure Firewalls/CORS allow it.
         const DASHBOARD_WEBHOOK_URL = 'https://n8n.srv1090894.hstgr.cloud:5678/webhook/staff-dashboard';
         const UPDATE_STATUS_URL = 'https://n8n.srv1090894.hstgr.cloud:5678/webhook/update-status';
         const STAFF_NAME = "Manager";
@@ -366,12 +368,9 @@
             refreshIcon.classList.add('fa-spin');
 
             try {
-                // Fetch from n8n
-                // Note: I switched to GET as that is standard for fetching dashboards. 
-                // If your n8n workflow expects POST, change 'GET' back to 'POST'.
+                // FIXED: Removed 'headers' to make this a Simple CORS Request
                 const response = await fetch(DASHBOARD_WEBHOOK_URL, {
-                    method: 'GET', 
-                    headers: { 'Content-Type': 'application/json' }
+                    method: 'GET' 
                 });
                 
                 if (!response.ok) {
@@ -443,7 +442,7 @@
 
             } catch (error) {
                 console.error('Error:', error);
-                showToast("Failed to connect to n8n", "error");
+                showToast("Connection Error. Check console.", "error");
             } finally {
                 refreshIcon.classList.remove('fa-spin');
             }
@@ -457,7 +456,7 @@
             btn.disabled = true;
 
             try {
-                // Call the separate update status webhook
+                // Keep POST logic for updates
                 const response = await fetch(UPDATE_STATUS_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
