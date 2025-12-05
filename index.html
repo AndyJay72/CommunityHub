@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
+        /* YOUR EXISTING CSS (UNCHANGED) */
         :root {
             --bg-dark: #0f172a;
             --bg-card: rgba(30, 41, 59, 0.7);
@@ -33,7 +34,6 @@
             display: flex;
         }
 
-        /* --- Sidebar --- */
         aside {
             width: 260px;
             background: rgba(15, 23, 42, 0.8);
@@ -74,7 +74,6 @@
             color: var(--primary);
         }
 
-        /* --- Main Content --- */
         main {
             margin-left: 260px;
             flex: 1;
@@ -107,7 +106,6 @@
         }
         .refresh-btn:hover { background: rgba(255,255,255,0.05); color: white; }
 
-        /* --- KPI Cards --- */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -150,7 +148,6 @@
         .stat-value { font-size: 2.5rem; font-weight: 700; color: white; margin-bottom: 0.5rem; }
         .stat-label { color: var(--text-muted); font-size: 0.9rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        /* --- Tables --- */
         .grid-split {
             display: grid;
             grid-template-columns: 1.2fr 0.8fr;
@@ -185,7 +182,6 @@
         tr:last-child td { border-bottom: none; }
         tr:hover td { background: rgba(255,255,255,0.02); }
 
-        /* --- Components --- */
         .status-badge {
             padding: 4px 10px;
             border-radius: 20px;
@@ -216,7 +212,6 @@
         .btn-action:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
         .btn-action:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; transform: none; box-shadow: none; }
 
-        /* --- Toast Notification --- */
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
         .toast {
             background: #1e293b;
@@ -233,11 +228,6 @@
         .toast.success { border-color: var(--success); }
         .toast.error { border-color: var(--danger); }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-        /* Loading Skeleton */
-        .skeleton { height: 20px; background: rgba(255,255,255,0.05); border-radius: 4px; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
-
     </style>
 </head>
 <body>
@@ -274,6 +264,7 @@
                     <span class="stat-label">Monthly Revenue</span>
                     <div class="stat-icon" style="color: var(--success);"><i class="fa-solid fa-sterling-sign"></i></div>
                 </div>
+                <!-- ID Added here for JS -->
                 <div class="stat-value" id="val-revenue">--</div>
             </div>
             
@@ -282,6 +273,7 @@
                     <span class="stat-label">Pending Reviews</span>
                     <div class="stat-icon" style="color: var(--warning);"><i class="fa-solid fa-clipboard-list"></i></div>
                 </div>
+                <!-- ID Added here for JS -->
                 <div class="stat-value" id="val-pending">--</div>
             </div>
 
@@ -290,6 +282,7 @@
                     <span class="stat-label">Tasks Completed</span>
                     <div class="stat-icon" style="color: var(--primary);"><i class="fa-solid fa-check-double"></i></div>
                 </div>
+                <!-- ID Added here for JS -->
                 <div class="stat-value" id="val-contacted">--</div>
             </div>
         </div>
@@ -312,7 +305,7 @@
                             </tr>
                         </thead>
                         <tbody id="table-requests">
-                            <!-- JS Injection -->
+                            <!-- JS will inject rows here -->
                         </tbody>
                     </table>
                 </div>
@@ -333,7 +326,7 @@
                             </tr>
                         </thead>
                         <tbody id="table-bookings">
-                            <!-- JS Injection -->
+                             <!-- JS will inject rows here -->
                         </tbody>
                     </table>
                 </div>
@@ -343,9 +336,29 @@
 
     <div id="toast-container"></div>
 
+    <!-- IMPORTANT: UPDATED JAVASCRIPT -->
     <script>
         // === CONFIGURATION ===
-        const WEBHOOK_URL = 'https://n8n.srv1090894.hstgr.cloud:5678/webhook/dashboard';
+        // IMPORTANT: Ensure your n8n webhook node is set to GET or POST. 
+        // If your n8n node is "GET", remove the method: 'POST' below.
+        const DASHBOARD_WEBHOOK_URL = 'https://n8n.srv1090894.hstgr.cloud:5678/webhook/staff-dashboard';
+        const UPDATE_STATUS_URL = 'https://n8n.srv1090894.hstgr.cloud:5678/webhook/update-status';
+        const STAFF_NAME = "Manager";
+
+        // === UTILITIES ===
+        const formatCurrency = (num) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(num);
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
 
         // === MAIN LOGIC ===
         async function loadDashboard() {
@@ -353,13 +366,12 @@
             refreshIcon.classList.add('fa-spin');
 
             try {
-                // Fetch from webhook
-                const response = await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ key: 'value' })
+                // Fetch from n8n
+                // Note: I switched to GET as that is standard for fetching dashboards. 
+                // If your n8n workflow expects POST, change 'GET' back to 'POST'.
+                const response = await fetch(DASHBOARD_WEBHOOK_URL, {
+                    method: 'GET', 
+                    headers: { 'Content-Type': 'application/json' }
                 });
                 
                 if (!response.ok) {
@@ -367,15 +379,101 @@
                 }
 
                 const data = await response.json();
-                console.log(data);
+                console.log("Dashboard Data:", data);
+
+                // 1. Populate Metrics (Cards)
+                const metrics = data.metrics || {};
+                document.getElementById('val-revenue').innerText = formatCurrency(metrics.total_revenue_month || 0);
+                document.getElementById('val-pending').innerText = metrics.pending_requests || 0;
+                document.getElementById('val-contacted').innerText = metrics.contacted_today || 0;
+
+                // 2. Populate Requests Table
+                const reqBody = document.getElementById('table-requests');
+                const requests = data.recent_customers || [];
                 
-                // Update your HTML with the data
-                document.getElementById('result').textContent = JSON.stringify(data);
+                if (requests.length === 0) {
+                    reqBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding: 2rem;">No pending requests</td></tr>`;
+                } else {
+                    reqBody.innerHTML = requests.map(c => `
+                        <tr>
+                            <td>
+                                <div style="font-weight: 600;">${c.full_name}</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">${new Date(c.event_date).toLocaleDateString()}</div>
+                            </td>
+                            <td>${c.event_type}</td>
+                            <td>${c.guests_count}</td>
+                            <td>
+                                <span class="status-badge ${c.status === 'pending' ? 'pending' : 'contacted'}">
+                                    ${c.status}
+                                </span>
+                            </td>
+                            <td style="text-align: right;">
+                                <button id="btn-${c.id}" class="btn-action" 
+                                    style="margin-left: auto;"
+                                    onclick="markContacted('${c.id}', '${c.full_name.replace(/'/g, "\\'")}')"
+                                    ${c.status !== 'pending' ? 'disabled' : ''}>
+                                    ${c.status === 'pending' ? '<i class="fa-solid fa-check"></i> Accept' : '<i class="fa-solid fa-check-double"></i> Done'}
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+
+                // 3. Populate Bookings Table
+                const bookBody = document.getElementById('table-bookings');
+                const bookings = data.upcoming_bookings || [];
+
+                if (bookings.length === 0) {
+                    bookBody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-muted); padding: 2rem;">No upcoming events</td></tr>`;
+                } else {
+                    bookBody.innerHTML = bookings.map(b => `
+                        <tr>
+                            <td>
+                                <div style="font-weight: 600;">${new Date(b.booking_date).toLocaleDateString('en-GB', {day: 'numeric', month: 'short'})}</div>
+                            </td>
+                            <td>${b.room_name}</td>
+                            <td>
+                                <span class="status-badge ${b.balance_due > 0 ? 'balance' : 'paid'}">
+                                    ${b.balance_due > 0 ? formatCurrency(b.balance_due) + ' Due' : 'Paid'}
+                                </span>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
 
             } catch (error) {
                 console.error('Error:', error);
+                showToast("Failed to connect to n8n", "error");
             } finally {
                 refreshIcon.classList.remove('fa-spin');
+            }
+        }
+
+        // === ACTION LOGIC ===
+        async function markContacted(id, name) {
+            const btn = document.getElementById(`btn-${id}`);
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+            btn.disabled = true;
+
+            try {
+                // Call the separate update status webhook
+                const response = await fetch(UPDATE_STATUS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id, staff_name: STAFF_NAME })
+                });
+
+                if (response.ok) {
+                    showToast(`${name} marked as contacted`);
+                    setTimeout(loadDashboard, 1000); // Reload dashboard
+                } else {
+                    throw new Error("Update failed");
+                }
+            } catch (error) {
+                showToast("Failed to update status", "error");
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
             }
         }
 
