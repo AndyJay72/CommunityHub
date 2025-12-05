@@ -1,109 +1,514 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Venue Manager Pro</title>
-    
-        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-        <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Venue Manager Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.7);
+            --border: rgba(148, 163, 184, 0.1);
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                              radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+                              radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* --- Sidebar --- */
+        aside {
+            width: 260px;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid var(--border);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+        }
+
+        .brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 3rem;
+        }
+        .brand i { color: var(--primary); }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        .nav-link:hover, .nav-link.active {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+        }
+
+        /* --- Main Content --- */
+        main {
+            margin-left: 260px;
+            flex: 1;
+            padding: 2rem;
+            max-width: 1600px;
+            width: 100%;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .header-title h1 { font-size: 1.8rem; font-weight: 700; }
+        .header-title p { color: var(--text-muted); font-size: 0.9rem; margin-top: 5px; }
+
+        .refresh-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .refresh-btn:hover { background: rgba(255,255,255,0.05); color: white; }
+
+        /* --- KPI Cards --- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 4px;
+            background: linear-gradient(90deg, var(--primary), transparent);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 48px; height: 48px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .stat-value { font-size: 2.5rem; font-weight: 700; color: white; margin-bottom: 0.5rem; }
+        .stat-label { color: var(--text-muted); font-size: 0.9rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* --- Tables --- */
+        .grid-split {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 1.5rem;
+        }
+        @media (max-width: 1200px) { .grid-split { grid-template-columns: 1fr; } }
+
+        .table-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .table-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .table-header h3 { font-size: 1.1rem; }
+
+        .table-wrapper { overflow-x: auto; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 1rem 1.5rem; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; font-weight: 600; background: rgba(0,0,0,0.2); }
+        td { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); color: var(--text-main); font-size: 0.95rem; vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(255,255,255,0.02); }
+
+        /* --- Components --- */
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .status-badge.pending { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
+        .status-badge.contacted { background: rgba(99, 102, 241, 0.15); color: var(--primary); border: 1px solid rgba(99, 102, 241, 0.3); }
+        .status-badge.paid { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status-badge.balance { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+
+        .btn-action {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .btn-action:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
+        .btn-action:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* --- Toast Notification --- */
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
+        .toast {
+            background: #1e293b;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-top: 10px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            border-left: 4px solid var(--primary);
+            display: flex; align-items: center; gap: 12px;
+            animation: slideIn 0.3s ease;
+            min-width: 300px;
+        }
+        .toast.success { border-color: var(--success); }
+        .toast.error { border-color: var(--danger); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* Loading Skeleton */
+        .skeleton { height: 20px; background: rgba(255,255,255,0.05); border-radius: 4px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
+    </style>
 </head>
 <body>
 
-    <aside>
-        <div class="brand">
-            <i class="fa-solid fa-layer-group"></i> VenuePro
-        </div>
-        <nav>
-            <a href="#" class="nav-link active"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
-            <a href="#" class="nav-link"><i class="fa-solid fa-calendar-days"></i> Calendar</a>
-            <a href="#" class="nav-link"><i class="fa-solid fa-users"></i> Customers</a>
-            <a href="#" class="nav-link"><i class="fa-solid fa-gear"></i> Settings</a>
-        </nav>
-    </aside>
+    <!-- Navigation -->
+    <aside>
+        <div class="brand">
+            <i class="fa-solid fa-layer-group"></i> VenuePro
+        </div>
+        <nav>
+            <a href="#" class="nav-link active"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="#" class="nav-link"><i class="fa-solid fa-calendar-days"></i> Calendar</a>
+            <a href="#" class="nav-link"><i class="fa-solid fa-users"></i> Customers</a>
+            <a href="#" class="nav-link"><i class="fa-solid fa-gear"></i> Settings</a>
+        </nav>
+    </aside>
 
-    <main>
-        <header>
-            <div class="header-title">
-                <h1>Overview</h1>
-                <p id="welcome-message">Welcome back, Staff Manager</p>
-            </div>
-            <button class="refresh-btn" onclick="loadDashboard()">
-                <i class="fa-solid fa-rotate-right" id="refresh-icon"></i> Refresh Data
-            </button>
-        </header>
+    <!-- Main Workspace -->
+    <main>
+        <header>
+            <div class="header-title">
+                <h1>Overview</h1>
+                <p>Welcome back, Staff Manager</p>
+            </div>
+            <button class="refresh-btn" onclick="loadDashboard()">
+                <i class="fa-solid fa-rotate-right" id="refresh-icon"></i> Refresh Data
+            </button>
+        </header>
 
-        <div class="stats-grid">
-            <div class="card">
-                <div class="stat-header">
-                    <span class="stat-label">Monthly Revenue</span>
-                    <div class="stat-icon success-icon"><i class="fa-solid fa-sterling-sign"></i></div>
-                </div>
-                <div class="stat-value" id="val-revenue">--</div>
-            </div>
-            
-            <div class="card">
-                <div class="stat-header">
-                    <span class="stat-label">Pending Reviews</span>
-                    <div class="stat-icon warning-icon"><i class="fa-solid fa-clipboard-list"></i></div>
-                </div>
-                <div class="stat-value" id="val-pending">--</div>
-            </div>
+        <!-- KPI Cards -->
+        <div class="stats-grid">
+            <div class="card">
+                <div class="stat-header">
+                    <span class="stat-label">Monthly Revenue</span>
+                    <div class="stat-icon" style="color: var(--success);"><i class="fa-solid fa-sterling-sign"></i></div>
+                </div>
+                <div class="stat-value" id="val-revenue">--</div>
+            </div>
+            
+            <div class="card">
+                <div class="stat-header">
+                    <span class="stat-label">Pending Reviews</span>
+                    <div class="stat-icon" style="color: var(--warning);"><i class="fa-solid fa-clipboard-list"></i></div>
+                </div>
+                <div class="stat-value" id="val-pending">--</div>
+            </div>
 
-            <div class="card">
-                <div class="stat-header">
-                    <span class="stat-label">Tasks Completed</span>
-                    <div class="stat-icon primary-icon"><i class="fa-solid fa-check-double"></i></div>
-                </div>
-                <div class="stat-value" id="val-contacted">--</div>
-            </div>
-        </div>
+            <div class="card">
+                <div class="stat-header">
+                    <span class="stat-label">Tasks Completed</span>
+                    <div class="stat-icon" style="color: var(--primary);"><i class="fa-solid fa-check-double"></i></div>
+                </div>
+                <div class="stat-value" id="val-contacted">--</div>
+            </div>
+        </div>
 
-        <div class="grid-split">
-            <div class="table-container">
-                <div class="table-header">
-                    <h3><i class="fa-solid fa-inbox warning-text"></i> New Requests</h3>
-                </div>
-                <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Customer</th>
-                                <th>Event Type</th>
-                                <th>Guests</th>
-                                <th>Status</th>
-                                <th style="text-align: right;">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-requests"></tbody>
-                    </table>
-                </div>
-            </div>
+        <div class="grid-split">
+            <!-- New Requests Table -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3><i class="fa-solid fa-inbox" style="margin-right: 8px; color: var(--warning);"></i> New Requests</h3>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Customer</th>
+                                <th>Event Type</th>
+                                <th>Guests</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-requests">
+                            <!-- JS Injection -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-            <div class="table-container">
-                <div class="table-header">
-                    <h3><i class="fa-solid fa-calendar-check success-text"></i> Schedule</h3>
-                </div>
-                <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Room</th>
-                                <th>Balance</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-bookings"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </main>
+            <!-- Upcoming Bookings Table -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3><i class="fa-solid fa-calendar-check" style="margin-right: 8px; color: var(--success);"></i> Schedule</h3>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Room</th>
+                                <th>Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-bookings">
+                            <!-- JS Injection -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
 
-    <div id="toast-container"></div>
+    <div id="toast-container"></div>
 
-        <script src="script.js"></script>
+    <script>
+        // === CONFIGURATION ===
+        const WEBHOOK_URL = 'https://n8n.srv1090894.hstgr.cloud:5678/webhook-test/dashboard';
+        const STAFF_NAME = "Manager"; 
+
+        // === UTILITIES ===
+        const formatCurrency = (num) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(num);
+        
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // === MAIN LOGIC ===
+        async function loadDashboard() {
+            const refreshIcon = document.getElementById('refresh-icon');
+            refreshIcon.classList.add('fa-spin');
+
+            try {
+                // Fetch from n8n webhook
+                console.log('Connecting to:', WEBHOOK_URL);
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ action: 'get-dashboard-data' })
+                });
+                
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
+                    throw new Error(`Webhook failed: ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                console.log('Data received from n8n:', data);
+                
+                // Handle the data returned by n8n (which can include data from FastAPI)
+                const bookings = data.bookings || [];
+                const metrics = data.metrics || {};
+                
+                console.log('Bookings:', bookings);
+                
+                // 1. Populate Metrics
+                document.getElementById('val-revenue').innerText = formatCurrency(metrics.total_revenue_month || 0);
+                document.getElementById('val-pending').innerText = metrics.pending_requests || 0;
+                document.getElementById('val-contacted').innerText = metrics.contacted_today || 0;
+
+                // 2. Populate Requests Table
+                const reqBody = document.getElementById('table-requests');
+                const requests = data.recent_customers || bookings.filter(b => b.status === 'pending' || b.status === 'contacted');
+                
+                if (requests.length === 0) {
+                    reqBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding: 2rem;">No pending requests</td></tr>`;
+                } else {
+                    reqBody.innerHTML = requests.map(c => `
+                        <tr>
+                            <td>
+                                <div style="font-weight: 600;">${c.customer_name || c.full_name || 'N/A'}</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">${new Date(c.booking_date || c.event_date).toLocaleDateString()}</div>
+                            </td>
+                            <td>${c.event_type || 'General'}</td>
+                            <td><i class="fa-solid fa-user-group" style="font-size: 0.7rem; margin-right:5px"></i> ${c.guests_count || c.guest_count || 0}</td>
+                            <td>
+                                <span class="status-badge ${c.status === 'pending' ? 'pending' : 'contacted'}">
+                                    ${c.status || 'pending'}
+                                </span>
+                            </td>
+                            <td style="text-align: right;">
+                                <button id="btn-${c.id}" class="btn-action" 
+                                    style="margin-left: auto;"
+                                    onclick="markContacted('${c.id}', '${(c.customer_name || c.full_name || 'Customer').replace(/'/g, "\\'")}')" 
+                                    ${c.status !== 'pending' ? 'disabled' : ''}>
+                                    ${c.status === 'pending' ? '<i class="fa-solid fa-check"></i> Accept' : '<i class="fa-solid fa-check-double"></i> Done'}
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+
+                // 3. Populate Bookings Table
+                const bookBody = document.getElementById('table-bookings');
+                const upcomingBookings = data.upcoming_bookings || bookings.filter(b => new Date(b.booking_date || b.event_date) >= new Date());
+
+                if (upcomingBookings.length === 0) {
+                    bookBody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-muted); padding: 2rem;">No upcoming events</td></tr>`;
+                } else {
+                    bookBody.innerHTML = upcomingBookings.slice(0, 10).map(b => `
+                        <tr>
+                            <td>
+                                <div style="font-weight: 600;">${new Date(b.booking_date || b.event_date).toLocaleDateString('en-GB', {day: 'numeric', month: 'short'})}</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">${b.customer_name || b.full_name || 'N/A'}</div>
+                            </td>
+                            <td>${b.room_name || b.venue || 'Main Hall'}</td>
+                            <td>
+                                <span class="status-badge ${(b.balance_due || 0) > 0 ? 'balance' : 'paid'}">
+                                    ${(b.balance_due || 0) > 0 ? formatCurrency(b.balance_due) + ' Due' : 'Paid'}
+                                </span>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+
+            } catch (error) {
+                console.error('Dashboard load error:', error);
+                console.error('Error details:', error.message, error.stack);
+                showToast(`Connection error: ${error.message}`, "error");
+            } finally {
+                refreshIcon.classList.remove('fa-spin');
+            }
+        }
+
+        // === ACTION LOGIC ===
+        async function markContacted(id, name) {
+            // Visual feedback immediately
+            const btn = document.getElementById(`btn-${id}`);
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+            btn.disabled = true;
+
+            try {
+                // Send update to n8n webhook
+                console.log('Sending update for ID:', id);
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ action: 'update-status', id: id, staff_name: STAFF_NAME })
+                });
+
+                console.log('Update response status:', response.status);
+                
+                if (response.ok) {
+                    showToast(`${name} marked as contacted`);
+                    // Reload data to reflect changes
+                    setTimeout(loadDashboard, 500);
+                } else {
+                    throw new Error("Update failed");
+                }
+            } catch (error) {
+                console.error('Update error:', error);
+                showToast(`Failed to update: ${error.message}`, "error");
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+            }
+        }
+
+        // Initialize on Load
+        loadDashboard();
+        
+        // Auto-refresh every 60 seconds
+        setInterval(loadDashboard, 60000);
+
+    </script>
 </body>
 </html>
