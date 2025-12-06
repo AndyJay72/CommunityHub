@@ -1,299 +1,189 @@
-:root {
-    --bg-dark: #0f172a;
-    --bg-card: rgba(30, 41, 59, 0.7);
-    --border: rgba(148, 163, 184, 0.1);
-    --primary: #6366f1;
-    --primary-hover: #4f46e5;
-    --success: #10b981;
-    --warning: #f59e0b;
-    --danger: #ef4444;
-    --text-main: #f8fafc;
-    --text-muted: #94a3b8;
-}
-
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-
-body {
-    background-color: var(--bg-dark);
-    background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
-                      radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
-                      radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
-    color: var(--text-main);
-    min-height: 100vh;
-    display: flex;
-}
-
-/* --- Sidebar --- */
-aside {
-    width: 260px;
-    background: rgba(15, 23, 42, 0.8);
-    backdrop-filter: blur(10px);
-    border-right: 1px solid var(--border);
-    padding: 2rem;
-    display: flex;
-    flex-direction: column;
-    position: fixed;
-    height: 100vh;
-}
-
-.brand {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: white;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 3rem;
-}
-.brand i { color: var(--primary); }
-
-.nav-link {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    color: var(--text-muted);
-    text-decoration: none;
-    border-radius: 8px;
-    margin-bottom: 5px;
-    transition: all 0.2s;
-    font-weight: 500;
-}
-.nav-link:hover, .nav-link.active {
-    background: rgba(99, 102, 241, 0.1);
-    color: var(--primary);
-}
-
-/* --- Main Content --- */
-main {
-    margin-left: 260px;
-    flex: 1;
-    padding: 2rem;
-    max-width: 1600px;
-    width: 100%;
-}
-
-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2.5rem;
-}
-
-.header-title h1 { font-size: 1.8rem; font-weight: 700; }
-.header-title p { color: var(--text-muted); font-size: 0.9rem; margin-top: 5px; }
-
-.refresh-btn {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    color: var(--text-muted);
-    padding: 10px 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-.refresh-btn:hover { background: rgba(255,255,255,0.05); color: white; }
-.refresh-btn:focus { outline: 2px solid var(--primary); outline-offset: 2px; }
-
-/* --- KPI Cards --- */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2.5rem;
-}
-
-.card {
-    background: var(--bg-card);
-    backdrop-filter: blur(16px);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 1.5rem;
-    position: relative;
-    overflow: hidden;
-}
-
-.card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 4px;
-    background: linear-gradient(90deg, var(--primary), transparent);
-}
-
-.stat-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1rem;
-}
-
-.stat-icon {
-    width: 48px; height: 48px;
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.2rem;
-    background: rgba(255,255,255,0.05);
-}
-
-/* Custom icon colors */
-.stat-icon.success-icon { color: var(--success); }
-.stat-icon.warning-icon { color: var(--warning); }
-.stat-icon.primary-icon { color: var(--primary); }
-
-.stat-value { font-size: 2.5rem; font-weight: 700; color: white; margin-bottom: 0.5rem; }
-.stat-label { color: var(--text-muted); font-size: 0.9rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
-
-/* --- Tables --- */
-.grid-split {
-    display: grid;
-    grid-template-columns: 1.2fr 0.8fr;
-    gap: 1.5rem;
-    margin-bottom: 2.5rem;
-}
-@media (max-width: 1200px) { .grid-split { grid-template-columns: 1fr; } }
-
-.table-container {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
-.table-header {
-    padding: 1.5rem;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.table-header h3 { font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
-.warning-text { color: var(--warning); margin-right: 8px; }
-.success-text { color: var(--success); margin-right: 8px; }
-
-.table-wrapper { overflow-x: auto; }
-
-table { width: 100%; border-collapse: collapse; }
-th { text-align: left; padding: 1rem 1.5rem; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; font-weight: 600; background: rgba(0,0,0,0.2); }
-td { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); color: var(--text-main); font-size: 0.95rem; vertical-align: middle; }
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: rgba(255,255,255,0.02); }
-
-/* Empty and Error States */
-.empty-table-message, .error-table-message {
-    text-align: center;
-    color: var(--text-muted);
-    padding: 2rem !important;
-    font-style: italic;
-}
-.error-table-message {
-    color: var(--danger);
-    font-weight: 600;
-}
-
-/* --- Components --- */
-.status-badge {
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-.status-badge.pending { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
-.status-badge.contacted { background: rgba(99, 102, 241, 0.15); color: var(--primary); border: 1px solid rgba(99, 102, 241, 0.3); }
-.status-badge.paid { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
-.status-badge.balance { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
-
-.btn-action {
-    background: var(--primary);
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    font-size: 0.85rem;
-    transition: all 0.2s;
-    display: flex; align-items: center; gap: 8px;
-}
-.btn-action:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
-.btn-action:focus { outline: 2px solid var(--primary); outline-offset: 2px; }
-.btn-action:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; transform: none; box-shadow: none; }
-
-/* --- Toast Notification --- */
-#toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
-.toast {
-    background: #1e293b;
-    color: white;
-    padding: 1rem 1.5rem;
-    border-radius: 8px;
-    margin-top: 10px;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-    border-left: 4px solid var(--primary);
-    display: flex; align-items: center; gap: 12px;
-    animation: slideIn 0.3s ease;
-    min-width: 300px;
-}
-.toast.success { border-color: var(--success); }
-.toast.error { border-color: var(--danger); }
-@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-/* Loading Skeleton */
-.skeleton { height: 20px; background: rgba(255,255,255,0.05); border-radius: 4px; animation: pulse 1.5s infinite; opacity: 1; }
-@keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
-.kpi-skeleton { width: 60%; height: 2.5rem; margin-bottom: 0.5rem; }
-.table-skeleton-row td { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); }
-.table-skeleton-text { height: 18px; width: 80%; }
-.table-skeleton-action { height: 34px; width: 100px; margin-left: auto; }
-
-/* Mobile Responsiveness */
-@media (max-width: 768px) {
-    aside {
-        width: 100%;
-        height: auto;
-        position: relative;
-        border-right: none;
-        border-bottom: 1px solid var(--border);
-    }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accounts | Venue Manager Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    main {
-        margin-left: 0;
-        padding: 1rem;
-    }
-    
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .stat-value {
-        font-size: 2rem;
-    }
-    
-    header {
-        flex-direction: column;
-        gap: 1rem;
-        align-items: flex-start;
-    }
-    
-    .refresh-btn {
-        width: 100%;
-        justify-content: center;
-    }
-    
-    .table-wrapper {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-    
-    table {
-        min-width: 600px;
-    }
-}
+    <style>
+        /* Base Styles */
+        :root { --bg-dark: #0f172a; --bg-card: rgba(30, 41, 59, 0.7); --border: rgba(148, 163, 184, 0.1); --primary: #6366f1; --success: #10b981; --warning: #f59e0b; --text-main: #f8fafc; --text-muted: #94a3b8; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg-dark); color: var(--text-main); min-height: 100vh; display: flex; }
+        
+        aside { width: 260px; background: rgba(15, 23, 42, 0.8); border-right: 1px solid var(--border); padding: 2rem; display: flex; flex-direction: column; position: fixed; height: 100vh; }
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: var(--text-muted); text-decoration: none; border-radius: 8px; margin-bottom: 5px; font-weight: 500; }
+        .nav-link:hover, .nav-link.active { background: rgba(99, 102, 241, 0.1); color: var(--primary); }
+        
+        main { margin-left: 260px; flex: 1; padding: 2rem; max-width: 1600px; width: 100%; }
+        
+        /* Account Specific Grid */
+        .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
+        .kpi-card { background: var(--bg-card); padding: 1.5rem; border-radius: 16px; border: 1px solid var(--border); }
+        .kpi-title { color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; margin-bottom: 10px; }
+        .kpi-val { font-size: 2rem; font-weight: 700; }
+        
+        .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+        .chart-container { background: var(--bg-card); padding: 1.5rem; border-radius: 16px; border: 1px solid var(--border); position: relative; height: 350px; }
+        
+        .transaction-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        .transaction-table th { text-align: left; color: var(--text-muted); padding: 10px; border-bottom: 1px solid var(--border); }
+        .transaction-table td { padding: 10px; border-bottom: 1px solid var(--border); }
+        
+        @media (max-width: 1024px) { .kpi-grid, .charts-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { aside { display: none; } main { margin-left: 0; } }
+    </style>
+</head>
+<body>
+    <aside>
+        <div style="font-size: 1.5rem; font-weight: 700; color: white; margin-bottom: 3rem; display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-layer-group" style="color: #6366f1;"></i> VenuePro
+        </div>
+        <nav>
+            <a href="dashboard.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="bookings.html" class="nav-link"><i class="fa-solid fa-calendar-days"></i> Bookings</a>
+            <a href="customers.html" class="nav-link"><i class="fa-solid fa-users"></i> Customers</a>
+            <a href="accounts.html" class="nav-link active"><i class="fa-solid fa-file-invoice-dollar"></i> Accounts</a>
+        </nav>
+    </aside>
+
+    <main>
+        <header style="margin-bottom: 2rem;">
+            <h1>Financial Overview</h1>
+        </header>
+
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-title">Total Revenue (Month)</div>
+                <div class="kpi-val" id="total-revenue" style="color: var(--success);">£0.00</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Deposits Received</div>
+                <div class="kpi-val" id="total-deposits" style="color: var(--primary);">£0.00</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Outstanding Payments</div>
+                <div class="kpi-val" id="total-outstanding" style="color: var(--warning);">£0.00</div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid">
+            <div class="chart-container">
+                <h3 style="margin-bottom: 1rem;">Revenue Breakdown</h3>
+                <canvas id="barChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3 style="margin-bottom: 1rem;">Payment Status</h3>
+                <canvas id="doughnutChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Transactions -->
+        <div class="chart-container" style="height: auto;">
+            <h3>Recent Transactions</h3>
+            <table class="transaction-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Reference</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="trans-body">
+                    <!-- JS Injected -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        // Formatting
+        const formatGBP = (num) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(num);
+        
+        // n8n Webhook
+        const API_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/accounts-data';
+
+        async function loadAccounts() {
+            try {
+                // Fetch data
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                const metrics = data.metrics || { deposits: 0, outstanding: 0, completed: 0 };
+                const transactions = data.transactions || [];
+
+                // 1. Update KPIs
+                document.getElementById('total-revenue').innerText = formatGBP(metrics.completed + metrics.deposits);
+                document.getElementById('total-deposits').innerText = formatGBP(metrics.deposits);
+                document.getElementById('total-outstanding').innerText = formatGBP(metrics.outstanding);
+
+                // 2. Render Doughnut Chart (Dial)
+                const ctxDoughnut = document.getElementById('doughnutChart').getContext('2d');
+                new Chart(ctxDoughnut, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Paid', 'Outstanding'],
+                        datasets: [{
+                            data: [metrics.completed + metrics.deposits, metrics.outstanding],
+                            backgroundColor: ['#10b981', '#f59e0b'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } }
+                    }
+                });
+
+                // 3. Render Bar Chart
+                const ctxBar = document.getElementById('barChart').getContext('2d');
+                new Chart(ctxBar, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'], // Ideally dynamic from n8n
+                        datasets: [{
+                            label: 'Revenue',
+                            data: [1200, 1900, 300, 500], // Ideally dynamic from n8n
+                            backgroundColor: '#6366f1',
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                            x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+
+                // 4. Render Table
+                const tbody = document.getElementById('trans-body');
+                tbody.innerHTML = transactions.map(t => `
+                    <tr>
+                        <td>${new Date(t.payment_date).toLocaleDateString()}</td>
+                        <td>${t.reference_number || 'N/A'}</td>
+                        <td style="text-transform:capitalize">${t.payment_type}</td>
+                        <td style="font-weight:600">£${t.amount}</td>
+                        <td><span style="color:${t.status === 'received' ? '#10b981' : '#f59e0b'}">${t.status}</span></td>
+                    </tr>
+                `).join('');
+
+            } catch (e) {
+                console.error("Error loading accounts data", e);
+            }
+        }
+
+        loadAccounts();
+    </script>
+</body>
+</html>
