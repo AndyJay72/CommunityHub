@@ -2,46 +2,59 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Accounts | Venue Manager Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
-        /* Base Styles */
-        :root { --bg-dark: #0f172a; --bg-card: rgba(30, 41, 59, 0.7); --border: rgba(148, 163, 184, 0.1); --primary: #6366f1; --success: #10b981; --warning: #f59e0b; --text-main: #f8fafc; --text-muted: #94a3b8; }
+        :root { --bg-dark: #0f172a; --bg-card: rgba(30, 41, 59, 0.7); --border: rgba(148, 163, 184, 0.1); --primary: #6366f1; --success: #10b981; --warning: #f59e0b; --text-main: #f8fafc; --text-muted: #94a3b8; --sidebar-width: 260px; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-        body { background-color: var(--bg-dark); color: var(--text-main); min-height: 100vh; display: flex; }
+        body { background-color: var(--bg-dark); color: var(--text-main); min-height: 100vh; display: flex; overflow-x: hidden; }
         
-        aside { width: 260px; background: rgba(15, 23, 42, 0.8); border-right: 1px solid var(--border); padding: 2rem; display: flex; flex-direction: column; position: fixed; height: 100vh; }
-        .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: var(--text-muted); text-decoration: none; border-radius: 8px; margin-bottom: 5px; font-weight: 500; }
+        aside { width: var(--sidebar-width); background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); border-right: 1px solid var(--border); padding: 2rem; display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100; transition: transform 0.3s ease; }
+        .brand { font-size: 1.5rem; font-weight: 700; color: white; display: flex; align-items: center; justify-content: space-between; margin-bottom: 3rem; }
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: var(--text-muted); text-decoration: none; border-radius: 8px; margin-bottom: 5px; font-weight: 500; transition: all 0.2s; }
         .nav-link:hover, .nav-link.active { background: rgba(99, 102, 241, 0.1); color: var(--primary); }
-        
-        main { margin-left: 260px; flex: 1; padding: 2rem; max-width: 1600px; width: 100%; }
-        
-        /* Account Specific Grid */
+        .close-sidebar { display: none; background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; }
+
+        main { margin-left: var(--sidebar-width); flex: 1; padding: 2rem; max-width: 1600px; width: 100%; transition: margin-left 0.3s ease; }
+        header { display: flex; align-items: center; margin-bottom: 2rem; gap: 1rem; }
+        .menu-toggle { display: none; background: var(--bg-card); border: 1px solid var(--border); color: white; width: 40px; height: 40px; border-radius: 8px; align-items: center; justify-content: center; cursor: pointer; }
+
+        /* KPI Grid */
         .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
         .kpi-card { background: var(--bg-card); padding: 1.5rem; border-radius: 16px; border: 1px solid var(--border); }
         .kpi-title { color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; margin-bottom: 10px; }
         .kpi-val { font-size: 2rem; font-weight: 700; }
         
+        /* Charts */
         .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
         .chart-container { background: var(--bg-card); padding: 1.5rem; border-radius: 16px; border: 1px solid var(--border); position: relative; height: 350px; }
         
-        .transaction-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        /* Table */
+        .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .transaction-table { width: 100%; border-collapse: collapse; margin-top: 1rem; min-width: 600px; }
         .transaction-table th { text-align: left; color: var(--text-muted); padding: 10px; border-bottom: 1px solid var(--border); }
         .transaction-table td { padding: 10px; border-bottom: 1px solid var(--border); }
         
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 90; backdrop-filter: blur(2px); }
+        .overlay.active { display: block; }
+
         @media (max-width: 1024px) { .kpi-grid, .charts-grid { grid-template-columns: 1fr; } }
-        @media (max-width: 768px) { aside { display: none; } main { margin-left: 0; } }
+        @media (max-width: 768px) {
+            aside { transform: translateX(-100%); } aside.active { transform: translateX(0); }
+            main { margin-left: 0; padding: 1rem; }
+            .menu-toggle { display: flex; } .close-sidebar { display: block; }
+            .kpi-val { font-size: 1.5rem; }
+        }
     </style>
 </head>
 <body>
-    <aside>
-        <div style="font-size: 1.5rem; font-weight: 700; color: white; margin-bottom: 3rem; display: flex; align-items: center; gap: 10px;">
-            <i class="fa-solid fa-layer-group" style="color: #6366f1;"></i> VenuePro
-        </div>
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+    <aside id="sidebar">
+        <div class="brand"><span><i class="fa-solid fa-layer-group"></i> VenuePro</span><button class="close-sidebar" onclick="toggleMenu()"><i class="fa-solid fa-xmark"></i></button></div>
         <nav>
             <a href="https://andyjay72.github.io/CommunityHub/index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
             <a href="bookings.html" class="nav-link"><i class="fa-solid fa-calendar-days"></i> Bookings</a>
@@ -51,122 +64,63 @@
     </aside>
 
     <main>
-        <header style="margin-bottom: 2rem;">
-            <h1>Financial Overview</h1>
+        <header>
+            <button class="menu-toggle" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></button>
+            <h1 style="font-size: 1.8rem; font-weight: 700;">Financial Overview</h1>
         </header>
 
-        <!-- KPI Cards -->
         <div class="kpi-grid">
-            <div class="kpi-card">
-                <div class="kpi-title">Total Revenue (Month)</div>
-                <div class="kpi-val" id="total-revenue" style="color: var(--success);">£0.00</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-title">Deposits Received</div>
-                <div class="kpi-val" id="total-deposits" style="color: var(--primary);">£0.00</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-title">Outstanding Payments</div>
-                <div class="kpi-val" id="total-outstanding" style="color: var(--warning);">£0.00</div>
-            </div>
+            <div class="kpi-card"><div class="kpi-title">Total Revenue</div><div class="kpi-val" id="total-revenue" style="color: var(--success);">£0.00</div></div>
+            <div class="kpi-card"><div class="kpi-title">Deposits</div><div class="kpi-val" id="total-deposits" style="color: var(--primary);">£0.00</div></div>
+            <div class="kpi-card"><div class="kpi-title">Outstanding</div><div class="kpi-val" id="total-outstanding" style="color: var(--warning);">£0.00</div></div>
         </div>
 
-        <!-- Charts -->
         <div class="charts-grid">
-            <div class="chart-container">
-                <h3 style="margin-bottom: 1rem;">Revenue Breakdown</h3>
-                <canvas id="barChart"></canvas>
-            </div>
-            <div class="chart-container">
-                <h3 style="margin-bottom: 1rem;">Payment Status</h3>
-                <canvas id="doughnutChart"></canvas>
-            </div>
+            <div class="chart-container"><h3 style="margin-bottom: 1rem;">Revenue Breakdown</h3><canvas id="barChart"></canvas></div>
+            <div class="chart-container"><h3 style="margin-bottom: 1rem;">Payment Status</h3><canvas id="doughnutChart"></canvas></div>
         </div>
 
-        <!-- Transactions -->
         <div class="chart-container" style="height: auto;">
             <h3>Recent Transactions</h3>
-            <table class="transaction-table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Reference</th>
-                        <th>Type</th>
-                        <th>Amount</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody id="trans-body">
-                    <!-- JS Injected -->
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="transaction-table">
+                    <thead><tr><th>Date</th><th>Reference</th><th>Type</th><th>Amount</th><th>Status</th></tr></thead>
+                    <tbody id="trans-body"></tbody>
+                </table>
+            </div>
         </div>
     </main>
 
     <script>
-        // Formatting
         const formatGBP = (num) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(num);
-        
-        // n8n Webhook
         const API_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/accounts-data';
+        function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('overlay').classList.toggle('active'); }
 
         async function loadAccounts() {
             try {
-                // Fetch data
                 const response = await fetch(API_URL);
                 const data = await response.json();
                 const metrics = data.metrics || { deposits: 0, outstanding: 0, completed: 0 };
                 const transactions = data.transactions || [];
 
-                // 1. Update KPIs
                 document.getElementById('total-revenue').innerText = formatGBP(metrics.completed + metrics.deposits);
                 document.getElementById('total-deposits').innerText = formatGBP(metrics.deposits);
                 document.getElementById('total-outstanding').innerText = formatGBP(metrics.outstanding);
 
-                // 2. Render Doughnut Chart (Dial)
                 const ctxDoughnut = document.getElementById('doughnutChart').getContext('2d');
                 new Chart(ctxDoughnut, {
                     type: 'doughnut',
-                    data: {
-                        labels: ['Paid', 'Outstanding'],
-                        datasets: [{
-                            data: [metrics.completed + metrics.deposits, metrics.outstanding],
-                            backgroundColor: ['#10b981', '#f59e0b'],
-                            borderWidth: 0
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } }
-                    }
+                    data: { labels: ['Paid', 'Outstanding'], datasets: [{ data: [metrics.completed + metrics.deposits, metrics.outstanding], backgroundColor: ['#10b981', '#f59e0b'], borderWidth: 0 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } } }
                 });
 
-                // 3. Render Bar Chart
                 const ctxBar = document.getElementById('barChart').getContext('2d');
                 new Chart(ctxBar, {
                     type: 'bar',
-                    data: {
-                        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'], // Ideally dynamic from n8n
-                        datasets: [{
-                            label: 'Revenue',
-                            data: [1200, 1900, 300, 500], // Ideally dynamic from n8n
-                            backgroundColor: '#6366f1',
-                            borderRadius: 6
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
-                            x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
-                        },
-                        plugins: { legend: { display: false } }
-                    }
+                    data: { labels: ['W1', 'W2', 'W3', 'W4'], datasets: [{ label: 'Revenue', data: [1200, 1900, 300, 500], backgroundColor: '#6366f1', borderRadius: 6 }] },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } }, plugins: { legend: { display: false } } }
                 });
 
-                // 4. Render Table
                 const tbody = document.getElementById('trans-body');
                 tbody.innerHTML = transactions.map(t => `
                     <tr>
@@ -177,12 +131,8 @@
                         <td><span style="color:${t.status === 'received' ? '#10b981' : '#f59e0b'}">${t.status}</span></td>
                     </tr>
                 `).join('');
-
-            } catch (e) {
-                console.error("Error loading accounts data", e);
-            }
+            } catch (e) { console.error("Error loading data", e); }
         }
-
         loadAccounts();
     </script>
 </body>
