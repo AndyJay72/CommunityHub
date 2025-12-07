@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VenuePro Booking</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- CORE VARIABLES --- */
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.8);
+            --border: rgba(148, 163, 184, 0.1);
+            --primary: #6366f1;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --sidebar-width: 260px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                              radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* --- SIDEBAR --- */
+        aside {
+            width: var(--sidebar-width);
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid var(--border);
+            padding: 2rem;
+            display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100;
+            transition: transform 0.3s ease;
+        }
+        .brand { font-size: 1.5rem; font-weight: 700; color: white; display: flex; align-items: center; justify-content: space-between; margin-bottom: 3rem; }
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: var(--text-muted); text-decoration: none; border-radius: 8px; margin-bottom: 5px; transition: all 0.2s; font-weight: 500; }
+        .nav-link:hover, .nav-link.active { background: rgba(99, 102, 241, 0.1); color: var(--primary); }
+        .close-sidebar { display: none; background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; }
+
+        /* --- MAIN CONTENT --- */
+        main {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 2rem;
+            width: 100%;
+            transition: margin-left 0.3s ease;
+        }
+
+        header { display: flex; align-items: center; margin-bottom: 2rem; gap: 1rem; }
+        .menu-toggle { display: none; background: var(--bg-card); border: 1px solid var(--border); color: white; width: 40px; height: 40px; border-radius: 8px; align-items: center; justify-content: center; cursor: pointer; }
+
+        /* --- FORM STYLING --- */
+        .form-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .form-section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .form-section-title i { color: var(--primary); }
+
+        /* Responsive Grid */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-group label {
+            display: block;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Input Wrappers & Icons */
+        .input-wrapper { position: relative; width: 100%; }
+        
+        .input-wrapper .left-icon {
+            position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+            color: var(--primary); pointer-events: none; z-index: 2;
+        }
+
+        .input-wrapper .arrow-icon {
+            position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
+            color: var(--text-muted); pointer-events: none; font-size: 0.8rem; z-index: 2;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px 15px 14px 45px; /* Space for left icon */
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: white;
+            outline: none;
+            font-size: 1rem;
+            transition: border 0.3s, box-shadow 0.3s;
+            appearance: none; -webkit-appearance: none;
+        }
+
+        select { cursor: pointer; padding-right: 40px; }
+        select option { background: #1e293b; color: white; }
+
+        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); }
+        input[readonly] { opacity: 0.6; cursor: default; }
+
+        /* Payment Box */
+        .payment-box {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .payment-input-large {
+            font-size: 2rem !important;
+            text-align: center;
+            font-weight: 700;
+            color: var(--success);
+            padding-left: 15px !important;
+            margin-top: 10px;
+        }
+
+        /* Buttons */
+        .action-buttons {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 16px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            font-size: 1rem; transition: transform 0.2s, filter 0.2s; color: #0f172a;
+        }
+        .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        
+        .btn-warning { background: var(--warning); }
+        .btn-success { background: var(--success); }
+
+        /* Overlays */
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 90; backdrop-filter: blur(2px); }
+        .overlay.active { display: block; }
+
+        /* --- RESPONSIVE MEDIA QUERIES --- */
+        @media (max-width: 900px) {
+            .form-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+        }
+
+        @media (max-width: 768px) {
+            aside { transform: translateX(-100%); } 
+            aside.active { transform: translateX(0); }
+            main { margin-left: 0; padding: 1.5rem 1rem; }
+            .menu-toggle { display: flex; } 
+            .close-sidebar { display: block; }
+            .form-card { padding: 1.5rem; }
+            .action-buttons { grid-template-columns: 1fr; }
+            .payment-input-large { font-size: 1.5rem !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar">
+        <div class="brand">
+            <span><i class="fa-solid fa-layer-group"></i> VenuePro</span>
+            <button class="close-sidebar" onclick="toggleMenu()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <nav>
+            <a href="https://andyjay72.github.io/CommunityHub/index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="bookings.html" class="nav-link"><i class="fa-solid fa-calendar-days"></i> Bookings</a>
+            <a href="customers.html" class="nav-link"><i class="fa-solid fa-users"></i> Customers</a>
+            <a href="accounts.html" class="nav-link"><i class="fa-solid fa-file-invoice-dollar"></i> Accounts</a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main>
+        <header>
+            <button class="menu-toggle" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></button>
+            <h1 style="font-size: 1.5rem; font-weight: 700;">VenuePro Booking</h1>
+        </header>
+
+        <form id="bookingForm" class="form-card" onsubmit="return false;">
+            
+            <!-- SECTION 1: CUSTOMER -->
+            <div class="form-section-title"><i class="fa-solid fa-user"></i> Customer Selection</div>
+            <div class="form-grid">
+                <div class="input-group">
+                    <label>Select Customer</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-search left-icon"></i>
+                        <select id="customerSelect" onchange="fillCustomerDetails()" required>
+                            <option value="">Loading customers...</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down arrow-icon"></i>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Email (Auto-Filled)</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-envelope left-icon"></i>
+                        <input type="text" id="customerEmail" readonly>
+                        <input type="hidden" id="customerId">
+                        <input type="hidden" id="customerName">
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: EVENT DETAILS -->
+            <div class="form-section-title"><i class="fa-solid fa-calendar-check"></i> Event Details</div>
+            <div class="form-grid">
+                <div class="input-group">
+                    <label>Room</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-door-open left-icon"></i>
+                        <select id="roomName" required>
+                            <option value="Grand Ballroom">Grand Ballroom</option>
+                            <option value="Executive Suite">Executive Suite</option>
+                            <option value="Garden Terrace">Garden Terrace</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down arrow-icon"></i>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Date</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-calendar left-icon"></i>
+                        <input type="date" id="bookingDate" required>
+                    </div>
+                </div>
+                <!-- Time Selection Dropdowns -->
+                <div class="input-group">
+                    <label>Start Time</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-clock left-icon"></i>
+                        <select id="startTime" required>
+                            <option value="" disabled selected>--:--</option>
+                            <!-- JS populated -->
+                        </select>
+                        <i class="fa-solid fa-chevron-down arrow-icon"></i>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>End Time</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-clock left-icon"></i>
+                        <select id="endTime" required>
+                            <option value="" disabled selected>--:--</option>
+                            <!-- JS populated -->
+                        </select>
+                        <i class="fa-solid fa-chevron-down arrow-icon"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 3: PAYMENT -->
+            <div class="form-section-title"><i class="fa-solid fa-credit-card"></i> Payment</div>
+            <div class="payment-box">
+                <label style="color:var(--text-muted); font-weight:600; text-transform:uppercase;">Total Booking Cost (£)</label>
+                <input type="number" id="totalAmount" class="payment-input-large" placeholder="0.00" required>
+                
+                <div style="margin-top: 1.5rem; text-align: left;">
+                    <label style="color:var(--text-muted); font-size:0.9rem; display:block; margin-bottom:0.5rem; font-weight:600;">Amount Paying Now (£)</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-sterling-sign left-icon"></i>
+                        <input type="number" id="payAmount" placeholder="Enter amount..." required>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="button" class="btn btn-warning" onclick="submitBooking('deposit')">
+                        <i class="fa-solid fa-coins"></i> Deposit Paid
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="submitBooking('full')">
+                        <i class="fa-solid fa-check-circle"></i> Paid in Full
+                    </button>
+                </div>
+            </div>
+
+        </form>
+    </main>
+
+    <script>
+        // === CONFIGURATION ===
+        const CUSTOMERS_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/all-customers';
+        const BOOKING_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/make-booking';
+        
+        let customerData = [];
+
+        function toggleMenu() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('overlay').classList.toggle('active');
+        }
+
+        // --- POPULATE TIME DROPDOWNS ---
+        function populateTimeDropdowns() {
+            const startSelect = document.getElementById('startTime');
+            const endSelect = document.getElementById('endTime');
+            const startHour = 8; // 08:00
+            const endHour = 23;  // 23:00
+
+            for (let hour = startHour; hour <= endHour; hour++) {
+                // Add :00
+                const hh = hour.toString().padStart(2, '0');
+                
+                let opt1 = new Option(`${hh}:00`, `${hh}:00`);
+                let opt2 = new Option(`${hh}:00`, `${hh}:00`);
+                startSelect.add(opt1);
+                endSelect.add(opt2);
+
+                // Add :30 (skip for 23 if strictly closing at 23:00, but allowing 23:30 allows clean end)
+                if (hour < endHour) {
+                    let opt3 = new Option(`${hh}:30`, `${hh}:30`);
+                    let opt4 = new Option(`${hh}:30`, `${hh}:30`);
+                    startSelect.add(opt3);
+                    endSelect.add(opt4);
+                }
+            }
+        }
+
+        // 1. Fetch Customers
+        async function loadCustomers() {
+            try {
+                const response = await fetch(CUSTOMERS_API);
+                const json = await response.json();
+                customerData = json.data || (Array.isArray(json) ? json : []);
+                
+                const select = document.getElementById('customerSelect');
+                select.innerHTML = '<option value="">-- Select Customer --</option>';
+                
+                customerData.forEach((c, index) => {
+                    const opt = document.createElement('option');
+                    opt.value = index; 
+                    opt.innerText = `${c.full_name} (${c.email})`;
+                    select.appendChild(opt);
+                });
+            } catch (e) {
+                console.error("Error loading customers", e);
+                document.getElementById('customerSelect').innerHTML = '<option>Error loading list</option>';
+            }
+        }
+
+        // 2. Auto-fill details
+        function fillCustomerDetails() {
+            const index = document.getElementById('customerSelect').value;
+            if (index !== "") {
+                const c = customerData[index];
+                document.getElementById('customerEmail').value = c.email || "";
+                document.getElementById('customerId').value = c.id || ""; 
+                document.getElementById('customerName').value = c.full_name || "";
+            } else {
+                document.getElementById('customerEmail').value = "";
+                document.getElementById('customerId').value = "";
+                document.getElementById('customerName').value = "";
+            }
+        }
+
+        // 3. Submit Logic
+        async function submitBooking(type) {
+            const form = document.getElementById('bookingForm');
+            if (!form.checkValidity()) { form.reportValidity(); return; }
+
+            const total = document.getElementById('totalAmount').value;
+            let payAmount = document.getElementById('payAmount').value;
+
+            if (type === 'full') { payAmount = total; }
+
+            const btns = document.querySelectorAll('.btn');
+            const originalTexts = Array.from(btns).map(b => b.innerHTML);
+            btns.forEach(b => { b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...'; });
+
+            const payload = {
+                customer_id: document.getElementById('customerId').value,
+                customer_name: document.getElementById('customerName').value,
+                customer_email: document.getElementById('customerEmail').value,
+                room_name: document.getElementById('roomName').value,
+                booking_date: document.getElementById('bookingDate').value,
+                start_time: document.getElementById('startTime').value,
+                end_time: document.getElementById('endTime').value,
+                total_amount: total,
+                payment_amount: payAmount,
+                payment_type: type === 'full' ? 'balance' : 'deposit'
+            };
+
+            try {
+                const res = await fetch(BOOKING_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    alert("Booking Successful! Redirecting...");
+                    window.location.href = "https://andyjay72.github.io/CommunityHub/index.html";
+                } else {
+                    throw new Error("Server Error");
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Failed to create booking.");
+                btns.forEach((b, i) => { b.disabled = false; b.innerHTML = originalTexts[i]; });
+            }
+        }
+
+        // Init
+        loadCustomers();
+        populateTimeDropdowns();
+    </script>
+</body>
+</html>
