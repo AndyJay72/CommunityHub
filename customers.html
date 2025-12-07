@@ -2,42 +2,130 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Customers | Venue Manager Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Reusing your existing CSS styles for consistency -->
+    
     <style>
-        :root { --bg-dark: #0f172a; --bg-card: rgba(30, 41, 59, 0.7); --border: rgba(148, 163, 184, 0.1); --primary: #6366f1; --primary-hover: #4f46e5; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --text-main: #f8fafc; --text-muted: #94a3b8; }
+        /* --- CORE STYLES --- */
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.7);
+            --border: rgba(148, 163, 184, 0.1);
+            --primary: #6366f1;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --sidebar-width: 260px;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-        body { background-color: var(--bg-dark); background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%); color: var(--text-main); min-height: 100vh; display: flex; }
-        aside { width: 260px; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border-right: 1px solid var(--border); padding: 2rem; display: flex; flex-direction: column; position: fixed; height: 100vh; }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                              radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* --- SIDEBAR --- */
+        aside {
+            width: var(--sidebar-width);
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid var(--border);
+            padding: 2rem;
+            display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100;
+            transition: transform 0.3s ease;
+        }
         .brand { font-size: 1.5rem; font-weight: 700; color: white; display: flex; align-items: center; gap: 10px; margin-bottom: 3rem; }
-        .brand i { color: var(--primary); }
         .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: var(--text-muted); text-decoration: none; border-radius: 8px; margin-bottom: 5px; transition: all 0.2s; font-weight: 500; }
         .nav-link:hover, .nav-link.active { background: rgba(99, 102, 241, 0.1); color: var(--primary); }
-        main { margin-left: 260px; flex: 1; padding: 2rem; max-width: 1600px; width: 100%; }
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; }
+        .close-sidebar { display: none; background: none; border: none; color: white; font-size: 1.2rem; margin-left: auto; cursor: pointer; }
+
+        /* --- MAIN CONTENT --- */
+        main {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 2rem;
+            max-width: 1600px;
+            width: 100%;
+            transition: margin-left 0.3s ease;
+        }
+
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .menu-toggle { display: none; background: var(--bg-card); border: 1px solid var(--border); color: white; width: 40px; height: 40px; border-radius: 8px; align-items: center; justify-content: center; cursor: pointer; margin-right: 15px; }
         .header-title h1 { font-size: 1.8rem; font-weight: 700; }
-        .table-container { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
-        .table-header { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .search-bar { background: rgba(0,0,0,0.2); border: 1px solid var(--border); padding: 8px 16px; border-radius: 8px; color: white; display: flex; align-items: center; gap: 10px; }
-        .search-bar input { background: transparent; border: none; color: white; outline: none; }
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 1rem 1.5rem; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; font-weight: 600; background: rgba(0,0,0,0.2); }
-        td { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); color: var(--text-main); font-size: 0.95rem; }
+
+        /* --- SEARCH --- */
+        .search-bar {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--border);
+            padding: 10px 16px;
+            border-radius: 12px;
+            color: white;
+            display: flex; align-items: center; gap: 10px;
+            width: 300px;
+        }
+        .search-bar input { background: transparent; border: none; color: white; outline: none; width: 100%; font-size: 0.9rem; }
+
+        /* --- TABLE --- */
+        .table-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        th { text-align: left; padding: 1.2rem 1.5rem; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; font-weight: 600; background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border); }
+        td { padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border); color: var(--text-main); font-size: 0.95rem; vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
         tr:hover td { background: rgba(255,255,255,0.02); }
-        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+
+        .status-badge {
+            padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; display: inline-block; white-space: nowrap;
+        }
         .status-badge.pending { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
         .status-badge.contacted { background: rgba(99, 102, 241, 0.15); color: var(--primary); border: 1px solid rgba(99, 102, 241, 0.3); }
-        @media (max-width: 768px) { aside { display: none; } main { margin-left: 0; } } 
+        .status-badge.completed { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 768px) {
+            aside { transform: translateX(-100%); }
+            aside.active { transform: translateX(0); }
+            main { margin-left: 0; padding: 1rem; }
+            .menu-toggle { display: flex; }
+            .close-sidebar { display: block; }
+            header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            .search-bar { width: 100%; }
+        }
+        
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 90; backdrop-filter: blur(2px); }
+        .overlay.active { display: block; }
     </style>
 </head>
 <body>
-    <aside>
-        <div class="brand"><i class="fa-solid fa-layer-group"></i> VenuePro</div>
+
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar">
+        <div class="brand">
+            <span><i class="fa-solid fa-layer-group"></i> VenuePro</span>
+            <button class="close-sidebar" onclick="toggleMenu()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
         <nav>
-            <a href="https://andyjay72.github.io/CommunityHub/index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="dashboard.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
             <a href="bookings.html" class="nav-link"><i class="fa-solid fa-calendar-days"></i> Bookings</a>
             <a href="customers.html" class="nav-link active"><i class="fa-solid fa-users"></i> Customers</a>
             <a href="accounts.html" class="nav-link"><i class="fa-solid fa-file-invoice-dollar"></i> Accounts</a>
@@ -46,30 +134,35 @@
 
     <main>
         <header>
-            <div class="header-title">
-                <h1>Client Database</h1>
-                <p style="color:var(--text-muted)">Manage your leads and contacts</p>
+            <div style="display: flex; align-items: center;">
+                <div class="menu-toggle" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></div>
+                <div class="header-title">
+                    <h1>Client Database</h1>
+                    <p style="color:var(--text-muted); font-size:0.9rem; margin-top:5px;">Manage your leads and contacts</p>
+                </div>
             </div>
             <div class="search-bar">
-                <i class="fa-solid fa-search"></i>
-                <input type="text" id="searchInput" placeholder="Search customers..." onkeyup="filterTable()">
+                <i class="fa-solid fa-search" style="color:var(--text-muted)"></i>
+                <input type="text" id="searchInput" placeholder="Search name or email..." onkeyup="filterTable()">
             </div>
         </header>
 
         <div class="table-container">
-            <div style="overflow-x:auto;">
+            <div class="table-wrapper">
                 <table id="customerTable">
                     <thead>
                         <tr>
                             <th>Name</th>
-                            <th>Contact</th>
-                            <th>Event Type</th>
+                            <th>Contact Info</th>
+                            <th>Event Details</th>
                             <th>Date</th>
                             <th>Status</th>
                         </tr>
                     </thead>
                     <tbody id="table-body">
-                        <tr><td colspan="5" style="text-align:center; padding:2rem;">Loading...</td></tr>
+                        <tr><td colspan="5" style="text-align:center; padding:3rem; color:var(--text-muted)">
+                            <i class="fa-solid fa-circle-notch fa-spin"></i> Loading customers...
+                        </td></tr>
                     </tbody>
                 </table>
             </div>
@@ -77,28 +170,56 @@
     </main>
 
     <script>
+        // === CONFIGURATION ===
+        // Clean URL (No port number) as requested
         const API_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/all-customers';
+
+        function toggleMenu() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('overlay').classList.toggle('active');
+        }
 
         async function loadData() {
             try {
                 const response = await fetch(API_URL);
-                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(`Connection Error: ${response.status}`);
+                }
+
+                const json = await response.json();
+                
+                // ROBUST FIX: Supports both "Array" and "{ data: [] }" formats
+                // This ensures it works with either the old or new n8n workflow
+                const customers = json.data || (Array.isArray(json) ? json : []); 
+
                 const tbody = document.getElementById('table-body');
                 
-                tbody.innerHTML = data.map(c => `
+                if (customers.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:3rem; color:var(--text-muted)">No customers found</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = customers.map(c => `
                     <tr>
-                        <td style="font-weight:600">${c.full_name}</td>
                         <td>
-                            <div>${c.email}</div>
-                            <div style="font-size:0.8rem; color:var(--text-muted)">${c.phone}</div>
+                            <div style="font-weight:600; color:white;">${c.full_name}</div>
                         </td>
-                        <td>${c.event_type}</td>
-                        <td>${new Date(c.event_date).toLocaleDateString()}</td>
+                        <td>
+                            <div style="font-size:0.9rem;">${c.email}</div>
+                            <div style="font-size:0.8rem; color:var(--text-muted)">${c.phone || ''}</div>
+                        </td>
+                        <td>${c.event_type || 'General'}</td>
+                        <td>${c.event_date ? new Date(c.event_date).toLocaleDateString() : 'N/A'}</td>
                         <td><span class="status-badge ${c.status}">${c.status}</span></td>
                     </tr>
                 `).join('');
             } catch (e) {
                 console.error(e);
+                document.getElementById('table-body').innerHTML = 
+                    `<tr><td colspan="5" style="text-align:center; padding:3rem; color:#ef4444">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Connection Failed. Check Console.
+                    </td></tr>`;
             }
         }
 
@@ -108,15 +229,25 @@
             const table = document.getElementById("customerTable");
             const tr = table.getElementsByTagName("tr");
 
-            for (let i = 1; i < tr.length; i++) {
-                let td = tr[i].getElementsByTagName("td")[0]; // Filter by Name
-                if (td) {
-                    const txtValue = td.textContent || td.innerText;
-                    tr[i].style.display = txtValue.toUpperCase().indexOf(filter) > -1 ? "" : "none";
+            for (let i = 0; i < tr.length; i++) {
+                // Look at Name (col 0) and Email (col 1)
+                let tdName = tr[i].getElementsByTagName("td")[0];
+                let tdEmail = tr[i].getElementsByTagName("td")[1];
+                
+                if (tdName || tdEmail) {
+                    const txtName = tdName.textContent || tdName.innerText;
+                    const txtEmail = tdEmail.textContent || tdEmail.innerText;
+                    
+                    if (txtName.toUpperCase().indexOf(filter) > -1 || txtEmail.toUpperCase().indexOf(filter) > -1) {
+                        tr[i].style.display = "";
+                    } else {
+                        tr[i].style.display = "none";
+                    }
                 }
             }
         }
 
+        // Run on load
         loadData();
     </script>
 </body>
