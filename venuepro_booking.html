@@ -130,7 +130,7 @@
         select option { background: #1e293b; color: white; }
 
         input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); }
-        input[readonly] { opacity: 0.6; }
+        input[readonly] { opacity: 0.6; cursor: default; }
 
         /* Payment Box */
         .payment-box {
@@ -242,7 +242,6 @@
                     <div class="input-wrapper">
                         <i class="fa-solid fa-door-open left-icon"></i>
                         <select id="roomName" onchange="calculateCost()" required>
-                            <!-- Values must match Database names exactly -->
                             <option value="Grand Ballroom">Grand Ballroom</option>
                             <option value="Executive Suite">Executive Suite</option>
                             <option value="Garden Terrace">Garden Terrace</option>
@@ -310,17 +309,16 @@
     <script>
         // CONFIG
         const CUSTOMERS_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/all-customers';
-        // Add port 5678 if required by your setup
         const BOOKING_API = 'https://n8n.srv1090894.hstgr.cloud:5678/webhook/make-booking';
         
         let customerData = [];
 
-        // DATABASE PRICING LOGIC (Mirrors DB)
-        // Rate: Hourly / Daily (if > 6 hours)
+        // --- ROOM RATES & DEPOSITS ---
+        // depositPct: The percentage required for deposit
         const roomRates = {
-            "Grand Ballroom": { hourly: 250, daily: 2500 },
-            "Executive Suite": { hourly: 50, daily: 400 },
-            "Garden Terrace": { hourly: 100, daily: 800 }
+            "Grand Ballroom": { hourly: 250, daily: 2500, depositPct: 20 },
+            "Executive Suite": { hourly: 50, daily: 400, depositPct: 50 },
+            "Garden Terrace": { hourly: 100, daily: 800, depositPct: 30 }
         };
 
         function toggleMenu() {
@@ -328,11 +326,9 @@
             document.getElementById('overlay').classList.toggle('active');
         }
 
-        // --- TIME & COST LOGIC ---
         function populateTimeDropdowns() {
             const startSelect = document.getElementById('startTime');
             const endSelect = document.getElementById('endTime');
-            
             for (let hour = 8; hour <= 23; hour++) {
                 const hh = hour.toString().padStart(2, '0');
                 startSelect.add(new Option(`${hh}:00`, `${hh}:00`));
@@ -344,16 +340,17 @@
             }
         }
 
+        // --- COST & DEPOSIT CALCULATION ---
         function calculateCost() {
             const room = document.getElementById('roomName').value;
             const start = document.getElementById('startTime').value;
             const end = document.getElementById('endTime').value;
             const totalInput = document.getElementById('totalAmount');
+            const payInput = document.getElementById('payAmount');
             const breakdown = document.getElementById('costBreakdown');
 
             if (!room || !start || !end) return;
 
-            // Convert Time to Float (e.g. 09:30 -> 9.5)
             const getHour = (t) => {
                 const [h, m] = t.split(':').map(Number);
                 return h + (m / 60);
@@ -367,32 +364,36 @@
                 return;
             }
 
-            const rates = roomRates[room] || { hourly: 0, daily: 0 };
+            const rates = roomRates[room] || { hourly: 0, daily: 0, depositPct: 0 };
             let cost = 0;
             let type = "";
 
-            // DB Logic: If > 6 hours, charge Daily Rate. Else Hourly.
+            // Calculate Total Cost
             if (duration >= 6) {
                 cost = rates.daily;
-                type = "Daily Rate Applied";
+                type = "Daily Rate";
             } else {
                 cost = rates.hourly * duration;
-                type = `Hourly Rate (£${rates.hourly}/hr x ${duration}hrs)`;
+                type = `Hourly Rate (£${rates.hourly}/hr)`;
             }
 
+            // Calculate Deposit
+            const depositAmount = cost * (rates.depositPct / 100);
+
+            // Update UI
             totalInput.value = cost.toFixed(2);
-            breakdown.innerText = `${type}`;
             
-            // Auto update pay amount to match total initially
-            document.getElementById('payAmount').value = cost.toFixed(2);
+            // Auto-fill the "Paying Now" box with the Deposit Amount
+            payInput.value = depositAmount.toFixed(2);
+
+            breakdown.innerText = `${type} applied | Required Deposit: ${rates.depositPct}% (£${depositAmount.toFixed(2)})`;
         }
 
         function syncPayAmount() {
-            // Optional: If user manually changes total, reset pay amount?
-            // Currently leaving it manual for flexibility
+            // If user manually changes total, we optionally leave payment alone or recalc deposit
+            // For now, we leave it to allow manual overrides
         }
 
-        // --- CUSTOMER LOGIC ---
         async function loadCustomers() {
             try {
                 const response = await fetch(CUSTOMERS_API);
@@ -423,7 +424,6 @@
             }
         }
 
-        // --- SUBMIT LOGIC ---
         async function submitBooking(type) {
             const form = document.getElementById('bookingForm');
             if (!form.checkValidity()) { form.reportValidity(); return; }
@@ -431,7 +431,10 @@
             const total = document.getElementById('totalAmount').value;
             let payAmount = document.getElementById('payAmount').value;
 
-            if (type === 'full') { payAmount = total; }
+            // Logic: If 'Paid in Full', overwrite payAmount with Total
+            if (type === 'full') {
+                payAmount = total;
+            }
 
             const btns = document.querySelectorAll('.btn');
             btns.forEach(b => { b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...'; });
