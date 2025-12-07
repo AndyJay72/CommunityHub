@@ -93,46 +93,109 @@
 
     <script>
         const formatGBP = (num) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(num);
+        
+        // Ensure this matches your n8n URL (add :5678 if not using a proxy)
         const API_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/accounts-data';
-        function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('overlay').classList.toggle('active'); }
+        
+        function toggleMenu() { 
+            document.getElementById('sidebar').classList.toggle('active'); 
+            document.getElementById('overlay').classList.toggle('active'); 
+        }
 
         async function loadAccounts() {
             try {
                 const response = await fetch(API_URL);
-                const data = await response.json();
-                const metrics = data.metrics || { deposits: 0, outstanding: 0, completed: 0 };
-                const transactions = data.transactions || [];
+                const json = await response.json();
+                
+                // Robust data handling: Check for 'data' wrapper or raw object
+                // The accounts API usually returns an object { metrics: {...}, transactions: [...] }
+                // We check if 'json.metrics' exists directly, or if it's inside 'json.data'
+                const rootData = json.data || json;
+                
+                const metrics = rootData.metrics || {};
+                const transactions = rootData.transactions || [];
 
-                document.getElementById('total-revenue').innerText = formatGBP(metrics.completed + metrics.deposits);
-                document.getElementById('total-deposits').innerText = formatGBP(metrics.deposits);
-                document.getElementById('total-outstanding').innerText = formatGBP(metrics.outstanding);
+                // FIXED: Convert strings to numbers before math
+                const completed = parseFloat(metrics.completed) || 0;
+                const deposits = parseFloat(metrics.deposits) || 0;
+                const outstanding = parseFloat(metrics.outstanding) || 0;
+                const totalRevenue = completed + deposits;
 
+                // 1. Update KPIs
+                document.getElementById('total-revenue').innerText = formatGBP(totalRevenue);
+                document.getElementById('total-deposits').innerText = formatGBP(deposits);
+                document.getElementById('total-outstanding').innerText = formatGBP(outstanding);
+
+                // 2. Render Doughnut Chart
                 const ctxDoughnut = document.getElementById('doughnutChart').getContext('2d');
-                new Chart(ctxDoughnut, {
+                // Destroy existing chart if re-loading (prevents glitching)
+                if (window.myDoughnut) window.myDoughnut.destroy();
+                
+                window.myDoughnut = new Chart(ctxDoughnut, {
                     type: 'doughnut',
-                    data: { labels: ['Paid', 'Outstanding'], datasets: [{ data: [metrics.completed + metrics.deposits, metrics.outstanding], backgroundColor: ['#10b981', '#f59e0b'], borderWidth: 0 }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } } }
+                    data: {
+                        labels: ['Paid', 'Outstanding'],
+                        datasets: [{
+                            data: [totalRevenue, outstanding],
+                            backgroundColor: ['#10b981', '#f59e0b'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } }
+                    }
                 });
 
+                // 3. Render Bar Chart (Mock Data for trends)
                 const ctxBar = document.getElementById('barChart').getContext('2d');
-                new Chart(ctxBar, {
+                if (window.myBar) window.myBar.destroy();
+
+                window.myBar = new Chart(ctxBar, {
                     type: 'bar',
-                    data: { labels: ['W1', 'W2', 'W3', 'W4'], datasets: [{ label: 'Revenue', data: [1200, 1900, 300, 500], backgroundColor: '#6366f1', borderRadius: 6 }] },
-                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } }, plugins: { legend: { display: false } } }
+                    data: {
+                        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'], 
+                        datasets: [{
+                            label: 'Revenue',
+                            data: [1200, 1900, 300, 500], // Ideally this would come from API too
+                            backgroundColor: '#6366f1',
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                            x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
                 });
 
+                // 4. Render Transactions Table
                 const tbody = document.getElementById('trans-body');
-                tbody.innerHTML = transactions.map(t => `
-                    <tr>
-                        <td>${new Date(t.payment_date).toLocaleDateString()}</td>
-                        <td>${t.reference_number || 'N/A'}</td>
-                        <td style="text-transform:capitalize">${t.payment_type}</td>
-                        <td style="font-weight:600">£${t.amount}</td>
-                        <td><span style="color:${t.status === 'received' ? '#10b981' : '#f59e0b'}">${t.status}</span></td>
-                    </tr>
-                `).join('');
-            } catch (e) { console.error("Error loading data", e); }
+                if (transactions.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:2rem; color:var(--text-muted)">No recent transactions</td></tr>`;
+                } else {
+                    tbody.innerHTML = transactions.map(t => `
+                        <tr>
+                            <td>${new Date(t.payment_date).toLocaleDateString()}</td>
+                            <td>${t.reference_number || 'N/A'}</td>
+                            <td style="text-transform:capitalize">${t.payment_type}</td>
+                            <td style="font-weight:600">${formatGBP(t.amount)}</td>
+                            <td><span style="color:${t.status === 'received' ? '#10b981' : '#f59e0b'}">${t.status}</span></td>
+                        </tr>
+                    `).join('');
+                }
+
+            } catch (e) {
+                console.error("Error loading accounts data", e);
+                document.getElementById('total-revenue').innerText = "Error";
+            }
         }
+
         loadAccounts();
     </script>
 </body>
