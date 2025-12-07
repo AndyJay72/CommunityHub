@@ -8,117 +8,59 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* --- CORE STYLES --- */
-        :root {
-            --bg-dark: #0f172a;
-            --bg-card: rgba(30, 41, 59, 0.7);
-            --border: rgba(148, 163, 184, 0.1);
-            --primary: #6366f1;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --sidebar-width: 260px;
-        }
-
+        :root { --bg-dark: #0f172a; --bg-card: rgba(30, 41, 59, 0.7); --border: rgba(148, 163, 184, 0.1); --primary: #6366f1; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --text-main: #f8fafc; --text-muted: #94a3b8; --sidebar-width: 260px; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-
-        body {
-            background-color: var(--bg-dark);
-            background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
-                              radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            overflow-x: hidden;
-        }
-
-        /* --- SIDEBAR --- */
-        aside {
-            width: var(--sidebar-width);
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(10px);
-            border-right: 1px solid var(--border);
-            padding: 2rem;
-            display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100;
-            transition: transform 0.3s ease;
-        }
-        .brand { font-size: 1.5rem; font-weight: 700; color: white; display: flex; align-items: center; gap: 10px; margin-bottom: 3rem; }
+        body { background-color: var(--bg-dark); background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%); color: var(--text-main); min-height: 100vh; display: flex; overflow-x: hidden; }
+        
+        /* Sidebar & Nav */
+        aside { width: var(--sidebar-width); background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); border-right: 1px solid var(--border); padding: 2rem; display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100; transition: transform 0.3s ease; }
+        .brand { font-size: 1.5rem; font-weight: 700; color: white; display: flex; align-items: center; justify-content: space-between; margin-bottom: 3rem; }
         .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: var(--text-muted); text-decoration: none; border-radius: 8px; margin-bottom: 5px; transition: all 0.2s; font-weight: 500; }
         .nav-link:hover, .nav-link.active { background: rgba(99, 102, 241, 0.1); color: var(--primary); }
-        .close-sidebar { display: none; background: none; border: none; color: white; font-size: 1.2rem; margin-left: auto; cursor: pointer; }
+        .close-sidebar { display: none; background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; }
 
-        /* --- MAIN CONTENT --- */
-        main {
-            margin-left: var(--sidebar-width);
-            flex: 1;
-            padding: 2rem;
-            max-width: 1600px;
-            width: 100%;
-            transition: margin-left 0.3s ease;
-        }
-
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-        .menu-toggle { display: none; background: var(--bg-card); border: 1px solid var(--border); color: white; width: 40px; height: 40px; border-radius: 8px; align-items: center; justify-content: center; cursor: pointer; margin-right: 15px; }
+        /* Main Content */
+        main { margin-left: var(--sidebar-width); flex: 1; padding: 2rem; max-width: 1600px; width: 100%; transition: margin-left 0.3s ease; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; gap: 1rem; }
+        .header-left { display: flex; align-items: center; gap: 1rem; }
+        .menu-toggle { display: none; background: var(--bg-card); border: 1px solid var(--border); color: white; width: 40px; height: 40px; border-radius: 8px; align-items: center; justify-content: center; cursor: pointer; }
         .header-title h1 { font-size: 1.8rem; font-weight: 700; }
-
-        /* --- SEARCH --- */
-        .search-bar {
-            background: rgba(0,0,0,0.2);
-            border: 1px solid var(--border);
-            padding: 10px 16px;
-            border-radius: 12px;
-            color: white;
-            display: flex; align-items: center; gap: 10px;
-            width: 300px;
-        }
+        
+        /* Search Bar */
+        .search-bar { background: rgba(0,0,0,0.2); border: 1px solid var(--border); padding: 10px 16px; border-radius: 12px; color: white; display: flex; align-items: center; gap: 10px; width: 300px; transition: width 0.3s; }
         .search-bar input { background: transparent; border: none; color: white; outline: none; width: 100%; font-size: 0.9rem; }
 
-        /* --- TABLE --- */
-        .table-container {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-        }
-
+        /* Table */
+        .table-container { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
         .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-
         table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        th { text-align: left; padding: 1.2rem 1.5rem; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; font-weight: 600; background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border); }
+        th { text-align: left; padding: 1.2rem 1.5rem; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; font-weight: 600; background: rgba(0,0,0,0.2); white-space: nowrap; }
         td { padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border); color: var(--text-main); font-size: 0.95rem; vertical-align: middle; }
-        tr:last-child td { border-bottom: none; }
-        tr:hover td { background: rgba(255,255,255,0.02); }
-
-        .status-badge {
-            padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; display: inline-block; white-space: nowrap;
-        }
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; display: inline-block; white-space: nowrap; }
         .status-badge.pending { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
         .status-badge.contacted { background: rgba(99, 102, 241, 0.15); color: var(--primary); border: 1px solid rgba(99, 102, 241, 0.3); }
-        .status-badge.completed { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
 
-        /* --- RESPONSIVE --- */
+        /* Overlay */
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 90; backdrop-filter: blur(2px); }
+        .overlay.active { display: block; }
+
+        /* RESPONSIVE */
         @media (max-width: 768px) {
             aside { transform: translateX(-100%); }
             aside.active { transform: translateX(0); }
             main { margin-left: 0; padding: 1rem; }
             .menu-toggle { display: flex; }
             .close-sidebar { display: block; }
-            header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            header { flex-direction: column; align-items: flex-start; }
+            .header-left { width: 100%; }
             .search-bar { width: 100%; }
+            .header-title h1 { font-size: 1.5rem; }
         }
-        
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 90; backdrop-filter: blur(2px); }
-        .overlay.active { display: block; }
     </style>
 </head>
 <body>
-
     <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 
-    <!-- Sidebar -->
     <aside id="sidebar">
         <div class="brand">
             <span><i class="fa-solid fa-layer-group"></i> VenuePro</span>
@@ -134,11 +76,11 @@
 
     <main>
         <header>
-            <div style="display: flex; align-items: center;">
-                <div class="menu-toggle" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></div>
+            <div class="header-left">
+                <button class="menu-toggle" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></button>
                 <div class="header-title">
                     <h1>Client Database</h1>
-                    <p style="color:var(--text-muted); font-size:0.9rem; margin-top:5px;">Manage your leads and contacts</p>
+                    <p style="color:var(--text-muted); font-size:0.9rem; margin-top:5px;">Manage your leads</p>
                 </div>
             </div>
             <div class="search-bar">
@@ -160,9 +102,7 @@
                         </tr>
                     </thead>
                     <tbody id="table-body">
-                        <tr><td colspan="5" style="text-align:center; padding:3rem; color:var(--text-muted)">
-                            <i class="fa-solid fa-circle-notch fa-spin"></i> Loading customers...
-                        </td></tr>
+                        <tr><td colspan="5" style="text-align:center; padding:3rem; color:var(--text-muted)"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -170,8 +110,6 @@
     </main>
 
     <script>
-        // === CONFIGURATION ===
-        // Clean URL (No port number) as requested
         const API_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/all-customers';
 
         function toggleMenu() {
@@ -182,17 +120,9 @@
         async function loadData() {
             try {
                 const response = await fetch(API_URL);
-                
-                if (!response.ok) {
-                    throw new Error(`Connection Error: ${response.status}`);
-                }
-
+                if (!response.ok) throw new Error("API Error");
                 const json = await response.json();
-                
-                // ROBUST FIX: Supports both "Array" and "{ data: [] }" formats
-                // This ensures it works with either the old or new n8n workflow
                 const customers = json.data || (Array.isArray(json) ? json : []); 
-
                 const tbody = document.getElementById('table-body');
                 
                 if (customers.length === 0) {
@@ -202,13 +132,8 @@
 
                 tbody.innerHTML = customers.map(c => `
                     <tr>
-                        <td>
-                            <div style="font-weight:600; color:white;">${c.full_name}</div>
-                        </td>
-                        <td>
-                            <div style="font-size:0.9rem;">${c.email}</div>
-                            <div style="font-size:0.8rem; color:var(--text-muted)">${c.phone || ''}</div>
-                        </td>
+                        <td><div style="font-weight:600; color:white;">${c.full_name}</div></td>
+                        <td><div>${c.email}</div><div style="font-size:0.8rem; color:var(--text-muted)">${c.phone || ''}</div></td>
                         <td>${c.event_type || 'General'}</td>
                         <td>${c.event_date ? new Date(c.event_date).toLocaleDateString() : 'N/A'}</td>
                         <td><span class="status-badge ${c.status}">${c.status}</span></td>
@@ -216,10 +141,7 @@
                 `).join('');
             } catch (e) {
                 console.error(e);
-                document.getElementById('table-body').innerHTML = 
-                    `<tr><td colspan="5" style="text-align:center; padding:3rem; color:#ef4444">
-                        <i class="fa-solid fa-triangle-exclamation"></i> Connection Failed. Check Console.
-                    </td></tr>`;
+                document.getElementById('table-body').innerHTML = `<tr><td colspan="5" style="text-align:center; padding:3rem; color:#ef4444">Connection Error</td></tr>`;
             }
         }
 
@@ -228,26 +150,16 @@
             const filter = input.value.toUpperCase();
             const table = document.getElementById("customerTable");
             const tr = table.getElementsByTagName("tr");
-
             for (let i = 0; i < tr.length; i++) {
-                // Look at Name (col 0) and Email (col 1)
                 let tdName = tr[i].getElementsByTagName("td")[0];
                 let tdEmail = tr[i].getElementsByTagName("td")[1];
-                
                 if (tdName || tdEmail) {
                     const txtName = tdName.textContent || tdName.innerText;
                     const txtEmail = tdEmail.textContent || tdEmail.innerText;
-                    
-                    if (txtName.toUpperCase().indexOf(filter) > -1 || txtEmail.toUpperCase().indexOf(filter) > -1) {
-                        tr[i].style.display = "";
-                    } else {
-                        tr[i].style.display = "none";
-                    }
+                    tr[i].style.display = (txtName.toUpperCase().indexOf(filter) > -1 || txtEmail.toUpperCase().indexOf(filter) > -1) ? "" : "none";
                 }
             }
         }
-
-        // Run on load
         loadData();
     </script>
 </body>
