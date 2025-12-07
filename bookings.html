@@ -8,43 +8,48 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
+        /* --- CORE STYLES --- */
         :root { --bg-dark: #0f172a; --bg-card: rgba(30, 41, 59, 0.7); --border: rgba(148, 163, 184, 0.1); --primary: #6366f1; --success: #10b981; --warning: #f59e0b; --text-main: #f8fafc; --text-muted: #94a3b8; --sidebar-width: 260px; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background-color: var(--bg-dark); background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%); color: var(--text-main); min-height: 100vh; display: flex; overflow-x: hidden; }
         
         aside { width: var(--sidebar-width); background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); border-right: 1px solid var(--border); padding: 2rem; display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100; transition: transform 0.3s ease; }
-        .brand { font-size: 1.5rem; font-weight: 700; color: white; display: flex; align-items: center; justify-content: space-between; margin-bottom: 3rem; }
+        .brand { font-size: 1.5rem; font-weight: 700; color: white; display: flex; align-items: center; gap: 10px; margin-bottom: 3rem; }
         .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: var(--text-muted); text-decoration: none; border-radius: 8px; margin-bottom: 5px; transition: all 0.2s; font-weight: 500; }
         .nav-link:hover, .nav-link.active { background: rgba(99, 102, 241, 0.1); color: var(--primary); }
-        .close-sidebar { display: none; background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; }
+        .close-sidebar { display: none; background: none; border: none; color: white; font-size: 1.2rem; margin-left: auto; cursor: pointer; }
 
         main { margin-left: var(--sidebar-width); flex: 1; padding: 2rem; max-width: 1600px; width: 100%; transition: margin-left 0.3s ease; }
-        header { display: flex; align-items: center; margin-bottom: 2rem; gap: 1rem; }
-        .menu-toggle { display: none; background: var(--bg-card); border: 1px solid var(--border); color: white; width: 40px; height: 40px; border-radius: 8px; align-items: center; justify-content: center; cursor: pointer; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .menu-toggle { display: none; background: var(--bg-card); border: 1px solid var(--border); color: white; width: 40px; height: 40px; border-radius: 8px; align-items: center; justify-content: center; cursor: pointer; margin-right: 15px; }
         
         /* Dials */
         .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2.5rem; }
         .metric-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem; position: relative; overflow: hidden; }
-        .dial-ring { width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; position: relative; background: rgba(15, 23, 42, 0.5); flex-shrink: 0; }
+        .dial-ring { width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; position: relative; background: rgba(15, 23, 42, 0.5); }
         .dial-ring::before { content: ''; position: absolute; inset: -3px; border-radius: 50%; z-index: -1; background: conic-gradient(var(--card-color) var(--pct), rgba(255,255,255,0.1) 0); }
         .card-pre { --card-color: var(--warning); } .card-booked { --card-color: var(--primary); } .card-post { --card-color: var(--success); }
 
         /* Filters */
-        .filter-bar { display: flex; gap: 10px; margin-bottom: 1.5rem; overflow-x: auto; padding-bottom: 5px; -webkit-overflow-scrolling: touch; }
+        .filter-bar { display: flex; gap: 10px; margin-bottom: 1.5rem; overflow-x: auto; padding-bottom: 5px; }
         .filter-btn { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; font-weight: 600; white-space: nowrap; transition: all 0.2s; }
         .filter-btn:hover, .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
-        /* Cards */
+        /* Booking Cards */
         .booking-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s; }
         .b-left { display: flex; align-items: center; gap: 1.5rem; }
         .date-badge { background: rgba(255,255,255,0.05); padding: 8px 15px; border-radius: 10px; text-align: center; min-width: 70px; border: 1px solid var(--border); }
         .db-day { font-size: 1.2rem; font-weight: 700; color: white; }
         .db-month { font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); }
-        .b-meta { font-size: 0.9rem; color: var(--text-muted); display: flex; gap: 15px; flex-wrap: wrap; }
+        .b-meta { font-size: 0.9rem; color: var(--text-muted); display: flex; gap: 15px; flex-wrap: wrap; margin-top: 5px; }
         .status-pill { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
         .status-pre { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid var(--warning); }
         .status-booked { background: rgba(99, 102, 241, 0.15); color: var(--primary); border: 1px solid var(--primary); }
         .status-completed { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid var(--success); }
+
+        /* Pay Button */
+        .pay-btn { background: var(--success); color: #0f172a; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.8rem; margin-left: 10px; display: inline-flex; align-items: center; gap: 5px; }
+        .pay-btn:hover { opacity: 0.9; transform: translateY(-1px); }
 
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 90; backdrop-filter: blur(2px); }
         .overlay.active { display: block; }
@@ -55,7 +60,7 @@
             main { margin-left: 0; padding: 1rem; }
             .menu-toggle { display: flex; } .close-sidebar { display: block; }
             .booking-card { flex-direction: column; align-items: flex-start; gap: 1rem; }
-            .b-left { width: 100%; } .status-pill { margin-left: 85px; }
+            .b-left { width: 100%; } .status-pill { margin-left: 0; }
         }
     </style>
 </head>
@@ -72,8 +77,10 @@
     </aside>
     <main>
         <header>
-            <button class="menu-toggle" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></button>
-            <h1 style="font-size: 1.8rem; font-weight: 700;">Booking Management</h1>
+            <div style="display: flex; align-items: center;">
+                <div class="menu-toggle" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></div>
+                <h1 style="font-size: 1.8rem; font-weight: 700;">Booking Management</h1>
+            </div>
         </header>
         <div class="metrics-grid">
             <div class="metric-card card-pre"><div class="dial-ring" id="dial-pre" style="--pct: 0%;">0</div><div class="metric-info"><h3>Pre-Booked</h3><p>Deposit paid</p></div></div>
@@ -86,18 +93,21 @@
             <button class="filter-btn" onclick="filterList('booked', this)">Confirmed</button>
             <button class="filter-btn" onclick="filterList('post', this)">Completed</button>
         </div>
-        <div id="booking-container"><div style="text-align: center; padding: 2rem; color: var(--text-muted);"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</div></div>
+        <div id="booking-container"><div style="text-align: center; padding: 2rem; color: var(--text-muted);"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading data...</div></div>
     </main>
+
     <script>
-        const API_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/all-bookings';
-        let allBookings = []; 
-        function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('overlay').classList.toggle('active'); }
+        // CONFIG
+        const GET_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/all-bookings';
+        const PAY_URL = 'https://n8n.srv1090894.hstgr.cloud:5678/webhook/pay-balance'; // Standard Port 5678 for POST
+        
+        let allBookings = [];
         const formatCurrency = (num) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(num || 0);
+        function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('overlay').classList.toggle('active'); }
 
         async function fetchBookings() {
             try {
-                const res = await fetch(API_URL);
-                if(!res.ok) throw new Error(`API Error`);
+                const res = await fetch(GET_URL);
                 const json = await res.json();
                 const rawData = json.data || (Array.isArray(json) ? json : []);
                 const now = new Date(); now.setHours(0,0,0,0); 
@@ -112,10 +122,27 @@
                 });
                 updateMetrics();
                 filterList('all', document.querySelector('.filter-btn.active')); 
-            } catch (e) {
-                console.error(e);
-                document.getElementById('booking-container').innerHTML = `<div style="text-align:center; padding:2rem; color:#ef4444">Failed to load.</div>`;
-            }
+            } catch (e) { console.error(e); }
+        }
+
+        async function payBalance(id, customerId, balance) {
+            const amount = prompt(`Enter payment amount (Balance Due: £${balance})`, balance);
+            if (!amount) return;
+
+            try {
+                const res = await fetch(PAY_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ booking_id: id, customer_id: customerId, amount: amount })
+                });
+                const result = await res.json();
+                if(result.status === 'success' || result.status === 'partial') {
+                    alert("Payment Recorded!");
+                    fetchBookings(); // Reload
+                } else {
+                    alert("Error recording payment");
+                }
+            } catch(e) { console.error(e); alert("Connection Failed"); }
         }
 
         function updateMetrics() {
@@ -133,12 +160,22 @@
             filtered.sort((a, b) => filterType === 'post' ? b.dateObj - a.dateObj : a.dateObj - b.dateObj);
             const container = document.getElementById('booking-container');
             
-            if (filtered.length === 0) { container.innerHTML = `<div style="text-align:center; padding:3rem; color:var(--text-muted); border:1px dashed var(--border); border-radius:12px;">No bookings found.</div>`; return; }
+            if (filtered.length === 0) { container.innerHTML = `<div style="text-align:center; padding:3rem; color:var(--text-muted);">No bookings found.</div>`; return; }
 
             container.innerHTML = filtered.map(b => {
-                let statusInfo = { text: 'Pending Balance', cls: 'status-pre', color: 'var(--warning)' };
+                let statusInfo = { text: 'Pending', cls: 'status-pre', color: 'var(--warning)' };
                 if(b.category === 'booked') statusInfo = { text: 'Confirmed', cls: 'status-booked', color: 'var(--primary)' };
                 else if(b.category === 'post') statusInfo = { text: 'Completed', cls: 'status-completed', color: 'var(--success)' };
+
+                // Add Pay Button if Pending
+                let actionBtn = '';
+                // Note: assuming 'id' and 'customer_id' keys exist from DB. If your table query didn't select 'id', add it to SQL
+                // I will assume confirmed_bookings JOIN includes 'cb.id' as 'id' and 'c.id' as 'customer_id'
+                if(b.category === 'pre') {
+                    // We need the booking ID. Your previous workflow query SELECT might need 'cb.id' added if missing.
+                    // Assuming b.id exists or we mapped it.
+                    actionBtn = `<button class="pay-btn" onclick="payBalance('${b.id || ''}', '${b.customer_id || ''}', ${b.balanceNum})"><i class="fa-solid fa-credit-card"></i> Pay</button>`;
+                }
 
                 return `<div class="booking-card" style="border-left: 4px solid ${statusInfo.color}">
                     <div class="b-left">
@@ -147,12 +184,16 @@
                             <h4 style="color:white; margin:0 0 5px 0;">${b.customer_name || 'Guest'}</h4>
                             <div class="b-meta">
                                 <span><i class="fa-solid fa-layer-group"></i> ${b.room_name || 'N/A'}</span>
-                                <span><i class="fa-solid fa-clock"></i> ${b.start_time?.slice(0,5) || '--'} - ${b.end_time?.slice(0,5) || '--'}</span>
-                                <span style="color: ${b.balanceNum > 0 ? '#f59e0b' : '#10b981'}"><i class="fa-solid fa-sterling-sign"></i> Total: ${formatCurrency(b.total_amount)}</span>
+                                <span style="color: ${b.balanceNum > 0 ? '#f59e0b' : '#10b981'}">
+                                    <i class="fa-solid fa-sterling-sign"></i> Balance: ${formatCurrency(b.balanceNum)}
+                                </span>
                             </div>
                         </div>
                     </div>
-                    <div class="status-pill ${statusInfo.cls}">${statusInfo.text}</div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div class="status-pill ${statusInfo.cls}">${statusInfo.text}</div>
+                        ${actionBtn}
+                    </div>
                 </div>`;
             }).join('');
         }
