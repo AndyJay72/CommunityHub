@@ -11,7 +11,7 @@
         /* --- CORE VARIABLES --- */
         :root {
             --bg-dark: #0f172a;
-            --bg-card: rgba(30, 41, 59, 0.8);
+            --bg-card: rgba(30, 41, 59, 0.9);
             --border: rgba(148, 163, 184, 0.1);
             --primary: #6366f1;
             --success: #10b981;
@@ -84,7 +84,6 @@
         }
         .form-section-title i { color: var(--primary); }
 
-        /* Responsive Grid */
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -102,7 +101,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* Input Wrappers & Icons */
         .input-wrapper { position: relative; width: 100%; }
         
         .input-wrapper .left-icon {
@@ -117,7 +115,7 @@
 
         input, select {
             width: 100%;
-            padding: 14px 15px 14px 45px; /* Space for left icon */
+            padding: 14px 15px 14px 45px;
             background: rgba(0, 0, 0, 0.2);
             border: 1px solid var(--border);
             border-radius: 10px;
@@ -132,7 +130,7 @@
         select option { background: #1e293b; color: white; }
 
         input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); }
-        input[readonly] { opacity: 0.6; cursor: default; }
+        input[readonly] { opacity: 0.6; }
 
         /* Payment Box */
         .payment-box {
@@ -152,6 +150,13 @@
             margin-top: 10px;
         }
 
+        .calculation-note {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+            font-style: italic;
+        }
+
         /* Buttons */
         .action-buttons {
             display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 2rem;
@@ -164,25 +169,19 @@
         }
         .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-        
         .btn-warning { background: var(--warning); }
         .btn-success { background: var(--success); }
 
-        /* Overlays */
+        /* Overlay */
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 90; backdrop-filter: blur(2px); }
         .overlay.active { display: block; }
 
-        /* --- RESPONSIVE MEDIA QUERIES --- */
-        @media (max-width: 900px) {
-            .form-grid { grid-template-columns: 1fr; gap: 1.5rem; }
-        }
-
+        /* RESPONSIVE */
+        @media (max-width: 900px) { .form-grid { grid-template-columns: 1fr; gap: 1.5rem; } }
         @media (max-width: 768px) {
-            aside { transform: translateX(-100%); } 
-            aside.active { transform: translateX(0); }
+            aside { transform: translateX(-100%); } aside.active { transform: translateX(0); }
             main { margin-left: 0; padding: 1.5rem 1rem; }
-            .menu-toggle { display: flex; } 
-            .close-sidebar { display: block; }
+            .menu-toggle { display: flex; } .close-sidebar { display: block; }
             .form-card { padding: 1.5rem; }
             .action-buttons { grid-template-columns: 1fr; }
             .payment-input-large { font-size: 1.5rem !important; }
@@ -193,12 +192,8 @@
 
     <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 
-    <!-- Sidebar -->
     <aside id="sidebar">
-        <div class="brand">
-            <span><i class="fa-solid fa-layer-group"></i> VenuePro</span>
-            <button class="close-sidebar" onclick="toggleMenu()"><i class="fa-solid fa-xmark"></i></button>
-        </div>
+        <div class="brand"><span><i class="fa-solid fa-layer-group"></i> VenuePro</span><button class="close-sidebar" onclick="toggleMenu()"><i class="fa-solid fa-xmark"></i></button></div>
         <nav>
             <a href="https://andyjay72.github.io/CommunityHub/index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
             <a href="bookings.html" class="nav-link"><i class="fa-solid fa-calendar-days"></i> Bookings</a>
@@ -207,7 +202,6 @@
         </nav>
     </aside>
 
-    <!-- Main Content -->
     <main>
         <header>
             <button class="menu-toggle" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></button>
@@ -216,7 +210,7 @@
 
         <form id="bookingForm" class="form-card" onsubmit="return false;">
             
-            <!-- SECTION 1: CUSTOMER -->
+            <!-- CUSTOMER -->
             <div class="form-section-title"><i class="fa-solid fa-user"></i> Customer Selection</div>
             <div class="form-grid">
                 <div class="input-group">
@@ -240,14 +234,15 @@
                 </div>
             </div>
 
-            <!-- SECTION 2: EVENT DETAILS -->
-            <div class="form-section-title"><i class="fa-solid fa-calendar-check"></i> Event Details</div>
+            <!-- EVENT & PRICING -->
+            <div class="form-section-title"><i class="fa-solid fa-calendar-check"></i> Event & Pricing</div>
             <div class="form-grid">
                 <div class="input-group">
                     <label>Room</label>
                     <div class="input-wrapper">
                         <i class="fa-solid fa-door-open left-icon"></i>
-                        <select id="roomName" required>
+                        <select id="roomName" onchange="calculateCost()" required>
+                            <!-- Values must match Database names exactly -->
                             <option value="Grand Ballroom">Grand Ballroom</option>
                             <option value="Executive Suite">Executive Suite</option>
                             <option value="Garden Terrace">Garden Terrace</option>
@@ -262,14 +257,12 @@
                         <input type="date" id="bookingDate" required>
                     </div>
                 </div>
-                <!-- Time Selection Dropdowns -->
                 <div class="input-group">
                     <label>Start Time</label>
                     <div class="input-wrapper">
                         <i class="fa-solid fa-clock left-icon"></i>
-                        <select id="startTime" required>
+                        <select id="startTime" onchange="calculateCost()" required>
                             <option value="" disabled selected>--:--</option>
-                            <!-- JS populated -->
                         </select>
                         <i class="fa-solid fa-chevron-down arrow-icon"></i>
                     </div>
@@ -278,20 +271,20 @@
                     <label>End Time</label>
                     <div class="input-wrapper">
                         <i class="fa-solid fa-clock left-icon"></i>
-                        <select id="endTime" required>
+                        <select id="endTime" onchange="calculateCost()" required>
                             <option value="" disabled selected>--:--</option>
-                            <!-- JS populated -->
                         </select>
                         <i class="fa-solid fa-chevron-down arrow-icon"></i>
                     </div>
                 </div>
             </div>
 
-            <!-- SECTION 3: PAYMENT -->
+            <!-- PAYMENT -->
             <div class="form-section-title"><i class="fa-solid fa-credit-card"></i> Payment</div>
             <div class="payment-box">
                 <label style="color:var(--text-muted); font-weight:600; text-transform:uppercase;">Total Booking Cost (£)</label>
-                <input type="number" id="totalAmount" class="payment-input-large" placeholder="0.00" required>
+                <input type="number" id="totalAmount" class="payment-input-large" placeholder="0.00" onchange="syncPayAmount()" required>
+                <div id="costBreakdown" class="calculation-note">Select Room and Time to calculate</div>
                 
                 <div style="margin-top: 1.5rem; text-align: left;">
                     <label style="color:var(--text-muted); font-size:0.9rem; display:block; margin-bottom:0.5rem; font-weight:600;">Amount Paying Now (£)</label>
@@ -315,44 +308,91 @@
     </main>
 
     <script>
-        // === CONFIGURATION ===
+        // CONFIG
         const CUSTOMERS_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/all-customers';
-        const BOOKING_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/make-booking';
+        // Add port 5678 if required by your setup
+        const BOOKING_API = 'https://n8n.srv1090894.hstgr.cloud:5678/webhook/make-booking';
         
         let customerData = [];
+
+        // DATABASE PRICING LOGIC (Mirrors DB)
+        // Rate: Hourly / Daily (if > 6 hours)
+        const roomRates = {
+            "Grand Ballroom": { hourly: 250, daily: 2500 },
+            "Executive Suite": { hourly: 50, daily: 400 },
+            "Garden Terrace": { hourly: 100, daily: 800 }
+        };
 
         function toggleMenu() {
             document.getElementById('sidebar').classList.toggle('active');
             document.getElementById('overlay').classList.toggle('active');
         }
 
-        // --- POPULATE TIME DROPDOWNS ---
+        // --- TIME & COST LOGIC ---
         function populateTimeDropdowns() {
             const startSelect = document.getElementById('startTime');
             const endSelect = document.getElementById('endTime');
-            const startHour = 8; // 08:00
-            const endHour = 23;  // 23:00
-
-            for (let hour = startHour; hour <= endHour; hour++) {
-                // Add :00
+            
+            for (let hour = 8; hour <= 23; hour++) {
                 const hh = hour.toString().padStart(2, '0');
-                
-                let opt1 = new Option(`${hh}:00`, `${hh}:00`);
-                let opt2 = new Option(`${hh}:00`, `${hh}:00`);
-                startSelect.add(opt1);
-                endSelect.add(opt2);
-
-                // Add :30 (skip for 23 if strictly closing at 23:00, but allowing 23:30 allows clean end)
-                if (hour < endHour) {
-                    let opt3 = new Option(`${hh}:30`, `${hh}:30`);
-                    let opt4 = new Option(`${hh}:30`, `${hh}:30`);
-                    startSelect.add(opt3);
-                    endSelect.add(opt4);
+                startSelect.add(new Option(`${hh}:00`, `${hh}:00`));
+                endSelect.add(new Option(`${hh}:00`, `${hh}:00`));
+                if (hour < 23) {
+                    startSelect.add(new Option(`${hh}:30`, `${hh}:30`));
+                    endSelect.add(new Option(`${hh}:30`, `${hh}:30`));
                 }
             }
         }
 
-        // 1. Fetch Customers
+        function calculateCost() {
+            const room = document.getElementById('roomName').value;
+            const start = document.getElementById('startTime').value;
+            const end = document.getElementById('endTime').value;
+            const totalInput = document.getElementById('totalAmount');
+            const breakdown = document.getElementById('costBreakdown');
+
+            if (!room || !start || !end) return;
+
+            // Convert Time to Float (e.g. 09:30 -> 9.5)
+            const getHour = (t) => {
+                const [h, m] = t.split(':').map(Number);
+                return h + (m / 60);
+            };
+
+            const duration = getHour(end) - getHour(start);
+
+            if (duration <= 0) {
+                breakdown.innerText = "Invalid Time Range";
+                totalInput.value = "";
+                return;
+            }
+
+            const rates = roomRates[room] || { hourly: 0, daily: 0 };
+            let cost = 0;
+            let type = "";
+
+            // DB Logic: If > 6 hours, charge Daily Rate. Else Hourly.
+            if (duration >= 6) {
+                cost = rates.daily;
+                type = "Daily Rate Applied";
+            } else {
+                cost = rates.hourly * duration;
+                type = `Hourly Rate (£${rates.hourly}/hr x ${duration}hrs)`;
+            }
+
+            totalInput.value = cost.toFixed(2);
+            breakdown.innerText = `${type}`;
+            
+            // Auto update pay amount to match total initially
+            document.getElementById('payAmount').value = cost.toFixed(2);
+        }
+
+        function syncPayAmount() {
+            // Optional: If user manually changes total, reset pay amount?
+            // Currently leaving it manual for flexibility
+        }
+
+        // --- CUSTOMER LOGIC ---
         async function loadCustomers() {
             try {
                 const response = await fetch(CUSTOMERS_API);
@@ -369,12 +409,10 @@
                     select.appendChild(opt);
                 });
             } catch (e) {
-                console.error("Error loading customers", e);
-                document.getElementById('customerSelect').innerHTML = '<option>Error loading list</option>';
+                console.error(e);
             }
         }
 
-        // 2. Auto-fill details
         function fillCustomerDetails() {
             const index = document.getElementById('customerSelect').value;
             if (index !== "") {
@@ -382,14 +420,10 @@
                 document.getElementById('customerEmail').value = c.email || "";
                 document.getElementById('customerId').value = c.id || ""; 
                 document.getElementById('customerName').value = c.full_name || "";
-            } else {
-                document.getElementById('customerEmail').value = "";
-                document.getElementById('customerId').value = "";
-                document.getElementById('customerName').value = "";
             }
         }
 
-        // 3. Submit Logic
+        // --- SUBMIT LOGIC ---
         async function submitBooking(type) {
             const form = document.getElementById('bookingForm');
             if (!form.checkValidity()) { form.reportValidity(); return; }
@@ -400,8 +434,7 @@
             if (type === 'full') { payAmount = total; }
 
             const btns = document.querySelectorAll('.btn');
-            const originalTexts = Array.from(btns).map(b => b.innerHTML);
-            btns.forEach(b => { b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...'; });
+            btns.forEach(b => { b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...'; });
 
             const payload = {
                 customer_id: document.getElementById('customerId').value,
@@ -424,15 +457,14 @@
                 });
 
                 if (res.ok) {
-                    alert("Booking Successful! Redirecting...");
+                    alert("Booking Successful!");
                     window.location.href = "https://andyjay72.github.io/CommunityHub/index.html";
                 } else {
                     throw new Error("Server Error");
                 }
             } catch (e) {
-                console.error(e);
                 alert("Failed to create booking.");
-                btns.forEach((b, i) => { b.disabled = false; b.innerHTML = originalTexts[i]; });
+                btns.forEach(b => { b.disabled = false; b.innerText = "Retry"; });
             }
         }
 
