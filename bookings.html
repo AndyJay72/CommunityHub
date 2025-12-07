@@ -250,7 +250,7 @@
 
     </main>
 
-    <script>
+   <script>
         // === CONFIGURATION ===
         const API_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/all-bookings';
         
@@ -262,14 +262,29 @@
             document.getElementById('overlay').classList.toggle('active');
         }
 
-        const formatCurrency = (num) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(num);
+        const formatCurrency = (num) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(num || 0);
 
         // === LOGIC ===
         async function fetchBookings() {
             try {
+                console.log("Fetching bookings...");
                 const res = await fetch(API_URL);
-                if(!res.ok) throw new Error("API Error");
-                const rawData = await res.json();
+                
+                if(!res.ok) throw new Error(`API Error: ${res.status}`);
+                
+                const json = await res.json();
+                console.log("Data received:", json);
+
+                // ROBUST FIX: Handle both Array (Old workflow) and Object (New workflow) formats
+                let rawData = [];
+                if (Array.isArray(json)) {
+                    rawData = json;
+                } else if (json.data && Array.isArray(json.data)) {
+                    rawData = json.data;
+                } else {
+                    console.warn("Unexpected data format", json);
+                    rawData = [];
+                }
 
                 // Categorize Data
                 const now = new Date();
@@ -277,59 +292,67 @@
 
                 allBookings = rawData.map(b => {
                     const bDate = new Date(b.booking_date);
-                    let category = 'pre'; // Default
+                    
+                    // Safe balance check (handle nulls/strings)
+                    const balance = parseFloat(b.balance_due || 0);
+                    
+                    let category = 'pre'; 
 
                     // Logic:
-                    // 1. If date is in past -> Completed
-                    // 2. If date is future AND fully paid (balance <= 0) -> Confirmed
-                    // 3. Else -> Pre-Booked (Pending balance)
-                    
                     if (bDate < now) {
-                        category = 'post';
-                    } else if (b.balance_due <= 0) {
-                        category = 'booked';
+                        category = 'post'; // Past event
+                    } else if (balance <= 0) {
+                        category = 'booked'; // Future & Paid
                     } else {
-                        category = 'pre';
+                        category = 'pre'; // Future & Owing
                     }
 
-                    return { ...b, category, dateObj: bDate };
+                    return { ...b, category, dateObj: bDate, balanceNum: balance };
                 });
 
                 updateMetrics();
-                filterList('all'); // Initial render
+                
+                // Initialize View (Simulate clicking "All")
+                const allBtn = document.querySelector('.filter-btn.active') || document.querySelector('.filter-btn');
+                filterList('all', allBtn); 
 
             } catch (e) {
-                console.error(e);
+                console.error("Full Error Details:", e);
                 document.getElementById('booking-container').innerHTML = 
-                    `<div style="text-align:center; padding:2rem; color:#ef4444">Failed to load bookings. Check console.</div>`;
+                    `<div style="text-align:center; padding:2rem; color:#ef4444">
+                        <i class="fa-solid fa-triangle-exclamation"></i> 
+                        Failed to load bookings.<br>
+                        <small style="color:var(--text-muted)">${e.message}</small>
+                    </div>`;
             }
         }
 
         function updateMetrics() {
-            // Count totals
             const counts = {
                 pre: allBookings.filter(b => b.category === 'pre').length,
                 booked: allBookings.filter(b => b.category === 'booked').length,
                 post: allBookings.filter(b => b.category === 'post').length
             };
-            const total = allBookings.length || 1; // Avoid divide by zero
+            const total = allBookings.length || 1; 
 
-            // Update DOM Numbers
-            document.getElementById('dial-pre').innerText = counts.pre;
-            document.getElementById('dial-booked').innerText = counts.booked;
-            document.getElementById('dial-post').innerText = counts.post;
+            // Safely update elements if they exist
+            if(document.getElementById('dial-pre')) {
+                document.getElementById('dial-pre').innerText = counts.pre;
+                document.getElementById('dial-booked').innerText = counts.booked;
+                document.getElementById('dial-post').innerText = counts.post;
 
-            // Update Dial CSS Variables (for the gradient border effect)
-            // Example: If 50% are pre-booked, the dial border is 50% colored
-            document.getElementById('dial-pre').style.setProperty('--pct', `${(counts.pre/total)*100}%`);
-            document.getElementById('dial-booked').style.setProperty('--pct', `${(counts.booked/total)*100}%`);
-            document.getElementById('dial-post').style.setProperty('--pct', `${(counts.post/total)*100}%`);
+                document.getElementById('dial-pre').style.setProperty('--pct', `${(counts.pre/total)*100}%`);
+                document.getElementById('dial-booked').style.setProperty('--pct', `${(counts.booked/total)*100}%`);
+                document.getElementById('dial-post').style.setProperty('--pct', `${(counts.post/total)*100}%`);
+            }
         }
 
-        function filterList(filterType) {
+        function filterList(filterType, btnElement) {
             // Update buttons
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            if (btnElement) {
+                document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                btnElement.classList.add('active');
+            }
 
             // Filter data
             const filtered = filterType === 'all' 
@@ -341,13 +364,13 @@
 
             // Render
             const container = document.getElementById('booking-container');
+            
             if (filtered.length === 0) {
-                container.innerHTML = `<div style="text-align:center; padding:2rem; color:var(--text-muted)">No bookings found in this category.</div>`;
+                container.innerHTML = `<div style="text-align:center; padding:3rem; color:var(--text-muted); border:1px dashed var(--border); border-radius:12px;">No bookings found in this category.</div>`;
                 return;
             }
 
             container.innerHTML = filtered.map(b => {
-                // Styling configs based on category
                 let statusText = '';
                 let statusClass = '';
                 
@@ -365,9 +388,11 @@
                         <div class="b-details">
                             <h4>${b.customer_name || 'Guest'}</h4>
                             <div class="b-meta">
-                                <span><i class="fa-solid fa-layer-group"></i> ${b.room_name}</span>
-                                <span><i class="fa-solid fa-clock"></i> ${b.start_time?.slice(0,5)} - ${b.end_time?.slice(0,5)}</span>
-                                <span><i class="fa-solid fa-sterling-sign"></i> Total: ${formatCurrency(b.total_amount)}</span>
+                                <span><i class="fa-solid fa-layer-group"></i> ${b.room_name || 'Room N/A'}</span>
+                                <span><i class="fa-solid fa-clock"></i> ${b.start_time ? b.start_time.slice(0,5) : '--:--'} - ${b.end_time ? b.end_time.slice(0,5) : '--:--'}</span>
+                                <span style="color: ${b.balanceNum > 0 ? 'var(--warning)' : 'var(--success)'}">
+                                    <i class="fa-solid fa-sterling-sign"></i> Total: ${formatCurrency(b.total_amount)}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -385,8 +410,9 @@
             return 'success';
         }
 
-        // Init
-        fetchBookings();
+        // Update the button HTML to pass 'this'
+        // Run once DOM is ready
+        document.addEventListener('DOMContentLoaded', fetchBookings);
 
     </script>
 </body>
