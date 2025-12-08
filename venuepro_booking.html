@@ -294,11 +294,11 @@
                 </div>
 
                 <div class="action-buttons">
-                    <button type="button" class="btn btn-warning" onclick="submitBooking('deposit')">
-                        <i class="fa-solid fa-coins"></i> Deposit Paid
+                    <button type="button" class="btn btn-warning" id="btnDeposit" onclick="submitBooking('deposit')">
+                        <i class="fa-solid fa-coins"></i> Pay Deposit (£0)
                     </button>
-                    <button type="button" class="btn btn-success" onclick="submitBooking('full')">
-                        <i class="fa-solid fa-check-circle"></i> Paid in Full
+                    <button type="button" class="btn btn-success" id="btnFull" onclick="submitBooking('full')">
+                        <i class="fa-solid fa-check-circle"></i> Pay in Full
                     </button>
                 </div>
             </div>
@@ -313,13 +313,18 @@
         
         let customerData = [];
 
-        // --- ROOM RATES & DEPOSITS ---
-        // depositPct: The percentage required for deposit
+        // DATABASE PRICING LOGIC
         const roomRates = {
+            "Conference Room A": { hourly: 100, daily: 500, depositPct: 30 },
+            "Banquet Hall B": { hourly: 200, daily: 1000, depositPct: 40 },
+            // Add other rooms here if needed
             "Grand Ballroom": { hourly: 250, daily: 2500, depositPct: 20 },
             "Executive Suite": { hourly: 50, daily: 400, depositPct: 50 },
             "Garden Terrace": { hourly: 100, daily: 800, depositPct: 30 }
         };
+
+        // Format GBP
+        const formatGBP = (num) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(num);
 
         function toggleMenu() {
             document.getElementById('sidebar').classList.toggle('active');
@@ -340,7 +345,6 @@
             }
         }
 
-        // --- COST & DEPOSIT CALCULATION ---
         function calculateCost() {
             const room = document.getElementById('roomName').value;
             const start = document.getElementById('startTime').value;
@@ -348,6 +352,7 @@
             const totalInput = document.getElementById('totalAmount');
             const payInput = document.getElementById('payAmount');
             const breakdown = document.getElementById('costBreakdown');
+            const btnDeposit = document.getElementById('btnDeposit');
 
             if (!room || !start || !end) return;
 
@@ -368,7 +373,6 @@
             let cost = 0;
             let type = "";
 
-            // Calculate Total Cost
             if (duration >= 6) {
                 cost = rates.daily;
                 type = "Daily Rate";
@@ -377,21 +381,18 @@
                 type = `Hourly Rate (£${rates.hourly}/hr)`;
             }
 
-            // Calculate Deposit
-            const depositAmount = cost * (rates.depositPct / 100);
+            const deposit = cost * (rates.depositPct / 100);
 
             // Update UI
             totalInput.value = cost.toFixed(2);
-            
-            // Auto-fill the "Paying Now" box with the Deposit Amount
-            payInput.value = depositAmount.toFixed(2);
+            payInput.value = deposit.toFixed(2); // Auto-fill paying now with deposit
 
-            breakdown.innerText = `${type} applied | Required Deposit: ${rates.depositPct}% (£${depositAmount.toFixed(2)})`;
+            breakdown.innerText = `${type} | Duration: ${duration}hrs | Deposit: ${rates.depositPct}%`;
+            btnDeposit.innerHTML = `<i class="fa-solid fa-coins"></i> Pay Deposit (${formatGBP(deposit)})`;
         }
 
         function syncPayAmount() {
-            // If user manually changes total, we optionally leave payment alone or recalc deposit
-            // For now, we leave it to allow manual overrides
+            // Optional: Re-calc if user manually changes total
         }
 
         async function loadCustomers() {
@@ -431,7 +432,6 @@
             const total = document.getElementById('totalAmount').value;
             let payAmount = document.getElementById('payAmount').value;
 
-            // Logic: If 'Paid in Full', overwrite payAmount with Total
             if (type === 'full') {
                 payAmount = total;
             }
@@ -449,7 +449,7 @@
                 end_time: document.getElementById('endTime').value,
                 total_amount: total,
                 payment_amount: payAmount,
-                payment_type: type === 'full' ? 'balance' : 'deposit'
+                payment_type: type === 'full' ? 'full' : 'deposit'
             };
 
             try {
@@ -460,7 +460,7 @@
                 });
 
                 if (res.ok) {
-                    alert("Booking Successful!");
+                    alert("Booking & Payment Successful!");
                     window.location.href = "https://andyjay72.github.io/CommunityHub/index.html";
                 } else {
                     throw new Error("Server Error");
