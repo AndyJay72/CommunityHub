@@ -1,4 +1,247 @@
-<script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dashboard | Venue Manager Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- CORE STYLES --- */
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.7);
+            --border: rgba(148, 163, 184, 0.1);
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --sidebar-width: 260px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                              radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* --- SIDEBAR --- */
+        aside {
+            width: var(--sidebar-width);
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid var(--border);
+            padding: 2rem;
+            display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100;
+            transition: transform 0.3s ease;
+        }
+        .brand { font-size: 1.5rem; font-weight: 700; color: white; display: flex; align-items: center; justify-content: space-between; margin-bottom: 3rem; }
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: var(--text-muted); text-decoration: none; border-radius: 8px; margin-bottom: 5px; transition: all 0.2s; font-weight: 500; }
+        .nav-link:hover, .nav-link.active { background: rgba(99, 102, 241, 0.1); color: var(--primary); }
+        .close-sidebar { display: none; background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; }
+
+        /* --- MAIN CONTENT --- */
+        main {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 2rem;
+            max-width: 1600px;
+            width: 100%;
+            transition: margin-left 0.3s ease;
+        }
+
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; }
+        .header-title h1 { font-size: 1.8rem; font-weight: 700; margin: 0; }
+        .header-title p { color: var(--text-muted); font-size: 0.9rem; margin-top: 5px; }
+        
+        .header-left { display: flex; align-items: center; gap: 1rem; }
+        .menu-toggle { display: none; background: var(--bg-card); border: 1px solid var(--border); color: white; width: 40px; height: 40px; border-radius: 8px; align-items: center; justify-content: center; cursor: pointer; }
+
+        .refresh-btn {
+            background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted);
+            padding: 10px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s;
+            display: flex; align-items: center; gap: 8px; font-weight: 600;
+        }
+        .refresh-btn:hover { background: rgba(255,255,255,0.05); color: white; }
+
+        /* --- KPI CARDS --- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, var(--primary), transparent); }
+
+        .stat-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+        .stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; background: rgba(255,255,255,0.05); }
+        .stat-value { font-size: 2.5rem; font-weight: 700; color: white; margin-bottom: 0.5rem; }
+        .stat-label { color: var(--text-muted); font-size: 0.9rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* --- TABLES --- */
+        .grid-split { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 1.5rem; }
+        .table-container { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; height: 100%; }
+        .table-header { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .table-header h3 { font-size: 1.1rem; margin: 0; display: flex; align-items: center; gap: 10px; }
+        .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th { text-align: left; padding: 1rem 1.5rem; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; font-weight: 600; background: rgba(0,0,0,0.2); }
+        td { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); color: var(--text-main); font-size: 0.95rem; vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(255,255,255,0.02); }
+
+        /* --- BADGES & BUTTONS --- */
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; display: inline-flex; align-items: center; white-space: nowrap; }
+        .status-badge.pending { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
+        .status-badge.contacted { background: rgba(99, 102, 241, 0.15); color: var(--primary); border: 1px solid rgba(99, 102, 241, 0.3); }
+        .status-badge.paid { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status-badge.balance { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+
+        .btn-action { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+        .btn-action:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        .btn-action:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; transform: none; }
+
+        /* --- TOAST & OVERLAY --- */
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; pointer-events: none; }
+        .toast { background: #1e293b; color: white; padding: 1rem 1.5rem; border-radius: 8px; margin-top: 10px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); border-left: 4px solid var(--primary); display: flex; align-items: center; gap: 12px; animation: slideIn 0.3s ease; min-width: 300px; pointer-events: auto; }
+        .toast.success { border-color: var(--success); }
+        .toast.error { border-color: var(--danger); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 90; backdrop-filter: blur(2px); }
+        .overlay.active { display: block; }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 1200px) { .grid-split { grid-template-columns: 1fr; } }
+        @media (max-width: 900px) { .stats-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) {
+            aside { transform: translateX(-100%); } aside.active { transform: translateX(0); }
+            main { margin-left: 0; padding: 1.5rem 1rem; }
+            .menu-toggle { display: flex; } .close-sidebar { display: block; }
+            .header-left { width: 100%; } .header-title h1 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+    <!-- Navigation -->
+    <aside id="sidebar">
+        <div class="brand">
+            <span><i class="fa-solid fa-layer-group"></i> VenuePro</span>
+            <button class="close-sidebar" onclick="toggleMenu()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <nav>
+            <a href="index.html" class="nav-link active"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="bookings.html" class="nav-link"><i class="fa-solid fa-calendar-days"></i> Bookings</a>
+            <a href="customers.html" class="nav-link"><i class="fa-solid fa-users"></i> Customers</a>
+            <a href="accounts.html" class="nav-link"><i class="fa-solid fa-file-invoice-dollar"></i> Accounts</a>
+        </nav>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main>
+        <header>
+            <div class="header-left">
+                <button class="menu-toggle" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></button>
+                <div class="header-title">
+                    <h1>Overview</h1>
+                    <p>Welcome back, Staff Manager</p>
+                </div>
+            </div>
+            <button class="refresh-btn" onclick="loadDashboard()">
+                <i class="fa-solid fa-rotate-right" id="refresh-icon"></i> <span style="display:none; @media(min-width:768px){display:inline;}">Refresh</span>
+            </button>
+        </header>
+
+        <!-- KPI Cards -->
+        <div class="stats-grid">
+            <div class="card">
+                <div class="stat-header"><span class="stat-label">Monthly Revenue</span><div class="stat-icon" style="color: var(--success);"><i class="fa-solid fa-sterling-sign"></i></div></div>
+                <div class="stat-value" id="val-revenue">--</div>
+            </div>
+            <div class="card">
+                <div class="stat-header"><span class="stat-label">Pending Reviews</span><div class="stat-icon" style="color: var(--warning);"><i class="fa-solid fa-clipboard-list"></i></div></div>
+                <div class="stat-value" id="val-pending">--</div>
+            </div>
+            <div class="card">
+                <div class="stat-header"><span class="stat-label">Tasks Completed</span><div class="stat-icon" style="color: var(--primary);"><i class="fa-solid fa-check-double"></i></div></div>
+                <div class="stat-value" id="val-contacted">--</div>
+            </div>
+        </div>
+
+        <div class="grid-split">
+            <!-- New Requests Table (Pending) -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3 style="color: var(--warning);"><i class="fa-solid fa-inbox"></i> New Requests</h3>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Customer</th>
+                                <th>Event Type</th>
+                                <th>Guests</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-requests">
+                            <!-- JS Injection -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Upcoming Bookings Table (Confirmed) -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3 style="color: var(--success);"><i class="fa-solid fa-calendar-check"></i> Upcoming Events</h3>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Customer</th> <!-- ADDED CUSTOMER COLUMN -->
+                                <th>Room</th>
+                                <th>Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-bookings">
+                            <!-- JS Injection -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="toast-container"></div>
+
+    <script>
         // === CONFIGURATION ===
         const DASHBOARD_WEBHOOK_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/staff-dashboard';
         const UPDATE_STATUS_URL = 'https://n8n.srv1090894.hstgr.cloud:5678/webhook/update-status';
@@ -27,17 +270,15 @@
                 if (!response.ok) throw new Error(`Request failed: ${response.status}`);
 
                 const json = await response.json();
-                
-                // ROBUST FIX: Handle nesting
                 const data = json.data || json; 
                 
-                // 1. Populate Metrics
+                // 1. Metrics
                 const metrics = data.metrics || {};
                 document.getElementById('val-revenue').innerText = formatCurrency(metrics.total_revenue_month || 0);
                 document.getElementById('val-pending').innerText = metrics.pending_requests || 0;
                 document.getElementById('val-contacted').innerText = metrics.contacted_today || 0;
 
-                // 2. Populate Requests Table
+                // 2. Requests Table
                 const reqBody = document.getElementById('table-requests');
                 const requests = data.recent_customers || [];
                 
@@ -51,7 +292,7 @@
                                 <div style="font-size: 0.8rem; color: var(--text-muted);">${new Date(c.event_date).toLocaleDateString()}</div>
                             </td>
                             <td>${c.event_type}</td>
-                            <td>${c.guests_count}</td>
+                            <td><i class="fa-solid fa-user-group" style="font-size: 0.7rem; margin-right:5px"></i> ${c.guests_count}</td>
                             <td><span class="status-badge ${c.status === 'pending' ? 'pending' : 'contacted'}">${c.status}</span></td>
                             <td style="text-align: right;">
                                 <button id="btn-${c.id}" class="btn-action" 
@@ -65,22 +306,29 @@
                     `).join('');
                 }
 
-                // 3. Populate Bookings Table
+                // 3. Upcoming Bookings Table (Now with Customer Name)
                 const bookBody = document.getElementById('table-bookings');
                 const bookings = data.upcoming_bookings || [];
 
                 if (bookings.length === 0) {
-                    bookBody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-muted); padding: 2rem;">No upcoming events</td></tr>`;
+                    bookBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding: 2rem;">No upcoming events</td></tr>`;
                 } else {
                     bookBody.innerHTML = bookings.map(b => `
                         <tr>
                             <td>
                                 <div style="font-weight: 600;">${new Date(b.booking_date).toLocaleDateString('en-GB', {day: 'numeric', month: 'short'})}</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">Today</div>
+                            </td>
+                            <!-- Added Customer Name Cell -->
+                            <td>
+                                <div style="font-weight: 500;">${b.customer_name || 'Guest'}</div>
                             </td>
                             <td>${b.room_name}</td>
-                            <td><span class="status-badge ${parseFloat(b.balance_due) > 0 ? 'balance' : 'paid'}">
-                                ${parseFloat(b.balance_due) > 0 ? formatCurrency(b.balance_due) + ' Due' : 'Paid'}
-                            </span></td>
+                            <td>
+                                <span class="status-badge ${parseFloat(b.balance_due) > 0 ? 'balance' : 'paid'}">
+                                    ${parseFloat(b.balance_due) > 0 ? formatCurrency(b.balance_due) + ' Due' : 'Paid'}
+                                </span>
+                            </td>
                         </tr>
                     `).join('');
                 }
@@ -121,3 +369,5 @@
         loadDashboard();
         setInterval(loadDashboard, 60000);
     </script>
+</body>
+</html>
