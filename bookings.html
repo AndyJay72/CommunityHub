@@ -3,27 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bookings | Venue Manager Pro</title>
+    <title>VenuePro Booking</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* --- CORE STYLES --- */
+        /* --- CORE VARIABLES --- */
         :root {
             --bg-dark: #0f172a;
-            --bg-card: rgba(30, 41, 59, 0.7);
+            --bg-card: rgba(30, 41, 59, 0.9);
             --border: rgba(148, 163, 184, 0.1);
             --primary: #6366f1;
             --success: #10b981;
             --warning: #f59e0b;
-            --info: #0ea5e9;
-            --danger: #ef4444;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --sidebar-width: 260px;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
 
         body {
             background-color: var(--bg-dark);
@@ -55,132 +53,140 @@
             margin-left: var(--sidebar-width);
             flex: 1;
             padding: 2rem;
-            max-width: 1600px;
             width: 100%;
             transition: margin-left 0.3s ease;
         }
 
-        /* --- HEADER --- */
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-        .menu-toggle { display: none; background: var(--bg-card); border: 1px solid var(--border); color: white; width: 40px; height: 40px; border-radius: 8px; align-items: center; justify-content: center; cursor: pointer; margin-right: 15px; }
-        
-        /* --- METRICS DIALS --- */
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
-            margin-bottom: 2.5rem;
-        }
+        header { display: flex; align-items: center; margin-bottom: 2rem; gap: 1rem; }
+        .menu-toggle { display: none; background: var(--bg-card); border: 1px solid var(--border); color: white; width: 40px; height: 40px; border-radius: 8px; align-items: center; justify-content: center; cursor: pointer; }
 
-        .metric-card {
+        /* --- FORM STYLING --- */
+        .form-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 16px;
-            padding: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .form-section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
+            gap: 10px;
+        }
+        .form-section-title i { color: var(--primary); }
+
+        /* Responsive Grid */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 1.5rem;
-            position: relative;
-            overflow: hidden;
+            margin-bottom: 2rem;
         }
 
-        .dial-ring {
-            width: 70px; height: 70px;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.5rem; font-weight: 700;
-            position: relative;
-            background: rgba(15, 23, 42, 0.5);
-            flex-shrink: 0;
+        .input-group label {
+            display: block;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
+
+        /* Input Wrappers & Icons */
+        .input-wrapper { position: relative; width: 100%; }
         
-        .dial-ring::before {
-            content: ''; position: absolute; inset: -3px; border-radius: 50%; z-index: -1;
-            background: conic-gradient(var(--card-color) var(--pct), rgba(255,255,255,0.1) 0);
+        .input-wrapper .left-icon {
+            position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+            color: var(--primary); pointer-events: none; z-index: 2;
         }
 
-        .metric-info h3 { font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 5px; }
-        .metric-info p { font-size: 0.85rem; opacity: 0.8; }
-
-        .card-pre { --card-color: var(--warning); }
-        .card-booked { --card-color: var(--primary); }
-        .card-post { --card-color: var(--success); }
-
-        /* --- FILTERS --- */
-        .filter-bar {
-            display: flex; gap: 10px; margin-bottom: 1.5rem; overflow-x: auto; padding-bottom: 5px;
-            -webkit-overflow-scrolling: touch;
+        .input-wrapper .arrow-icon {
+            position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
+            color: var(--text-muted); pointer-events: none; font-size: 0.8rem; z-index: 2;
         }
-        
-        .filter-btn {
-            background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted);
-            padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; font-weight: 600;
-            transition: all 0.2s; white-space: nowrap;
-        }
-        .filter-btn:hover, .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
-        /* --- BOOKING LIST --- */
-        .booking-card {
-            background: var(--bg-card);
+        input, select {
+            width: 100%;
+            padding: 14px 15px 14px 45px;
+            background: rgba(0, 0, 0, 0.2);
             border: 1px solid var(--border);
+            border-radius: 10px;
+            color: white;
+            outline: none;
+            font-size: 1rem;
+            transition: border 0.3s, box-shadow 0.3s;
+            appearance: none; -webkit-appearance: none;
+        }
+
+        select { cursor: pointer; padding-right: 40px; }
+        select option { background: #1e293b; color: white; }
+
+        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); }
+        input[readonly] { opacity: 0.6; cursor: default; }
+
+        /* Payment Box */
+        .payment-box {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 2rem;
             border-radius: 12px;
-            padding: 1.25rem;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: transform 0.2s;
-        }
-        .booking-card:hover { transform: translateX(5px); }
-
-        .b-left { display: flex; align-items: center; gap: 1.5rem; }
-        
-        .date-badge {
-            background: rgba(255,255,255,0.05);
-            padding: 8px 15px; border-radius: 10px;
-            text-align: center; min-width: 70px;
             border: 1px solid var(--border);
+            text-align: center;
         }
-        .db-day { font-size: 1.2rem; font-weight: 700; color: white; }
-        .db-month { font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); }
 
-        .b-details h4 { font-size: 1.1rem; color: white; margin-bottom: 4px; }
-        .b-meta { font-size: 0.9rem; color: var(--text-muted); display: flex; gap: 15px; flex-wrap: wrap; margin-top: 5px; }
-        .b-meta i { margin-right: 5px; color: var(--primary); }
-
-        .status-pill {
-            padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
-            white-space: nowrap;
+        .payment-input-large {
+            font-size: 2rem !important;
+            text-align: center;
+            font-weight: 700;
+            color: var(--success);
+            padding-left: 15px !important;
+            margin-top: 10px;
         }
-        .status-pre { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid var(--warning); }
-        .status-booked { background: rgba(99, 102, 241, 0.15); color: var(--primary); border: 1px solid var(--primary); }
-        .status-completed { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid var(--success); }
 
-        /* Pay Button */
-        .pay-btn { 
-            background: var(--success); color: #0f172a; border: none; padding: 6px 12px; 
-            border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.8rem; 
-            margin-left: 10px; display: inline-flex; align-items: center; gap: 5px; 
+        .calculation-note {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+            font-style: italic;
         }
-        .pay-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        /* Buttons */
+        .action-buttons {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 16px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            font-size: 1rem; transition: transform 0.2s, filter 0.2s; color: #0f172a;
+        }
+        .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-warning { background: var(--warning); }
+        .btn-success { background: var(--success); }
 
         /* Overlay */
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 90; backdrop-filter: blur(2px); }
         .overlay.active { display: block; }
 
-        /* --- RESPONSIVE --- */
-        @media (max-width: 1024px) {
-            .metrics-grid { grid-template-columns: 1fr; }
-        }
+        /* RESPONSIVE */
+        @media (max-width: 900px) { .form-grid { grid-template-columns: 1fr; gap: 1.5rem; } }
         @media (max-width: 768px) {
-            aside { transform: translateX(-100%); }
-            aside.active { transform: translateX(0); }
-            main { margin-left: 0; padding: 1rem; }
-            .menu-toggle { display: flex; }
-            .close-sidebar { display: block; }
-            .booking-card { flex-direction: column; align-items: flex-start; gap: 1rem; }
-            .b-left { width: 100%; }
-            .status-pill { margin-left: 85px; } /* Align with text logic */
+            aside { transform: translateX(-100%); } aside.active { transform: translateX(0); }
+            main { margin-left: 0; padding: 1.5rem 1rem; }
+            .menu-toggle { display: flex; } .close-sidebar { display: block; }
+            .form-card { padding: 1.5rem; }
+            .action-buttons { grid-template-columns: 1fr; }
+            .payment-input-large { font-size: 1.5rem !important; }
         }
     </style>
 </head>
@@ -188,248 +194,337 @@
 
     <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 
-    <!-- Sidebar -->
     <aside id="sidebar">
-        <div class="brand">
-            <span><i class="fa-solid fa-layer-group"></i> VenuePro</span>
-            <button class="close-sidebar" onclick="toggleMenu()"><i class="fa-solid fa-xmark"></i></button>
-        </div>
+        <div class="brand"><span><i class="fa-solid fa-layer-group"></i> VenuePro</span><button class="close-sidebar" onclick="toggleMenu()"><i class="fa-solid fa-xmark"></i></button></div>
         <nav>
             <a href="https://andyjay72.github.io/CommunityHub/index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
-            <a href="bookings.html" class="nav-link active"><i class="fa-solid fa-calendar-days"></i> Bookings</a>
+            <a href="bookings.html" class="nav-link"><i class="fa-solid fa-calendar-days"></i> Bookings</a>
             <a href="customers.html" class="nav-link"><i class="fa-solid fa-users"></i> Customers</a>
             <a href="accounts.html" class="nav-link"><i class="fa-solid fa-file-invoice-dollar"></i> Accounts</a>
         </nav>
     </aside>
 
-    <!-- Main Content -->
     <main>
         <header>
-            <div style="display: flex; align-items: center;">
-                <div class="menu-toggle" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></div>
-                <h1 style="font-size: 1.8rem; font-weight: 700;">Booking Management</h1>
-            </div>
+            <button class="menu-toggle" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></button>
+            <h1 style="font-size: 1.5rem; font-weight: 700;">VenuePro Booking</h1>
         </header>
 
-        <!-- Dials / Metrics -->
-        <div class="metrics-grid">
-            <!-- 1. Pre-Booked -->
-            <div class="metric-card card-pre">
-                <div class="dial-ring" id="dial-pre" style="--pct: 0%;">0</div>
-                <div class="metric-info">
-                    <h3>Pre-Booked</h3>
-                    <p>Deposit paid, awaiting balance</p>
+        <form id="bookingForm" class="form-card" onsubmit="return false;">
+            
+            <!-- REQUEST SELECTION -->
+            <div class="form-section-title"><i class="fa-solid fa-inbox"></i> Select Pending Request</div>
+            <div class="form-grid">
+                <div class="input-group" style="grid-column: span 2;">
+                    <label>Pending Enquiry</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-list-check left-icon"></i>
+                        <select id="requestSelect" onchange="fillRequestDetails()" required>
+                            <option value="">Loading requests...</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down arrow-icon"></i>
+                    </div>
                 </div>
             </div>
 
-            <!-- 2. Booked (Confirmed) -->
-            <div class="metric-card card-booked">
-                <div class="dial-ring" id="dial-booked" style="--pct: 0%;">0</div>
-                <div class="metric-info">
-                    <h3>Confirmed</h3>
-                    <p>Fully paid, ready for event</p>
+            <!-- CUSTOMER DETAILS (Read Only) -->
+            <div class="form-section-title"><i class="fa-solid fa-user"></i> Customer Details</div>
+            <div class="form-grid">
+                <div class="input-group">
+                    <label>Name</label>
+                    <div class="input-wrapper"><i class="fa-solid fa-user left-icon"></i><input type="text" id="customerName" readonly></div>
+                </div>
+                <div class="input-group">
+                    <label>Email</label>
+                    <div class="input-wrapper"><i class="fa-solid fa-envelope left-icon"></i><input type="text" id="customerEmail" readonly></div>
+                </div>
+                <!-- HIDDEN IDS -->
+                <input type="hidden" id="customerId">
+                <input type="hidden" id="requestId">
+                <input type="hidden" id="roomId">
+            </div>
+
+            <!-- EVENT & PRICING -->
+            <div class="form-section-title"><i class="fa-solid fa-calendar-check"></i> Event & Pricing</div>
+            <div class="form-grid">
+                <div class="input-group">
+                    <label>Room</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-door-open left-icon"></i>
+                        <input type="text" id="roomName" readonly style="background: rgba(255,255,255,0.05);">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Date</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-calendar left-icon"></i>
+                        <input type="date" id="bookingDate" required>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Start Time</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-clock left-icon"></i>
+                        <select id="startTime" onchange="calculateCost()" required>
+                            <option value="" disabled selected>--:--</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down arrow-icon"></i>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>End Time</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-clock left-icon"></i>
+                        <select id="endTime" onchange="calculateCost()" required>
+                            <option value="" disabled selected>--:--</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down arrow-icon"></i>
+                    </div>
                 </div>
             </div>
 
-            <!-- 3. Post-Booked (Completed) -->
-            <div class="metric-card card-post">
-                <div class="dial-ring" id="dial-post" style="--pct: 0%;">0</div>
-                <div class="metric-info">
-                    <h3>Completed</h3>
-                    <p>Past events (History)</p>
+            <!-- PAYMENT -->
+            <div class="form-section-title"><i class="fa-solid fa-credit-card"></i> Payment</div>
+            <div class="payment-box">
+                <label style="color:var(--text-muted); font-weight:600; text-transform:uppercase;">Total Booking Cost (£)</label>
+                <input type="number" id="totalAmount" class="payment-input-large" placeholder="0.00" readonly>
+                <div id="costBreakdown" class="calculation-note">Select a request to calculate</div>
+                
+                <!-- Hidden deposit value -->
+                <input type="hidden" id="depositAmount">
+
+                <div style="margin-top: 1.5rem; text-align: left;">
+                    <label style="color:var(--text-muted); font-size:0.9rem; display:block; margin-bottom:0.5rem; font-weight:600;">Amount Paying Now (£)</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-sterling-sign left-icon"></i>
+                        <input type="number" id="payAmount" placeholder="Enter amount..." required>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="button" class="btn btn-warning" id="btnDeposit" onclick="submitBooking('deposit')">
+                        <i class="fa-solid fa-coins"></i> Pay Deposit
+                    </button>
+                    <button type="button" class="btn btn-success" id="btnFull" onclick="submitBooking('full')">
+                        <i class="fa-solid fa-check-circle"></i> Pay in Full
+                    </button>
                 </div>
             </div>
-        </div>
 
-        <!-- Filters -->
-        <div class="filter-bar">
-            <!-- 'this' passed to fix button highlighting -->
-            <button class="filter-btn active" onclick="filterList('all', this)">All Bookings</button>
-            <button class="filter-btn" onclick="filterList('pre', this)">Pre-Booked</button>
-            <button class="filter-btn" onclick="filterList('booked', this)">Confirmed</button>
-            <button class="filter-btn" onclick="filterList('post', this)">Completed</button>
-        </div>
-
-        <!-- List -->
-        <div id="booking-container">
-            <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
-                <i class="fa-solid fa-circle-notch fa-spin"></i> Loading data...
-            </div>
-        </div>
-
+        </form>
     </main>
 
-   <script>
-        // === CONFIGURATION ===
-        // GET uses Standard Port (443 via Proxy)
-        const API_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/all-bookings';
-        // POST uses Specific Port (5678)
-        const PAY_URL = 'https://n8n.srv1090894.hstgr.cloud:5678/webhook/pay-balance'; 
+    <script>
+        // CONFIG
+        // CORRECTED: Removed port numbers since Traefik proxy handles HTTPS 443
+        const REQUESTS_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/get-pending-requests';
+        const BOOKING_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/make-booking';
         
-        let allBookings = []; 
+        let requestsData = [];
 
-        // === UTILS ===
+        // DATABASE PRICING LOGIC
+        const roomRates = {
+            "Conference Room A": { hourly: 100, daily: 500, depositPct: 30 },
+            "Banquet Hall B": { hourly: 200, daily: 1000, depositPct: 40 },
+            "Grand Ballroom": { hourly: 250, daily: 2500, depositPct: 20 },
+            "Executive Suite": { hourly: 50, daily: 400, depositPct: 50 },
+            "Garden Terrace": { hourly: 100, daily: 800, depositPct: 30 }
+        };
+
+        const formatGBP = (num) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(num);
+
         function toggleMenu() {
             document.getElementById('sidebar').classList.toggle('active');
             document.getElementById('overlay').classList.toggle('active');
         }
 
-        const formatCurrency = (num) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(num || 0);
+        // --- TIME POPULATION ---
+        function populateTimeDropdowns() {
+            const startSelect = document.getElementById('startTime');
+            const endSelect = document.getElementById('endTime');
+            for (let hour = 8; hour <= 23; hour++) {
+                const hh = hour.toString().padStart(2, '0');
+                startSelect.add(new Option(`${hh}:00`, `${hh}:00`));
+                endSelect.add(new Option(`${hh}:00`, `${hh}:00`));
+                if (hour < 23) {
+                    startSelect.add(new Option(`${hh}:30`, `${hh}:30`));
+                    endSelect.add(new Option(`${hh}:30`, `${hh}:30`));
+                }
+            }
+        }
 
-        // === LOGIC ===
-        async function fetchBookings() {
+        // 1. Load Requests (Corrected for Data Structure)
+        async function loadRequests() {
             try {
-                console.log("Fetching bookings...");
-                const res = await fetch(API_URL);
-                if(!res.ok) throw new Error(`API Error: ${res.status}`);
+                const response = await fetch(REQUESTS_API);
+                const json = await response.json();
                 
-                const json = await res.json();
+                // ROBUST DATA HANDLING
+                requestsData = json.data || (Array.isArray(json) ? json : []);
                 
-                // Handle Data Wrapper logic
-                let rawData = [];
-                if (Array.isArray(json)) {
-                    rawData = json;
-                } else if (json.data && Array.isArray(json.data)) {
-                    rawData = json.data;
-                } else {
-                    rawData = [];
+                const select = document.getElementById('requestSelect');
+                select.innerHTML = '<option value="">-- Select Pending Request --</option>';
+                
+                if (requestsData.length === 0) {
+                    const opt = document.createElement('option');
+                    opt.text = "No pending requests found";
+                    select.add(opt);
+                    return;
                 }
 
-                // Categorize Data
-                const now = new Date();
-                now.setHours(0,0,0,0); 
-
-                allBookings = rawData.map(b => {
-                    const bDate = new Date(b.booking_date);
-                    const balance = parseFloat(b.balance_due || 0);
-                    let category = 'pre'; 
-
-                    if (bDate < now) {
-                        category = 'post'; 
-                    } else if (balance <= 0) {
-                        category = 'booked'; 
-                    } else {
-                        category = 'pre'; 
-                    }
-
-                    return { ...b, category, dateObj: bDate, balanceNum: balance };
+                requestsData.forEach((req, index) => {
+                    const opt = document.createElement('option');
+                    opt.value = index;
+                    const dateStr = req.requested_date ? new Date(req.requested_date).toLocaleDateString() : 'No Date';
+                    opt.text = `${req.full_name} - ${req.room_name} (${dateStr})`;
+                    select.add(opt);
                 });
-
-                updateMetrics();
-                
-                // Initialize View
-                const activeBtn = document.querySelector('.filter-btn.active');
-                filterList('all', activeBtn); 
-
             } catch (e) {
                 console.error(e);
-                document.getElementById('booking-container').innerHTML = 
-                    `<div style="text-align:center; padding:2rem; color:#ef4444">Failed to load bookings.</div>`;
+                document.getElementById('requestSelect').innerHTML = '<option>Error loading requests</option>';
             }
         }
 
-        async function payBalance(id, customerId, balance) {
-            const amount = prompt(`Enter payment amount (Balance Due: £${balance})`, balance);
-            if (!amount) return;
+        // 2. Auto-Fill Details
+        function fillRequestDetails() {
+            const index = document.getElementById('requestSelect').value;
+            if (index === "") return;
 
-            try {
-                const res = await fetch(PAY_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ booking_id: id, customer_id: customerId, amount: amount })
-                });
-                const result = await res.json();
-                
-                if(result.status === 'success' || result.status === 'partial') {
-                    alert("Payment Recorded Successfully!");
-                    fetchBookings(); // Reload to update status
-                } else {
-                    alert("Error recording payment");
-                }
-            } catch(e) { 
-                console.error(e); 
-                alert("Connection Failed. Check Console."); 
-            }
-        }
-
-        function updateMetrics() {
-            const counts = {
-                pre: allBookings.filter(b => b.category === 'pre').length,
-                booked: allBookings.filter(b => b.category === 'booked').length,
-                post: allBookings.filter(b => b.category === 'post').length
-            };
-            const total = allBookings.length || 1; 
-
-            if(document.getElementById('dial-pre')) {
-                document.getElementById('dial-pre').innerText = counts.pre;
-                document.getElementById('dial-booked').innerText = counts.booked;
-                document.getElementById('dial-post').innerText = counts.post;
-
-                document.getElementById('dial-pre').style.setProperty('--pct', `${(counts.pre/total)*100}%`);
-                document.getElementById('dial-booked').style.setProperty('--pct', `${(counts.booked/total)*100}%`);
-                document.getElementById('dial-post').style.setProperty('--pct', `${(counts.post/total)*100}%`);
-            }
-        }
-
-        function filterList(filterType, btnElement) {
-            if (btnElement) {
-                document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-                btnElement.classList.add('active');
-            }
-
-            const filtered = filterType === 'all' 
-                ? allBookings 
-                : allBookings.filter(b => b.category === filterType);
-
-            filtered.sort((a, b) => filterType === 'post' ? b.dateObj - a.dateObj : a.dateObj - b.dateObj);
-
-            const container = document.getElementById('booking-container');
+            const req = requestsData[index];
             
-            if (filtered.length === 0) {
-                container.innerHTML = `<div style="text-align:center; padding:3rem; color:var(--text-muted); border:1px dashed var(--border); border-radius:12px;">No bookings found in this category.</div>`;
+            // Customer Info
+            document.getElementById('customerName').value = req.full_name || '';
+            document.getElementById('customerEmail').value = req.email || '';
+            document.getElementById('customerId').value = req.customer_id || '';
+            document.getElementById('requestId').value = req.request_id || '';
+
+            // Room Info
+            document.getElementById('roomName').value = req.room_name || '';
+            document.getElementById('roomId').value = req.room_id || '';
+            
+            // Date formatting: Ensure YYYY-MM-DD
+            if (req.requested_date) {
+                const d = req.requested_date.split('T')[0]; 
+                document.getElementById('bookingDate').value = d;
+            }
+            
+            // Time formatting
+            if (req.start_time) {
+                const time = req.start_time.split(':').slice(0,2).join(':'); // "14:00:00" -> "14:00"
+                document.getElementById('startTime').value = time;
+            } else {
+                document.getElementById('startTime').value = "09:00";
+            }
+
+            if (req.end_time) {
+                const time = req.end_time.split(':').slice(0,2).join(':');
+                document.getElementById('endTime').value = time;
+            } else {
+                document.getElementById('endTime').value = "17:00";
+            }
+
+            // Trigger calculation
+            calculateCost();
+        }
+
+        // 3. Calculate Cost
+        function calculateCost() {
+            const room = document.getElementById('roomName').value;
+            const start = document.getElementById('startTime').value;
+            const end = document.getElementById('endTime').value;
+            const totalInput = document.getElementById('totalAmount');
+            const payInput = document.getElementById('payAmount');
+            const breakdown = document.getElementById('costBreakdown');
+            const btnDeposit = document.getElementById('btnDeposit');
+
+            // Need all 3 to calc
+            if (!room || !start || !end) return;
+
+            // Time math
+            const getHour = (t) => { const [h,m] = t.split(':').map(Number); return h + (m/60); };
+            const duration = getHour(end) - getHour(start);
+
+            if (duration <= 0) {
+                breakdown.innerText = "Invalid Time (End must be after Start)";
+                totalInput.value = "";
                 return;
             }
 
-            container.innerHTML = filtered.map(b => {
-                let statusInfo = { text: 'Pending Balance', cls: 'status-pre', color: 'var(--warning)' };
-                if(b.category === 'booked') statusInfo = { text: 'Confirmed', cls: 'status-booked', color: 'var(--primary)' };
-                else if(b.category === 'post') statusInfo = { text: 'Completed', cls: 'status-completed', color: 'var(--success)' };
+            // Rates
+            const rates = roomRates[room] || { hourly: 0, daily: 0, depositPct: 0 };
+            let cost = 0;
+            let type = "";
 
-                // Add Pay Button logic if Pending
-                let actionBtn = '';
-                if(b.category === 'pre') {
-                    actionBtn = `<button class="pay-btn" onclick="payBalance('${b.id || ''}', '${b.customer_id || ''}', ${b.balanceNum})"><i class="fa-solid fa-credit-card"></i> Pay</button>`;
-                }
+            if (duration > 5) {
+                cost = rates.daily;
+                type = "Daily Rate";
+            } else {
+                cost = rates.hourly * duration;
+                type = "Hourly Rate";
+            }
 
-                return `
-                <div class="booking-card" style="border-left: 4px solid ${statusInfo.color}">
-                    <div class="b-left">
-                        <div class="date-badge">
-                            <div class="db-day">${b.dateObj.getDate()}</div>
-                            <div class="db-month">${b.dateObj.toLocaleString('default', { month: 'short' })}</div>
-                        </div>
-                        <div class="b-details">
-                            <h4>${b.customer_name || 'Guest'}</h4>
-                            <div class="b-meta">
-                                <span><i class="fa-solid fa-layer-group"></i> ${b.room_name || 'Room N/A'}</span>
-                                <span><i class="fa-solid fa-clock"></i> ${b.start_time ? b.start_time.slice(0,5) : '--:--'} - ${b.end_time ? b.end_time.slice(0,5) : '--:--'}</span>
-                                <span style="color: ${b.balanceNum > 0 ? '#f59e0b' : '#10b981'}">
-                                    <i class="fa-solid fa-sterling-sign"></i> Balance: ${formatCurrency(b.total_amount)}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <div class="status-pill ${statusInfo.cls}">${statusInfo.text}</div>
-                        ${actionBtn}
-                    </div>
-                </div>
-                `;
-            }).join('');
+            const deposit = cost * (rates.depositPct / 100);
+
+            // Update UI
+            totalInput.value = cost.toFixed(2);
+            document.getElementById('depositAmount').value = deposit.toFixed(2);
+            
+            // Default "Pay Amount" to Deposit
+            payInput.value = deposit.toFixed(2);
+
+            breakdown.innerText = `${type} | Duration: ${duration.toFixed(1)}hrs | Deposit: ${rates.depositPct}%`;
+            btnDeposit.innerHTML = `<i class="fa-solid fa-coins"></i> Pay Deposit (${formatGBP(deposit)})`;
         }
 
-        document.addEventListener('DOMContentLoaded', fetchBookings);
+        // 4. Submit
+        async function submitBooking(type) {
+            const total = document.getElementById('totalAmount').value;
+            let payAmount = document.getElementById('payAmount').value;
 
+            if (type === 'full') {
+                payAmount = total;
+            }
+
+            const btns = document.querySelectorAll('.btn');
+            btns.forEach(b => { b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...'; });
+
+            const payload = {
+                customer_id: document.getElementById('customerId').value,
+                customer_name: document.getElementById('customerName').value,
+                customer_email: document.getElementById('customerEmail').value,
+                request_id: document.getElementById('requestId').value,
+                room_id: document.getElementById('roomId').value,
+                room_name: document.getElementById('roomName').value,
+                booking_date: document.getElementById('bookingDate').value,
+                start_time: document.getElementById('startTime').value,
+                end_time: document.getElementById('endTime').value,
+                total_amount: total,
+                payment_amount: payAmount,
+                payment_type: type === 'full' ? 'full' : 'deposit'
+            };
+
+            try {
+                const res = await fetch(BOOKING_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    alert("Booking Confirmed!");
+                    window.location.href = "https://andyjay72.github.io/CommunityHub/index.html";
+                } else {
+                    throw new Error("Server Error");
+                }
+            } catch (e) {
+                alert("Failed.");
+                btns.forEach(b => { b.disabled = false; b.innerText = "Retry"; });
+            }
+        }
+
+        // Init
+        populateTimeDropdowns();
+        loadRequests();
     </script>
 </body>
 </html>
