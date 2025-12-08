@@ -210,28 +210,36 @@
 
         <form id="bookingForm" class="form-card" onsubmit="return false;">
             
-            <!-- CUSTOMER -->
-            <div class="form-section-title"><i class="fa-solid fa-user"></i> Customer Selection</div>
+            <!-- REQUEST SELECTION -->
+            <div class="form-section-title"><i class="fa-solid fa-inbox"></i> Select Pending Request</div>
             <div class="form-grid">
-                <div class="input-group">
-                    <label>Select Customer</label>
+                <div class="input-group" style="grid-column: span 2;">
+                    <label>Pending Enquiry</label>
                     <div class="input-wrapper">
-                        <i class="fa-solid fa-search left-icon"></i>
-                        <select id="customerSelect" onchange="fillCustomerDetails()" required>
-                            <option value="">Loading customers...</option>
+                        <i class="fa-solid fa-list-check left-icon"></i>
+                        <select id="requestSelect" onchange="fillRequestDetails()" required>
+                            <option value="">Loading requests...</option>
                         </select>
                         <i class="fa-solid fa-chevron-down arrow-icon"></i>
                     </div>
                 </div>
+            </div>
+
+            <!-- CUSTOMER DETAILS (Read Only) -->
+            <div class="form-section-title"><i class="fa-solid fa-user"></i> Customer Details</div>
+            <div class="form-grid">
                 <div class="input-group">
-                    <label>Email (Auto-Filled)</label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-envelope left-icon"></i>
-                        <input type="text" id="customerEmail" readonly>
-                        <input type="hidden" id="customerId">
-                        <input type="hidden" id="customerName">
-                    </div>
+                    <label>Name</label>
+                    <div class="input-wrapper"><i class="fa-solid fa-user left-icon"></i><input type="text" id="customerName" readonly></div>
                 </div>
+                <div class="input-group">
+                    <label>Email</label>
+                    <div class="input-wrapper"><i class="fa-solid fa-envelope left-icon"></i><input type="text" id="customerEmail" readonly></div>
+                </div>
+                <!-- HIDDEN IDS -->
+                <input type="hidden" id="customerId">
+                <input type="hidden" id="requestId">
+                <input type="hidden" id="roomId">
             </div>
 
             <!-- EVENT & PRICING -->
@@ -241,12 +249,7 @@
                     <label>Room</label>
                     <div class="input-wrapper">
                         <i class="fa-solid fa-door-open left-icon"></i>
-                        <select id="roomName" onchange="calculateCost()" required>
-                            <option value="Grand Ballroom">Grand Ballroom</option>
-                            <option value="Executive Suite">Executive Suite</option>
-                            <option value="Garden Terrace">Garden Terrace</option>
-                        </select>
-                        <i class="fa-solid fa-chevron-down arrow-icon"></i>
+                        <input type="text" id="roomName" readonly style="background: rgba(255,255,255,0.05);">
                     </div>
                 </div>
                 <div class="input-group">
@@ -282,9 +285,12 @@
             <div class="form-section-title"><i class="fa-solid fa-credit-card"></i> Payment</div>
             <div class="payment-box">
                 <label style="color:var(--text-muted); font-weight:600; text-transform:uppercase;">Total Booking Cost (£)</label>
-                <input type="number" id="totalAmount" class="payment-input-large" placeholder="0.00" onchange="syncPayAmount()" required>
-                <div id="costBreakdown" class="calculation-note">Select Room and Time to calculate</div>
+                <input type="number" id="totalAmount" class="payment-input-large" placeholder="0.00" readonly>
+                <div id="costBreakdown" class="calculation-note">Select a request to calculate</div>
                 
+                <!-- Hidden deposit value -->
+                <input type="hidden" id="depositAmount">
+
                 <div style="margin-top: 1.5rem; text-align: left;">
                     <label style="color:var(--text-muted); font-size:0.9rem; display:block; margin-bottom:0.5rem; font-weight:600;">Amount Paying Now (£)</label>
                     <div class="input-wrapper">
@@ -295,7 +301,7 @@
 
                 <div class="action-buttons">
                     <button type="button" class="btn btn-warning" id="btnDeposit" onclick="submitBooking('deposit')">
-                        <i class="fa-solid fa-coins"></i> Pay Deposit (£0)
+                        <i class="fa-solid fa-coins"></i> Pay Deposit
                     </button>
                     <button type="button" class="btn btn-success" id="btnFull" onclick="submitBooking('full')">
                         <i class="fa-solid fa-check-circle"></i> Pay in Full
@@ -308,22 +314,20 @@
 
     <script>
         // CONFIG
-        const CUSTOMERS_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/all-customers';
+        const REQUESTS_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/get-pending-requests';
         const BOOKING_API = 'https://n8n.srv1090894.hstgr.cloud:5678/webhook/make-booking';
         
-        let customerData = [];
+        let requestsData = [];
 
         // DATABASE PRICING LOGIC
         const roomRates = {
             "Conference Room A": { hourly: 100, daily: 500, depositPct: 30 },
             "Banquet Hall B": { hourly: 200, daily: 1000, depositPct: 40 },
-            // Add other rooms here if needed
             "Grand Ballroom": { hourly: 250, daily: 2500, depositPct: 20 },
             "Executive Suite": { hourly: 50, daily: 400, depositPct: 50 },
             "Garden Terrace": { hourly: 100, daily: 800, depositPct: 30 }
         };
 
-        // Format GBP
         const formatGBP = (num) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(num);
 
         function toggleMenu() {
@@ -331,6 +335,7 @@
             document.getElementById('overlay').classList.toggle('active');
         }
 
+        // --- TIME POPULATION ---
         function populateTimeDropdowns() {
             const startSelect = document.getElementById('startTime');
             const endSelect = document.getElementById('endTime');
@@ -345,6 +350,81 @@
             }
         }
 
+        // 1. Load Requests
+        async function loadRequests() {
+            try {
+                const response = await fetch(REQUESTS_API);
+                const json = await response.json();
+                requestsData = json.data || (Array.isArray(json) ? json : []);
+                
+                const select = document.getElementById('requestSelect');
+                select.innerHTML = '<option value="">-- Select Pending Request --</option>';
+                
+                if (requestsData.length === 0) {
+                    const opt = document.createElement('option');
+                    opt.text = "No pending requests found";
+                    select.add(opt);
+                    return;
+                }
+
+                requestsData.forEach((req, index) => {
+                    const opt = document.createElement('option');
+                    opt.value = index;
+                    // Format nice display string
+                    const dateStr = req.requested_date ? new Date(req.requested_date).toLocaleDateString() : 'No Date';
+                    opt.text = `${req.full_name} - ${req.room_name} (${dateStr})`;
+                    select.add(opt);
+                });
+            } catch (e) {
+                console.error(e);
+                document.getElementById('requestSelect').innerHTML = '<option>Error loading requests</option>';
+            }
+        }
+
+        // 2. Auto-Fill Details
+        function fillRequestDetails() {
+            const index = document.getElementById('requestSelect').value;
+            if (index === "") return;
+
+            const req = requestsData[index];
+            
+            // Customer Info
+            document.getElementById('customerName').value = req.full_name || '';
+            document.getElementById('customerEmail').value = req.email || '';
+            document.getElementById('customerId').value = req.customer_id || '';
+            document.getElementById('requestId').value = req.request_id || '';
+
+            // Room Info
+            document.getElementById('roomName').value = req.room_name || '';
+            document.getElementById('roomId').value = req.room_id || '';
+            
+            // Date formatting: Ensure YYYY-MM-DD
+            if (req.requested_date) {
+                // If timestamp includes 'T', split it. If already YYYY-MM-DD, use as is.
+                const d = req.requested_date.split('T')[0]; 
+                document.getElementById('bookingDate').value = d;
+            }
+            
+            // Time formatting: Ensure HH:MM (remove seconds if present)
+            if (req.start_time) {
+                const time = req.start_time.split(':').slice(0,2).join(':'); // "14:00:00" -> "14:00"
+                document.getElementById('startTime').value = time;
+            } else {
+                document.getElementById('startTime').value = "09:00";
+            }
+
+            if (req.end_time) {
+                const time = req.end_time.split(':').slice(0,2).join(':');
+                document.getElementById('endTime').value = time;
+            } else {
+                document.getElementById('endTime').value = "17:00";
+            }
+
+            // Trigger calculation immediately after filling
+            calculateCost();
+        }
+
+        // 3. Calculate Cost
         function calculateCost() {
             const room = document.getElementById('roomName').value;
             const start = document.getElementById('startTime').value;
@@ -354,21 +434,20 @@
             const breakdown = document.getElementById('costBreakdown');
             const btnDeposit = document.getElementById('btnDeposit');
 
+            // Need all 3 to calc
             if (!room || !start || !end) return;
 
-            const getHour = (t) => {
-                const [h, m] = t.split(':').map(Number);
-                return h + (m / 60);
-            };
-
+            // Time math
+            const getHour = (t) => { const [h,m] = t.split(':').map(Number); return h + (m/60); };
             const duration = getHour(end) - getHour(start);
 
             if (duration <= 0) {
-                breakdown.innerText = "Invalid Time Range";
+                breakdown.innerText = "Invalid Time (End must be after Start)";
                 totalInput.value = "";
                 return;
             }
 
+            // Rates
             const rates = roomRates[room] || { hourly: 0, daily: 0, depositPct: 0 };
             let cost = 0;
             let type = "";
@@ -378,57 +457,24 @@
                 type = "Daily Rate";
             } else {
                 cost = rates.hourly * duration;
-                type = `Hourly Rate (£${rates.hourly}/hr)`;
+                type = "Hourly Rate";
             }
 
             const deposit = cost * (rates.depositPct / 100);
 
             // Update UI
             totalInput.value = cost.toFixed(2);
-            payInput.value = deposit.toFixed(2); // Auto-fill paying now with deposit
+            document.getElementById('depositAmount').value = deposit.toFixed(2);
+            
+            // Default "Pay Amount" to Deposit
+            payInput.value = deposit.toFixed(2);
 
-            breakdown.innerText = `${type} | Duration: ${duration}hrs | Deposit: ${rates.depositPct}%`;
+            breakdown.innerText = `${type} | Duration: ${duration.toFixed(1)}hrs | Deposit: ${rates.depositPct}%`;
             btnDeposit.innerHTML = `<i class="fa-solid fa-coins"></i> Pay Deposit (${formatGBP(deposit)})`;
         }
 
-        function syncPayAmount() {
-            // Optional: Re-calc if user manually changes total
-        }
-
-        async function loadCustomers() {
-            try {
-                const response = await fetch(CUSTOMERS_API);
-                const json = await response.json();
-                customerData = json.data || (Array.isArray(json) ? json : []);
-                
-                const select = document.getElementById('customerSelect');
-                select.innerHTML = '<option value="">-- Select Customer --</option>';
-                
-                customerData.forEach((c, index) => {
-                    const opt = document.createElement('option');
-                    opt.value = index; 
-                    opt.innerText = `${c.full_name} (${c.email})`;
-                    select.appendChild(opt);
-                });
-            } catch (e) {
-                console.error(e);
-            }
-        }
-
-        function fillCustomerDetails() {
-            const index = document.getElementById('customerSelect').value;
-            if (index !== "") {
-                const c = customerData[index];
-                document.getElementById('customerEmail').value = c.email || "";
-                document.getElementById('customerId').value = c.id || ""; 
-                document.getElementById('customerName').value = c.full_name || "";
-            }
-        }
-
+        // 4. Submit
         async function submitBooking(type) {
-            const form = document.getElementById('bookingForm');
-            if (!form.checkValidity()) { form.reportValidity(); return; }
-
             const total = document.getElementById('totalAmount').value;
             let payAmount = document.getElementById('payAmount').value;
 
@@ -443,6 +489,8 @@
                 customer_id: document.getElementById('customerId').value,
                 customer_name: document.getElementById('customerName').value,
                 customer_email: document.getElementById('customerEmail').value,
+                request_id: document.getElementById('requestId').value,
+                room_id: document.getElementById('roomId').value,
                 room_name: document.getElementById('roomName').value,
                 booking_date: document.getElementById('bookingDate').value,
                 start_time: document.getElementById('startTime').value,
@@ -460,20 +508,21 @@
                 });
 
                 if (res.ok) {
-                    alert("Booking & Payment Successful!");
+                    alert("Booking Confirmed!");
                     window.location.href = "https://andyjay72.github.io/CommunityHub/index.html";
                 } else {
                     throw new Error("Server Error");
                 }
             } catch (e) {
+                console.error(e);
                 alert("Failed to create booking.");
                 btns.forEach(b => { b.disabled = false; b.innerText = "Retry"; });
             }
         }
 
         // Init
-        loadCustomers();
         populateTimeDropdowns();
+        loadRequests();
     </script>
 </body>
 </html>
