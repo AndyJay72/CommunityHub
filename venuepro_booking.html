@@ -236,8 +236,17 @@
                     <label>Email</label>
                     <div class="input-wrapper"><i class="fa-solid fa-envelope left-icon"></i><input type="text" id="customerEmail" readonly></div>
                 </div>
-                <!-- HIDDEN IDS -->
-                <input type="hidden" id="customerId">
+                
+                <!-- NEW VISIBLE ID FIELD FOR DEBUGGING -->
+                <div class="input-group" style="grid-column: span 2;">
+                    <label>Customer ID (System)</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-fingerprint left-icon"></i>
+                        <input type="text" id="customerId" readonly style="opacity: 0.7; background: #1e293b;">
+                    </div>
+                </div>
+                
+                <!-- Other Hidden IDs -->
                 <input type="hidden" id="requestId">
                 <input type="hidden" id="roomId">
             </div>
@@ -249,15 +258,7 @@
                     <label>Room</label>
                     <div class="input-wrapper">
                         <i class="fa-solid fa-door-open left-icon"></i>
-                        <select id="roomName" onchange="calculateCost()" required>
-                            <option value="">-- Select Room --</option>
-                            <option value="Conference Room A">Conference Room A</option>
-                            <option value="Banquet Hall B">Banquet Hall B</option>
-                            <option value="Grand Ballroom">Grand Ballroom</option>
-                            <option value="Executive Suite">Executive Suite</option>
-                            <option value="Garden Terrace">Garden Terrace</option>
-                        </select>
-                        <i class="fa-solid fa-chevron-down arrow-icon"></i>
+                        <input type="text" id="roomName" readonly style="background: rgba(255,255,255,0.05);">
                     </div>
                 </div>
                 <div class="input-group">
@@ -294,7 +295,7 @@
             <div class="payment-box">
                 <label style="color:var(--text-muted); font-weight:600; text-transform:uppercase;">Total Booking Cost (£)</label>
                 <input type="number" id="totalAmount" class="payment-input-large" placeholder="0.00" readonly>
-                <div id="costBreakdown" class="calculation-note">Select details above to calculate</div>
+                <div id="costBreakdown" class="calculation-note">Select a request to calculate</div>
                 
                 <input type="hidden" id="depositAmount">
 
@@ -320,7 +321,7 @@
     </main>
 
     <script>
-        // === CONFIG ===
+        // CONFIG
         const REQUESTS_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/get-pending-requests';
         const BOOKING_API = 'https://n8n.srv1090894.hstgr.cloud:5678/webhook/make-booking';
         
@@ -364,6 +365,8 @@
                 const json = await response.json();
                 requestsData = json.data || (Array.isArray(json) ? json : []);
                 
+                console.log("Pending Requests Loaded:", requestsData); // Debug log
+
                 const select = document.getElementById('requestSelect');
                 select.innerHTML = '<option value="">-- Select Pending Request --</option>';
                 
@@ -387,36 +390,38 @@
             }
         }
 
-        // 2. Auto-Fill Details (With improved Time/Date parsing)
+        // 2. Auto-Fill Details
         function fillRequestDetails() {
             const index = document.getElementById('requestSelect').value;
             if (index === "") return;
 
             const req = requestsData[index];
             
-            // Debug check for IDs
-            if(!req.customer_id) alert("Warning: API returned a request without a Customer ID. Submission may fail.");
+            console.log("Selected Request Data:", req); // Debug log
 
             // Customer Info
             document.getElementById('customerName').value = req.full_name || '';
             document.getElementById('customerEmail').value = req.email || '';
+            
+            // KEY: Setting the Visible ID field
             document.getElementById('customerId').value = req.customer_id || '';
+            
             document.getElementById('requestId').value = req.request_id || '';
 
             // Room Info
             document.getElementById('roomName').value = req.room_name || '';
             document.getElementById('roomId').value = req.room_id || '';
             
-            // Date Format: "2023-12-25T00:00:00.000Z" -> "2023-12-25"
+            // Date formatting
             if (req.requested_date) {
                 const d = req.requested_date.split('T')[0]; 
                 document.getElementById('bookingDate').value = d;
             }
             
-            // Time Format: "14:00:00" -> "14:00" (Strict padding)
+            // Time formatting
             if (req.start_time) {
                 let time = req.start_time.split(':').slice(0,2).join(':');
-                if(time.length === 4) time = "0" + time; // Ensure 9:00 becomes 09:00
+                if(time.length === 4) time = "0" + time;
                 document.getElementById('startTime').value = time;
             } else {
                 document.getElementById('startTime').value = "09:00";
@@ -470,7 +475,7 @@
 
             totalInput.value = cost.toFixed(2);
             document.getElementById('depositAmount').value = deposit.toFixed(2);
-            payInput.value = deposit.toFixed(2); // Auto-set paying amount to deposit
+            payInput.value = deposit.toFixed(2);
 
             breakdown.innerText = `${type} | Duration: ${duration.toFixed(1)}hrs | Deposit: ${rates.depositPct}%`;
             btnDeposit.innerHTML = `<i class="fa-solid fa-coins"></i> Pay Deposit (${formatGBP(deposit)})`;
@@ -480,6 +485,13 @@
         async function submitBooking(type) {
             const total = document.getElementById('totalAmount').value;
             let payAmount = document.getElementById('payAmount').value;
+            const custId = document.getElementById('customerId').value;
+
+            // Extra validation for ID
+            if (!custId) {
+                alert("Error: No Customer ID found. Please select a valid pending request.");
+                return;
+            }
 
             if (type === 'full') {
                 payAmount = total;
@@ -489,7 +501,7 @@
             btns.forEach(b => { b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...'; });
 
             const payload = {
-                customer_id: document.getElementById('customerId').value,
+                customer_id: custId,
                 customer_name: document.getElementById('customerName').value,
                 customer_email: document.getElementById('customerEmail').value,
                 request_id: document.getElementById('requestId').value,
