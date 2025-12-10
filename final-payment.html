@@ -65,7 +65,7 @@
             <a href="bookings.html" class="nav-link"><i class="fa-solid fa-calendar-days"></i> Bookings</a>
             <a href="customers.html" class="nav-link"><i class="fa-solid fa-users"></i> Customers</a>
             <a href="accounts.html" class="nav-link"><i class="fa-solid fa-file-invoice-dollar"></i> Accounts</a>
-            <a href="venuepro_booking.html" class="nav-link active"><i class="fa-solid fa-check-double"></i> Final Payment</a>
+            <a href="final-payment.html" class="nav-link active"><i class="fa-solid fa-check-double"></i> Final Payment</a>
         </nav>
     </aside>
 
@@ -131,8 +131,9 @@
     </main>
 
     <script>
+        // CONFIG
+        // REMOVED Port 5678 to match your proxy settings
         const LIST_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/get-outstanding-bookings';
-        // Note: Reusing the existing pay-balance webhook from "Financial Operations"
         const PAY_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/pay-balance';
         
         let bookingsData = [];
@@ -143,7 +144,7 @@
         async function loadOutstanding() {
             try {
                 const res = await fetch(LIST_API);
-                const json = await res.json();
+                const json = await responseCheck(res);
                 bookingsData = json.data || (Array.isArray(json) ? json : []);
                 
                 const select = document.getElementById('bookingSelect');
@@ -162,6 +163,12 @@
                     select.add(opt);
                 });
             } catch (e) { console.error(e); }
+        }
+
+        // Helper to check response
+        async function responseCheck(res) {
+            if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+            return await res.json();
         }
 
         function fillDetails() {
@@ -206,7 +213,7 @@
                     })
                 });
 
-                const result = await res.json();
+                const result = await responseCheck(res);
                 
                 if (result.status === 'success' || result.status === 'partial') {
                     alert("Payment Successful! Booking is now Fully Paid.");
