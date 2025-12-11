@@ -104,8 +104,8 @@
     </main>
     <script>
         const API_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/all-bookings';
-        const PAY_URL = 'https://n8n.srv1090894.hstgr.cloud:5678/webhook/pay-balance';
-        const CANCEL_URL = 'https://n8n.srv1090894.hstgr.cloud:5678/webhook/cancel-booking';
+        const PAY_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/pay-balance';
+        const CANCEL_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/cancel-booking';
         
         let allBookings = [];
         const formatCurrency = (num) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(num || 0);
