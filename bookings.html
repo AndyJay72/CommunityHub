@@ -94,11 +94,12 @@
             <div class="metric-card card-post"><div class="dial-ring" id="dial-post" style="--pct: 0%;">0</div><div class="metric-info"><h3>Completed</h3><p>Past events</p></div></div>
         </div>
         <div class="filter-bar">
+            <!-- UPDATED: Added Cancelled Tab -->
             <button class="filter-btn active" onclick="filterList('all', this)">All Bookings</button>
             <button class="filter-btn" onclick="filterList('pre', this)">Pre-Booked</button>
             <button class="filter-btn" onclick="filterList('booked', this)">Confirmed</button>
             <button class="filter-btn" onclick="filterList('post', this)">Completed</button>
-            <button class="filter-btn" onclick="filterList('cancelled', this)">Cancelled</button>
+            <button class="filter-btn" onclick="filterList('cancelled', this)" style="color:var(--danger); border-color:var(--danger);">Cancelled</button>
         </div>
         <div id="booking-container"><div style="text-align: center; padding: 2rem; color: var(--text-muted);"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading data...</div></div>
     </main>
@@ -123,10 +124,16 @@
                     const balance = parseFloat(b.balance_due || 0);
                     let category = 'pre';
                     
-                    if (b.status === 'cancelled') category = 'cancelled';
-                    else if (bDate < now) category = 'post';
-                    else if (balance <= 0) category = 'booked';
-                    else category = 'pre';
+                    // LOGIC UPDATED: Check status FIRST
+                    if (b.status === 'cancelled') {
+                        category = 'cancelled';
+                    } else if (bDate < now) {
+                        category = 'post';
+                    } else if (balance <= 0) {
+                        category = 'booked';
+                    } else {
+                        category = 'pre';
+                    }
 
                     return { ...b, category, dateObj: bDate, balanceNum: balance };
                 });
