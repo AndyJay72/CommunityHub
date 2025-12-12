@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Dashboard | Venue Manager Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -22,6 +22,12 @@
             --text-muted: #94a3b8;
             --sidebar-width: 260px;
         }
+
+        /* CUSTOM SCROLLBARS */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
 
@@ -60,17 +66,36 @@
             transition: margin-left 0.3s ease;
         }
 
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; }
+        /* --- HEADER --- */
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem; }
         .header-title h1 { font-size: 1.8rem; font-weight: 700; margin: 0; }
         .header-title p { color: var(--text-muted); font-size: 0.9rem; margin-top: 5px; }
         
         .header-left { display: flex; align-items: center; gap: 1rem; }
+        .header-right { display: flex; align-items: center; gap: 15px; }
+
         .menu-toggle { display: none; background: var(--bg-card); border: 1px solid var(--border); color: white; width: 40px; height: 40px; border-radius: 8px; align-items: center; justify-content: center; cursor: pointer; }
+
+        /* Live Clock Style */
+        .live-clock {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            padding: 10px 15px;
+            border-radius: 8px;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .live-clock i { color: var(--primary); }
 
         .refresh-btn {
             background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted);
             padding: 10px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s;
-            display: flex; align-items: center; gap: 8px; font-weight: 600;
+            display: flex; align-items: center; gap: 8px; font-weight: 600; height: 100%;
         }
         .refresh-btn:hover { background: rgba(255,255,255,0.05); color: white; }
 
@@ -99,13 +124,28 @@
 
         /* --- TABLES --- */
         .grid-split { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 1.5rem; }
-        .table-container { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; height: 100%; }
-        .table-header { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        
+        .table-container { 
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; 
+            overflow: hidden; display: flex; flex-direction: column; height: 100%; 
+        }
+        
+        .table-header { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: rgba(30, 41, 59, 0.4); }
         .table-header h3 { font-size: 1.1rem; margin: 0; display: flex; align-items: center; gap: 10px; }
-        .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        
+        .table-wrapper { 
+            overflow-y: auto; overflow-x: auto; max-height: 450px; 
+        }
 
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        th { text-align: left; padding: 1rem 1.5rem; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; font-weight: 600; background: rgba(0,0,0,0.2); }
+        
+        th { 
+            text-align: left; padding: 1rem 1.5rem; color: var(--text-muted); 
+            font-size: 0.8rem; text-transform: uppercase; font-weight: 600; 
+            background: #182235; border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; z-index: 10;
+        }
+        
         td { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); color: var(--text-main); font-size: 0.95rem; vertical-align: middle; }
         tr:last-child td { border-bottom: none; }
         tr:hover td { background: rgba(255,255,255,0.02); }
@@ -139,6 +179,8 @@
             main { margin-left: 0; padding: 1.5rem 1rem; }
             .menu-toggle { display: flex; } .close-sidebar { display: block; }
             .header-left { width: 100%; } .header-title h1 { font-size: 1.5rem; }
+            .header-right { width: 100%; justify-content: space-between; margin-top: 10px; }
+            .live-clock { flex: 1; justify-content: center; }
         }
     </style>
 </head>
@@ -157,8 +199,7 @@
             <a href="bookings.html" class="nav-link"><i class="fa-solid fa-calendar-days"></i> Bookings</a>
             <a href="customers.html" class="nav-link"><i class="fa-solid fa-users"></i> Customers</a>
             <a href="accounts.html" class="nav-link"><i class="fa-solid fa-file-invoice-dollar"></i> Accounts</a>
-            <a href="venuepro_booking.html" class="nav-link"><i class="fa-solid fa-building"></i> Event Booking</a>  
-            <a href="final-payment.html" class="nav-link"><i class="fa-check-double"></i> Final Payment</a>   
+            <a href="final-payment.html" class="nav-link"><i class="fa-solid fa-check-double"></i> Final Payment</a>
         </nav>
     </aside>
 
@@ -172,9 +213,15 @@
                     <p>Welcome back, Staff Manager</p>
                 </div>
             </div>
-            <button class="refresh-btn" onclick="loadDashboard()">
-                <i class="fa-solid fa-rotate-right" id="refresh-icon"></i> <span style="display:none; @media(min-width:768px){display:inline;}">Refresh</span>
-            </button>
+            
+            <div class="header-right">
+                <div class="live-clock">
+                    <i class="far fa-clock"></i> <span id="clock-text">--:--</span>
+                </div>
+                <button class="refresh-btn" onclick="loadDashboard()">
+                    <i class="fa-solid fa-rotate-right" id="refresh-icon"></i> <span style="display:none; @media(min-width:768px){display:inline;}">Refresh</span>
+                </button>
+            </div>
         </header>
 
         <!-- KPI Cards -->
@@ -220,14 +267,14 @@
             <!-- Upcoming Bookings Table (Confirmed) -->
             <div class="table-container">
                 <div class="table-header">
-                    <h3 style="color: var(--success);"><i class="fa-solid fa-calendar-check"></i> Upcoming Bookings</h3>
+                    <h3 style="color: var(--success);"><i class="fa-solid fa-calendar-check"></i> Upcoming Events</h3>
                 </div>
                 <div class="table-wrapper">
                     <table>
                         <thead>
                             <tr>
                                 <th>Date</th>
-                                <th>Customer</th> <!-- ADDED CUSTOMER COLUMN -->
+                                <th>Customer</th> 
                                 <th>Room</th>
                                 <th>Balance</th>
                             </tr>
@@ -246,7 +293,7 @@
     <script>
         // === CONFIGURATION ===
         const DASHBOARD_WEBHOOK_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/staff-dashboard';
-        const UPDATE_STATUS_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/update-status';
+        const UPDATE_STATUS_URL = 'https://n8n.srv1090894.hstgr.cloud:5678/webhook/update-status';
         const STAFF_NAME = "Manager";
 
         // === UTILITIES ===
@@ -260,6 +307,19 @@
             toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i> ${message}`;
             container.appendChild(toast);
             setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        // === LIVE CLOCK ===
+        function startClock() {
+            const clockEl = document.getElementById('clock-text');
+            function update() {
+                const now = new Date();
+                // Format: Fri, 12 Dec 14:30:45
+                const options = { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+                clockEl.innerText = now.toLocaleString('en-GB', options).replace(',', '');
+            }
+            setInterval(update, 1000);
+            update();
         }
 
         // === MAIN LOGIC ===
@@ -308,7 +368,7 @@
                     `).join('');
                 }
 
-                // 3. Upcoming Bookings Table (Now with Customer Name)
+                // 3. Upcoming Bookings Table
                 const bookBody = document.getElementById('table-bookings');
                 const bookings = data.upcoming_bookings || [];
 
@@ -321,7 +381,6 @@
                                 <div style="font-weight: 600;">${new Date(b.booking_date).toLocaleDateString('en-GB', {day: 'numeric', month: 'short'})}</div>
                                 <div style="font-size: 0.8rem; color: var(--text-muted);">Today</div>
                             </td>
-                            <!-- Added Customer Name Cell -->
                             <td>
                                 <div style="font-weight: 500;">${b.customer_name || 'Guest'}</div>
                             </td>
@@ -368,6 +427,7 @@
             }
         }
 
+        startClock();
         loadDashboard();
         setInterval(loadDashboard, 60000);
     </script>
