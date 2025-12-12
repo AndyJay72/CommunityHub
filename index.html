@@ -183,46 +183,29 @@
     </style>
 </head>
 <body>
-
     <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
-
-    <!-- Navigation -->
     <aside id="sidebar">
-        <div class="brand">
-            <span><i class="fa-solid fa-layer-group"></i> VenuePro</span>
-            <button class="close-sidebar" onclick="toggleMenu()"><i class="fa-solid fa-xmark"></i></button>
-        </div>
+        <div class="brand"><span><i class="fa-solid fa-layer-group"></i> VenuePro</span><button class="close-sidebar" onclick="toggleMenu()"><i class="fa-solid fa-xmark"></i></button></div>
         <nav>
             <a href="index.html" class="nav-link active"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
             <a href="bookings.html" class="nav-link"><i class="fa-solid fa-calendar-days"></i> Bookings</a>
             <a href="customers.html" class="nav-link"><i class="fa-solid fa-users"></i> Customers</a>
             <a href="accounts.html" class="nav-link"><i class="fa-solid fa-file-invoice-dollar"></i> Accounts</a>
+            <a href="venuepro_booking.html" class="nav-link"><i class="fa-solid fa-building"></i> Event Booking</a>
             <a href="final-payment.html" class="nav-link"><i class="fa-solid fa-check-double"></i> Final Payment</a>
         </nav>
     </aside>
-
-    <!-- Main Workspace -->
     <main>
         <header>
             <div class="header-left">
                 <button class="menu-toggle" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></button>
-                <div class="header-title">
-                    <h1>Overview</h1>
-                    <p>Welcome back, Staff Manager</p>
-                </div>
+                <div class="header-title"><h1>Overview</h1><p>Welcome back, Staff Manager</p></div>
             </div>
-            
             <div class="header-right">
-                <div class="live-clock">
-                    <i class="far fa-clock"></i> <span id="clock-text">--:--</span>
-                </div>
-                <button class="refresh-btn" onclick="loadDashboard()">
-                    <i class="fa-solid fa-rotate-right" id="refresh-icon"></i> <span style="display:none; @media(min-width:768px){display:inline;}">Refresh</span>
-                </button>
+                <div class="live-clock"><i class="far fa-clock"></i> <span id="clock-text">--:--</span></div>
+                <button class="refresh-btn" onclick="loadDashboard()"><i class="fa-solid fa-rotate-right" id="refresh-icon"></i> <span style="display:none; @media(min-width:768px){display:inline;}">Refresh</span></button>
             </div>
         </header>
-
-        <!-- KPI Cards -->
         <div class="stats-grid">
             <div class="card">
                 <div class="stat-header"><span class="stat-label">Monthly Revenue</span><div class="stat-icon" style="color: var(--success);"><i class="fa-solid fa-sterling-sign"></i></div></div>
@@ -237,64 +220,34 @@
                 <div class="stat-value" id="val-contacted">--</div>
             </div>
         </div>
-
         <div class="grid-split">
-            <!-- New Requests Table (Pending) -->
             <div class="table-container">
-                <div class="table-header">
-                    <h3 style="color: var(--warning);"><i class="fa-solid fa-inbox"></i> New Requests</h3>
-                </div>
+                <div class="table-header"><h3 style="color: var(--warning);"><i class="fa-solid fa-inbox"></i> New Requests</h3></div>
                 <div class="table-wrapper">
                     <table>
-                        <thead>
-                            <tr>
-                                <th>Customer</th>
-                                <th>Event Type</th>
-                                <th>Guests</th>
-                                <th>Status</th>
-                                <th style="text-align: right;">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-requests">
-                            <!-- JS Injection -->
-                        </tbody>
+                        <thead><tr><th>Customer</th><th>Event Type</th><th>Guests</th><th>Status</th><th style="text-align: right;">Action</th></tr></thead>
+                        <tbody id="table-requests"></tbody>
                     </table>
                 </div>
             </div>
-
-            <!-- Upcoming Bookings Table (Confirmed) -->
             <div class="table-container">
-                <div class="table-header">
-                    <h3 style="color: var(--success);"><i class="fa-solid fa-calendar-check"></i> Upcoming Events</h3>
-                </div>
+                <div class="table-header"><h3 style="color: var(--success);"><i class="fa-solid fa-calendar-check"></i> Upcoming Events</h3></div>
                 <div class="table-wrapper">
                     <table>
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Customer</th> 
-                                <th>Room</th>
-                                <th>Balance</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-bookings">
-                            <!-- JS Injection -->
-                        </tbody>
+                        <thead><tr><th>Date</th><th>Customer</th><th>Room</th><th>Balance</th></tr></thead>
+                        <tbody id="table-bookings"></tbody>
                     </table>
                 </div>
             </div>
         </div>
     </main>
-
     <div id="toast-container"></div>
-
     <script>
-        // === CONFIGURATION ===
+        // CONFIG - CORRECTED URLS (NO PORTS for Traefik)
         const DASHBOARD_WEBHOOK_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/staff-dashboard';
-        const UPDATE_STATUS_URL = 'https://n8n.srv1090894.hstgr.cloud:5678/webhook/update-status';
+        const UPDATE_STATUS_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/update-status';
         const STAFF_NAME = "Manager";
 
-        // === UTILITIES ===
         const formatCurrency = (num) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(num);
         function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('overlay').classList.toggle('active'); }
         function startClock() {
@@ -311,104 +264,69 @@
             setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
         }
 
-        // === MAIN LOGIC ===
         async function loadDashboard() {
             const refreshIcon = document.getElementById('refresh-icon');
             refreshIcon.classList.add('fa-spin');
-
             try {
                 const response = await fetch(DASHBOARD_WEBHOOK_URL);
                 if (!response.ok) throw new Error(`Request failed: ${response.status}`);
-
                 const json = await response.json();
-                const data = json.data || json; 
-                
-                // 1. Metrics
+                const data = json.data || json;
+
+                // Metrics
                 const metrics = data.metrics || {};
                 document.getElementById('val-revenue').innerText = formatCurrency(metrics.total_revenue_month || 0);
                 document.getElementById('val-pending').innerText = metrics.pending_requests || 0;
                 document.getElementById('val-contacted').innerText = metrics.contacted_today || 0;
 
-                // 2. Requests Table
+                // Requests
                 const reqBody = document.getElementById('table-requests');
                 const requests = data.recent_customers || [];
-                
                 if (requests.length === 0) {
                     reqBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding: 2rem;">No pending requests</td></tr>`;
                 } else {
                     reqBody.innerHTML = requests.map(c => `
                         <tr>
-                            <td>
-                                <div style="font-weight: 600;">${c.full_name}</div>
-                                <div style="font-size: 0.8rem; color: var(--text-muted);">${new Date(c.event_date).toLocaleDateString()}</div>
-                            </td>
+                            <td><div style="font-weight: 600;">${c.full_name}</div><div style="font-size: 0.8rem; color: var(--text-muted);">${new Date(c.event_date).toLocaleDateString()}</div></td>
                             <td>${c.event_type}</td>
                             <td><i class="fa-solid fa-user-group" style="font-size: 0.7rem; margin-right:5px"></i> ${c.guests_count}</td>
-                            
-                            <!-- UPDATED: Badges now update instantly via JS logic on reload -->
                             <td><span class="status-badge ${c.status === 'pending' ? 'pending' : 'contacted'}">${c.status}</span></td>
-                            
                             <td style="text-align: right;">
-                                <button id="btn-${c.id}" class="btn-action" 
-                                    style="margin-left: auto; ${c.status !== 'pending' ? 'opacity:0.6; cursor:not-allowed;' : ''}"
-                                    onclick="markContacted('${c.id}', '${c.full_name.replace(/'/g, "\\'")}')"
-                                    ${c.status !== 'pending' ? 'disabled' : ''}>
+                                <button id="btn-${c.id}" class="btn-action" style="margin-left: auto;" onclick="markContacted('${c.id}', '${c.full_name.replace(/'/g, "\\'")}')" ${c.status !== 'pending' ? 'disabled' : ''}>
                                     ${c.status === 'pending' ? '<i class="fa-solid fa-check"></i> Accept' : '<i class="fa-solid fa-check-double"></i> Done'}
                                 </button>
                             </td>
-                        </tr>
-                    `).join('');
+                        </tr>`).join('');
                 }
 
-                // 3. Upcoming Bookings Table
+                // Bookings
                 const bookBody = document.getElementById('table-bookings');
                 const bookings = data.upcoming_bookings || [];
-
                 if (bookings.length === 0) {
                     bookBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding: 2rem;">No upcoming events</td></tr>`;
                 } else {
                     bookBody.innerHTML = bookings.map(b => `
                         <tr>
-                            <td>
-                                <div style="font-weight: 600;">${new Date(b.booking_date).toLocaleDateString('en-GB', {day: 'numeric', month: 'short'})}</div>
-                                <div style="font-size: 0.8rem; color: var(--text-muted);">Today</div>
-                            </td>
-                            <td>
-                                <div style="font-weight: 500;">${b.customer_name || 'Guest'}</div>
-                            </td>
+                            <td><div style="font-weight: 600;">${new Date(b.booking_date).toLocaleDateString('en-GB', {day: 'numeric', month: 'short'})}</div><div style="font-size: 0.8rem; color: var(--text-muted);">Today</div></td>
+                            <td><div style="font-weight: 500;">${b.customer_name || 'Guest'}</div></td>
                             <td>${b.room_name}</td>
-                            <td>
-                                <span class="status-badge ${parseFloat(b.balance_due) > 0 ? 'balance' : 'paid'}">
-                                    ${parseFloat(b.balance_due) > 0 ? formatCurrency(b.balance_due) + ' Due' : 'Paid'}
-                                </span>
-                            </td>
-                        </tr>
-                    `).join('');
+                            <td><span class="status-badge ${parseFloat(b.balance_due) > 0 ? 'balance' : 'paid'}">${parseFloat(b.balance_due) > 0 ? formatCurrency(b.balance_due) + ' Due' : 'Paid'}</span></td>
+                        </tr>`).join('');
                 }
-
             } catch (error) {
                 console.error('Error:', error);
                 showToast("Connection Error", "error");
-            } finally {
-                refreshIcon.classList.remove('fa-spin');
-            }
+            } finally { refreshIcon.classList.remove('fa-spin'); }
         }
 
-        // === FIXED: Action Logic with Instant Feedback ===
         async function markContacted(id, name) {
             const btn = document.getElementById(`btn-${id}`);
             const originalContent = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Updating...'; btn.disabled = true;
             
-            // 1. Loading State
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Updating...';
-            btn.disabled = true;
-
             try {
-                // IMPORTANT: Remove :5678 if using Traefik/Proxy, add if using raw IP
-                // Assuming Traefik based on previous chats
-                const url = UPDATE_STATUS_URL.replace(':5678', ''); 
-                
-                const response = await fetch(url, {
+                // Correct URL without Port
+                const response = await fetch(UPDATE_STATUS_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id: id, staff_name: STAFF_NAME })
@@ -416,25 +334,8 @@
 
                 if (response.ok) {
                     showToast(`${name} marked as contacted`);
-                    
-                    // 2. INSTANT VISUAL UPDATE
-                    btn.innerHTML = '<i class="fa-solid fa-check-double"></i> Done';
-                    btn.style.opacity = '0.6';
-                    btn.style.cursor = 'not-allowed';
-                    
-                    // Find the badge in the same row and update it
-                    const row = btn.closest('tr');
-                    const badge = row.querySelector('.status-badge');
-                    if(badge) {
-                        badge.className = 'status-badge contacted';
-                        badge.innerText = 'contacted';
-                    }
-
-                    // 3. Reload in background
-                    setTimeout(loadDashboard, 1500); 
-                } else { 
-                    throw new Error("Update failed"); 
-                }
+                    setTimeout(loadDashboard, 1500);
+                } else { throw new Error("Update failed"); }
             } catch (error) {
                 showToast("Failed to update", "error");
                 btn.innerHTML = originalContent;
@@ -442,9 +343,7 @@
             }
         }
 
-        startClock();
-        loadDashboard();
-        setInterval(loadDashboard, 60000);
+        startClock(); loadDashboard(); setInterval(loadDashboard, 60000);
     </script>
 </body>
 </html>
