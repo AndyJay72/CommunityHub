@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -321,11 +321,25 @@
 
         async function markContacted(id, name) {
             const btn = document.getElementById(`btn-${id}`);
-            const originalContent = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Updating...'; btn.disabled = true;
+            const row = btn.closest('tr'); // Get the table row
+            const badge = row.querySelector('.status-badge'); // Get the badge
             
+            // 1. OPTIMISTIC UI UPDATE (Instant)
+            // Change the Button
+            btn.innerHTML = '<i class="fa-solid fa-check-double"></i> Done';
+            btn.style.opacity = '0.6';
+            btn.style.cursor = 'not-allowed';
+            btn.disabled = true;
+
+            // Change the Badge color and text
+            if(badge) {
+                badge.className = 'status-badge contacted';
+                badge.innerText = 'contacted';
+            }
+
+            // 2. SEND TO SERVER
             try {
-                // Correct URL without Port
+                // Remove port if using Traefik
                 const response = await fetch(UPDATE_STATUS_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -334,12 +348,19 @@
 
                 if (response.ok) {
                     showToast(`${name} marked as contacted`);
-                    setTimeout(loadDashboard, 1500);
-                } else { throw new Error("Update failed"); }
+                    // We DO NOT reload the page here, so the visual change stays.
+                    // The next auto-refresh (60s) will sync with the DB.
+                } else { 
+                    throw new Error("Update failed"); 
+                }
             } catch (error) {
-                showToast("Failed to update", "error");
-                btn.innerHTML = originalContent;
+                showToast("Failed to save to DB", "error");
+                // Revert if it actually failed
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Accept';
                 btn.disabled = false;
+                btn.style.opacity = '1';
+                badge.className = 'status-badge pending';
+                badge.innerText = 'pending';
             }
         }
 
