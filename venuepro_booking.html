@@ -6,7 +6,12 @@
     <title>VenuePro Booking</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <script>
+        // SECURITY CHECK: If no token, redirect to login immediately
+        if (!localStorage.getItem('vp_token')) {
+            window.location.href = 'login.html';
+        }
+    </script>    
     <style>
         /* --- THEME VARIABLES --- */
         :root {
@@ -191,6 +196,8 @@
             <a href="customers.html" class="nav-link"><i class="fa-solid fa-users"></i> Customers</a>
             <a href="accounts.html" class="nav-link"><i class="fa-solid fa-file-invoice-dollar"></i> Accounts</a>
             <a href="final-payment.html" class="nav-link"><i class="fa-check-double"></i> Final Payment</a> 
+            <a href="#" onclick="logout()" class="nav-link" style="margin-top: auto; color: #ef4444; border-top: 1px solid rgba(255,255,255,0.05);">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout</a>  
         </nav>
     </aside>
 
@@ -319,6 +326,15 @@
 
     <script>
         // CONFIG
+        function logout() {
+            if(confirm("Are you sure you want to log out?")) {
+                // Clear the keys
+                localStorage.removeItem('vp_token');
+                localStorage.removeItem('vp_user');
+                // Redirect
+                window.location.href = 'login.html';
+            }
+        }        
         const REQUESTS_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/get-pending-requests';
         const BOOKING_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/make-booking';
         
