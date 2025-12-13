@@ -148,6 +148,7 @@
         function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('overlay').classList.toggle('active'); }
         function logout() { if(confirm("Log out?")) { localStorage.removeItem('vp_token'); window.location.href='login.html'; } }
 
+ 
         // 1. Load Users
         async function loadUsers() {
             try {
@@ -161,4 +162,60 @@
                 tbody.innerHTML = users.map(u => `
                     <tr>
                         <td>${u.full_name || '---'}</td>
-                        <td style="font-family:monospace; color:var(--primary);">${u.username}
+                        <td style="font-family:monospace; color:var(--primary);">${u.username}</td>
+                        <td><span class="role-badge ${u.role === 'admin' ? 'role-admin' : ''}">${u.role}</span></td>
+                        <td style="text-align: right;">
+                            ${u.username !== 'admin' ? `<button class="btn-delete" onclick="deleteUser('${u.id}', '${u.username}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+                        </td>
+                    </tr>
+                `).join('');
+            } catch(e) { console.error(e); }
+        }
+
+        // 2. Create User
+        async function createUser() {
+            const btn = document.querySelector('.btn-create');
+            const name = document.getElementById('newName').value;
+            const user = document.getElementById('newUsername').value;
+            const pass = document.getElementById('newPassword').value;
+            const role = document.getElementById('newRole').value;
+
+            if(!name || !user || !pass) { alert("Please fill all fields"); return; }
+
+            btn.disabled = true;
+            btn.innerHTML = "Creating...";
+
+            try {
+                const res = await fetch(CREATE_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ full_name: name, username: user, password: pass, role: role })
+                });
+
+                if(res.ok) {
+                    alert("User created successfully!");
+                    document.getElementById('createUserForm').reset();
+                    loadUsers();
+                } else { throw new Error("Failed"); }
+            } catch(e) { alert("Error creating user."); }
+            finally { btn.disabled = false; btn.innerHTML = "Create User"; }
+        }
+
+        // 3. Delete User
+        async function deleteUser(id, username) {
+            if(!confirm(`Are you sure you want to delete user: ${username}?`)) return;
+
+            try {
+                const res = await fetch(DELETE_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: id })
+                });
+                if(res.ok) { loadUsers(); } else { alert("Failed to delete."); }
+            } catch(e) { alert("Connection Error"); }
+        }
+
+        loadUsers();
+    </script>
+</body>
+</html>
