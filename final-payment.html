@@ -6,7 +6,12 @@
     <title>Final Payment | VenuePro</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <script>
+        // SECURITY CHECK: If no token, redirect to login immediately
+        if (!localStorage.getItem('vp_token')) {
+            window.location.href = 'login.html';
+        }
+    </script>    
     <style>
         /* CORE VARIABLES */
         :root { --bg-dark: #0f172a; --bg-card: rgba(30, 41, 59, 0.9); --border: rgba(148, 163, 184, 0.1); --primary: #6366f1; --success: #10b981; --warning: #f59e0b; --text-main: #f8fafc; --text-muted: #94a3b8; --sidebar-width: 260px; }
@@ -67,6 +72,8 @@
             <a href="accounts.html" class="nav-link"><i class="fa-solid fa-file-invoice-dollar"></i> Accounts</a>
             <a href="venuepro_booking.html" class="nav-link"><i class="fa-solid fa-building"></i> Event Booking</a>     
             <a href="final-payment.html" class="nav-link active"><i class="fa-solid fa-check-double"></i> Final Payment</a>
+            <a href="#" onclick="logout()" class="nav-link" style="margin-top: auto; color: #ef4444; border-top: 1px solid rgba(255,255,255,0.05);">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout</a> 
         </nav>
     </aside>
 
@@ -134,6 +141,15 @@
     <script>
         // CONFIG
         // REMOVED Port 5678 to match your proxy settings
+        function logout() {
+            if(confirm("Are you sure you want to log out?")) {
+                // Clear the keys
+                localStorage.removeItem('vp_token');
+                localStorage.removeItem('vp_user');
+                // Redirect
+                window.location.href = 'login.html';
+            }
+        }        
         const LIST_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/get-outstanding-bookings';
         const PAY_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/pay-balance';
         
