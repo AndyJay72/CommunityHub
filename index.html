@@ -6,7 +6,12 @@
     <title>Dashboard | Venue Manager Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <script>
+        // SECURITY CHECK: If no token, redirect to login immediately
+        if (!localStorage.getItem('vp_token')) {
+            window.location.href = 'login.html';
+        }
+    </script>
     <style>
         /* --- CORE STYLES --- */
         :root {
@@ -193,6 +198,8 @@
             <a href="accounts.html" class="nav-link"><i class="fa-solid fa-file-invoice-dollar"></i> Accounts</a>
             <a href="venuepro_booking.html" class="nav-link"><i class="fa-solid fa-building"></i> Event Booking</a>
             <a href="final-payment.html" class="nav-link"><i class="fa-solid fa-check-double"></i> Final Payment</a>
+            <a href="#" onclick="logout()" class="nav-link" style="margin-top: auto; color: #ef4444; border-top: 1px solid rgba(255,255,255,0.05);">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout</a>
         </nav>
     </aside>
     <main>
@@ -244,6 +251,15 @@
     <div id="toast-container"></div>
     <script>
         // CONFIG - CORRECTED URLS (NO PORTS for Traefik)
+        function logout() {
+            if(confirm("Are you sure you want to log out?")) {
+                // Clear the keys
+                localStorage.removeItem('vp_token');
+                localStorage.removeItem('vp_user');
+                // Redirect
+                window.location.href = 'login.html';
+            }
+        }        
         const DASHBOARD_WEBHOOK_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/staff-dashboard';
         const UPDATE_STATUS_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/update-status';
         const STAFF_NAME = "Manager";
