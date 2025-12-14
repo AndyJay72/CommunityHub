@@ -138,8 +138,7 @@
             </div>
         </div>
     </main>
-
-    <script>
+<script>
         // CONFIG
         const GET_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/get-users';
         const CREATE_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/create-user';
@@ -148,28 +147,39 @@
         function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('overlay').classList.toggle('active'); }
         function logout() { if(confirm("Log out?")) { localStorage.removeItem('vp_token'); window.location.href='login.html'; } }
 
- 
         // 1. Load Users
         async function loadUsers() {
             try {
                 const res = await fetch(GET_URL);
+                if (!res.ok) throw new Error("Connection Error");
+                
                 const json = await res.json();
-                const users = json.data || [];
+                
+                // ROBUST FIX: Handle both Array and Object formats
+                const users = json.data || (Array.isArray(json) ? json : []);
+                
                 const tbody = document.getElementById('usersTable');
                 
-                if(users.length === 0) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No users found.</td></tr>'; return; }
+                if(users.length === 0) { 
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No users found.</td></tr>'; 
+                    return; 
+                }
 
                 tbody.innerHTML = users.map(u => `
                     <tr>
-                        <td>${u.full_name || '---'}</td>
+                        <td><div style="font-weight:600; color:white;">${u.full_name || '---'}</div></td>
                         <td style="font-family:monospace; color:var(--primary);">${u.username}</td>
                         <td><span class="role-badge ${u.role === 'admin' ? 'role-admin' : ''}">${u.role}</span></td>
                         <td style="text-align: right;">
-                            ${u.username !== 'admin' ? `<button class="btn-delete" onclick="deleteUser('${u.id}', '${u.username}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+                            <!-- Only show delete for non-admin users -->
+                            ${u.username !== 'admin' ? `<button class="btn-delete" onclick="deleteUser('${u.id}', '${u.username}')"><i class="fa-solid fa-trash"></i></button>` : '<span style="opacity:0.3">-</span>'}
                         </td>
                     </tr>
                 `).join('');
-            } catch(e) { console.error(e); }
+            } catch(e) { 
+                console.error(e); 
+                document.getElementById('usersTable').innerHTML = '<tr><td colspan="4" style="text-align:center; color:#ef4444;">Connection Failed</td></tr>';
+            }
         }
 
         // 2. Create User
@@ -183,7 +193,7 @@
             if(!name || !user || !pass) { alert("Please fill all fields"); return; }
 
             btn.disabled = true;
-            btn.innerHTML = "Creating...";
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating...';
 
             try {
                 const res = await fetch(CREATE_URL, {
@@ -195,7 +205,7 @@
                 if(res.ok) {
                     alert("User created successfully!");
                     document.getElementById('createUserForm').reset();
-                    loadUsers();
+                    loadUsers(); // Reload list
                 } else { throw new Error("Failed"); }
             } catch(e) { alert("Error creating user."); }
             finally { btn.disabled = false; btn.innerHTML = "Create User"; }
@@ -216,6 +226,6 @@
         }
 
         loadUsers();
-    </script>
+</script>
 </body>
 </html>
