@@ -7,8 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- SECURITY GATEKEEPER -->
     <script>
+        // SECURITY CHECK
         if (!localStorage.getItem('vp_token')) { window.location.href = 'login.html'; }
     </script>
 
@@ -28,11 +28,9 @@
             --sidebar-width: 260px;
         }
 
-        /* CUSTOM SCROLLBARS */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
 
@@ -53,24 +51,20 @@
         .nav-link:hover, .nav-link.active { background: rgba(99, 102, 241, 0.1); color: var(--primary); }
         .close-sidebar { display: none; background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; }
 
-        /* --- MAIN CONTENT --- */
+        /* --- MAIN --- */
         main { margin-left: var(--sidebar-width); flex: 1; padding: 2rem; max-width: 1600px; width: 100%; transition: margin-left 0.3s ease; }
-
-        /* --- HEADER --- */
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem; }
         .header-title h1 { font-size: 1.8rem; font-weight: 700; margin: 0; }
-        .header-title p { color: var(--text-muted); font-size: 0.9rem; margin-top: 5px; }
         .header-left { display: flex; align-items: center; gap: 1rem; }
         .header-right { display: flex; align-items: center; gap: 15px; }
         .menu-toggle { display: none; background: var(--bg-card); border: 1px solid var(--border); color: white; width: 40px; height: 40px; border-radius: 8px; align-items: center; justify-content: center; cursor: pointer; }
 
-        /* Clock & Refresh */
         .live-clock { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text-muted); background: rgba(0,0,0,0.3); border: 1px solid var(--border); padding: 10px 15px; border-radius: 8px; display: flex; align-items: center; gap: 8px; }
         .live-clock i { color: var(--primary); }
         .refresh-btn { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); padding: 10px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; font-weight: 600; height: 100%; }
         .refresh-btn:hover { background: rgba(255,255,255,0.05); color: white; }
 
-        /* --- KPI CARDS --- */
+        /* --- KPIS --- */
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2.5rem; }
         .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; position: relative; overflow: hidden; }
         .card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, var(--primary), transparent); }
@@ -82,26 +76,28 @@
         .table-container { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; height: 100%; }
         .table-header { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: rgba(30, 41, 59, 0.4); }
         .table-wrapper { overflow-y: auto; overflow-x: auto; max-height: 450px; }
+        
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th { text-align: left; padding: 1rem 1.5rem; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; font-weight: 600; background: #182235; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
         td { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); color: var(--text-main); font-size: 0.95rem; vertical-align: middle; }
         
-        /* Interactive Rows */
+        /* CLICKABLE ROWS */
         tbody tr { cursor: pointer; transition: background 0.2s; }
         tbody tr:hover { background: rgba(255,255,255,0.05) !important; }
 
         /* --- BADGES --- */
         .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; display: inline-flex; align-items: center; white-space: nowrap; }
-        .status-badge.pending { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
-        .status-badge.contacted { background: rgba(99, 102, 241, 0.15); color: var(--primary); }
-        .status-badge.paid { background: rgba(16, 185, 129, 0.15); color: var(--success); }
-        .status-badge.balance { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+        .status-badge.pending { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
+        .status-badge.contacted { background: rgba(99, 102, 241, 0.15); color: var(--primary); border: 1px solid rgba(99, 102, 241, 0.3); }
+        .status-badge.paid { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status-badge.balance { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .status-badge.cancelled { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); text-decoration: line-through; }
 
-        .btn-action { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+        .btn-action { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; white-space: nowrap; transition: 0.2s; }
         .btn-action:hover { background: var(--primary-hover); transform: translateY(-1px); }
         .btn-action:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; transform: none; }
 
-        /* --- MODAL STYLES --- */
+        /* --- MODAL --- */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); z-index: 2000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
         .modal-overlay.open { display: flex; opacity: 1; }
         .modal-card { background: #1e293b; border: 1px solid var(--border); width: 90%; max-width: 600px; border-radius: 20px; padding: 2rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); transform: translateY(20px); transition: transform 0.3s ease; position: relative; }
@@ -112,15 +108,25 @@
         .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
         .detail-group label { display: block; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 5px; font-weight: 700; }
         .detail-value { color: var(--text-main); font-size: 1rem; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; border: 1px solid var(--border); }
+        
+        .modal-actions { margin-top: 2rem; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); padding-top: 1rem; }
+        .btn-modal { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: 0.2s; text-decoration: none; }
+        .btn-close { background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border); }
+        .btn-close:hover { color: white; border-color: white; }
+        .btn-book { background: var(--success); color: #0f172a; display: flex; align-items: center; gap: 8px; }
+        .btn-pay { background: var(--warning); color: #0f172a; display: flex; align-items: center; gap: 8px; }
+        .btn-book:hover, .btn-pay:hover { opacity: 0.9; transform: translateY(-2px); }
 
         /* --- TOAST & OVERLAY --- */
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; pointer-events: none; }
         .toast { background: #1e293b; color: white; padding: 1rem 1.5rem; border-radius: 8px; margin-top: 10px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); border-left: 4px solid var(--primary); display: flex; align-items: center; gap: 12px; animation: slideIn 0.3s ease; min-width: 300px; pointer-events: auto; }
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 90; backdrop-filter: blur(2px); }
-        .overlay.active { display: block; }
+        .toast.success { border-color: var(--success); }
+        .toast.error { border-color: var(--danger); }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        /* RESPONSIVE */
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 90; backdrop-filter: blur(2px); }
+        .overlay.active { display: block; }
+
         @media (max-width: 1200px) { .grid-split { grid-template-columns: 1fr; } }
         @media (max-width: 900px) { .stats-grid { grid-template-columns: 1fr; } .modal-grid { grid-template-columns: 1fr; } }
         @media (max-width: 768px) { aside { transform: translateX(-100%); } aside.active { transform: translateX(0); } main { margin-left: 0; padding: 1.5rem 1rem; } .menu-toggle { display: flex; } .close-sidebar { display: block; } .header-left { width: 100%; } .header-right { width: 100%; justify-content: space-between; margin-top: 10px; } .live-clock { flex: 1; justify-content: center; } }
@@ -128,8 +134,6 @@
 </head>
 <body>
     <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
-    
-    <!-- SIDEBAR -->
     <aside id="sidebar">
         <div class="brand"><span><i class="fa-solid fa-layer-group"></i> VenuePro</span><button class="close-sidebar" onclick="toggleMenu()"><i class="fa-solid fa-xmark"></i></button></div>
         <nav>
@@ -139,12 +143,11 @@
             <a href="accounts.html" class="nav-link"><i class="fa-solid fa-file-invoice-dollar"></i> Accounts</a>
             <a href="venuepro_booking.html" class="nav-link"><i class="fa-solid fa-building"></i> Event Booking</a>  
             <a href="final-payment.html" class="nav-link"><i class="fa-solid fa-check-double"></i> Final Payment</a>  
-            <a href="users.html" class="nav-link"><i class="fa-solid fa-user-shield"></i> Users</a>
+            <a href="users.html" class="nav-link"> <i class="fa-solid fa-user-shield"></i> Users</a>
             <a href="#" onclick="logout()" class="nav-link" style="margin-top: auto; color: #ef4444; border-top: 1px solid rgba(255,255,255,0.05);"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
         </nav>
     </aside>
 
-    <!-- MAIN -->
     <main>
         <header>
             <div class="header-left">
@@ -157,7 +160,6 @@
             </div>
         </header>
 
-        <!-- KPIS -->
         <div class="stats-grid">
             <div class="card"><div class="stat-header"><span class="stat-label">Monthly Revenue</span><div class="stat-icon" style="color: var(--success);"><i class="fa-solid fa-sterling-sign"></i></div></div><div class="stat-value" id="val-revenue">--</div></div>
             <div class="card"><div class="stat-header"><span class="stat-label">Pending Reviews</span><div class="stat-icon" style="color: var(--warning);"><i class="fa-solid fa-clipboard-list"></i></div></div><div class="stat-value" id="val-pending">--</div></div>
@@ -165,7 +167,7 @@
         </div>
 
         <div class="grid-split">
-            <!-- REQUESTS TABLE (Clickable Rows) -->
+            <!-- REQUESTS -->
             <div class="table-container">
                 <div class="table-header"><h3 style="color: var(--warning);"><i class="fa-solid fa-inbox"></i> New Requests</h3></div>
                 <div class="table-wrapper">
@@ -175,8 +177,7 @@
                     </table>
                 </div>
             </div>
-
-            <!-- UPCOMING BOOKINGS -->
+            <!-- BOOKINGS -->
             <div class="table-container">
                 <div class="table-header"><h3 style="color: var(--success);"><i class="fa-solid fa-calendar-check"></i> Upcoming Events</h3></div>
                 <div class="table-wrapper">
@@ -189,7 +190,7 @@
         </div>
     </main>
 
-    <!-- POPUP MODAL -->
+    <!-- MODAL -->
     <div id="custModal" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-card" onclick="event.stopPropagation()">
             <div class="modal-header">
@@ -197,19 +198,18 @@
                 <button class="modal-close" onclick="closeModal()">&times;</button>
             </div>
             <div class="modal-grid">
-                <div class="detail-group" style="grid-column: span 2;">
-                    <label>Customer ID</label>
-                    <div class="detail-value" id="m-id" style="font-family: monospace; color: var(--warning);">--</div>
-                </div>
+                <div class="detail-group" style="grid-column: span 2;"><label>Customer ID</label><div class="detail-value" id="m-id" style="font-family: monospace; color: var(--warning);">--</div></div>
                 <div class="detail-group"><label>Full Name</label><div class="detail-value" id="m-name">--</div></div>
-                <div class="detail-group"><label>Status</label><div class="detail-value" id="m-status">--</div></div>
+                <div class="detail-group"><label>Status</label><div class="detail-value" id="m-status" style="text-transform: uppercase;">--</div></div>
                 <div class="detail-group"><label>Email</label><div class="detail-value" id="m-email">--</div></div>
                 <div class="detail-group"><label>Phone</label><div class="detail-value" id="m-phone">--</div></div>
                 <div class="detail-group"><label>Event Type</label><div class="detail-value" id="m-event">--</div></div>
                 <div class="detail-group"><label>Date</label><div class="detail-value" id="m-date">--</div></div>
+                <!-- ADDED GUESTS -->
+                <div class="detail-group"><label>Guests</label><div class="detail-value" id="m-guests">--</div></div>
             </div>
-            <div style="margin-top: 2rem; text-align: right;">
-                <button onclick="closeModal()" style="background:var(--border); color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">Close</button>
+            <div class="modal-actions" id="modal-buttons">
+                <button class="btn-modal btn-close" onclick="closeModal()">Close</button>
             </div>
         </div>
     </div>
@@ -225,6 +225,7 @@
         function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('overlay').classList.toggle('active'); }
         function logout() { if(confirm("Log out?")) { localStorage.removeItem('vp_token'); window.location.href='login.html'; } }
 
+        // MODAL LOGIC
         function openModal(dataString) {
             const data = JSON.parse(decodeURIComponent(dataString));
             document.getElementById('m-id').innerText = data.id || 'N/A';
@@ -234,9 +235,20 @@
             document.getElementById('m-event').innerText = data.event_type || 'N/A';
             document.getElementById('m-date').innerText = data.event_date ? new Date(data.event_date).toLocaleDateString() : 'N/A';
             document.getElementById('m-status').innerText = data.status || 'N/A';
+            document.getElementById('m-guests').innerText = data.guests_count || '0';
+
+            const btnContainer = document.getElementById('modal-buttons');
+            let actionBtn = '';
+            
+            // Logic for Buttons inside Modal
+            if (data.status === 'pending' || data.status === 'contacted') {
+                actionBtn = `<a href="new-booking.html" class="btn-modal btn-book"><i class="fa-solid fa-calendar-check"></i> Book Now</a>`;
+            }
+            
+            btnContainer.innerHTML = actionBtn + `<button class="btn-modal btn-close" onclick="closeModal()">Close</button>`;
             document.getElementById('custModal').classList.add('open');
         }
-        function closeModal(e) { if(!e || e.target.id === 'custModal' || e.target.innerText === '×' || e.target.innerText === 'Close') document.getElementById('custModal').classList.remove('open'); }
+        function closeModal(e) { if(!e || e.target.id === 'custModal' || e.target.classList.contains('modal-close') || e.target.innerText === 'Close') document.getElementById('custModal').classList.remove('open'); }
 
         async function loadDashboard() {
             const refreshIcon = document.getElementById('refresh-icon');
@@ -247,16 +259,14 @@
                 const json = await response.json();
                 const data = json.data || json;
 
-                // Metrics
                 const metrics = data.metrics || {};
                 document.getElementById('val-revenue').innerText = formatCurrency(metrics.total_revenue_month || 0);
                 document.getElementById('val-pending').innerText = metrics.pending_requests || 0;
                 document.getElementById('val-contacted').innerText = metrics.contacted_today || 0;
 
-                // Requests Table (Filtered)
+                // REQUESTS (FILTERED: PENDING ONLY)
                 const reqBody = document.getElementById('table-requests');
                 let requests = data.recent_customers || [];
-                // Only show pending
                 requests = requests.filter(c => c.status === 'pending');
 
                 if (requests.length === 0) {
@@ -279,7 +289,7 @@
                     }).join('');
                 }
 
-                // Bookings Table
+                // BOOKINGS
                 const bookBody = document.getElementById('table-bookings');
                 const bookings = data.upcoming_bookings || [];
                 if (bookings.length === 0) {
@@ -298,25 +308,27 @@
 
         async function markContacted(id, name) {
             const btn = document.getElementById(`btn-${id}`);
+            const row = btn.closest('tr'); 
+            const badge = row.querySelector('.status-badge');
+            
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>'; btn.disabled = true;
+
             try {
                 const response = await fetch(UPDATE_STATUS_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id: id, staff_name: STAFF_NAME })
                 });
-                if (response.ok) { 
-                    // Visual removal since we only show 'pending' now
-                    const row = btn.closest('tr');
-                    row.style.opacity = '0';
-                    setTimeout(() => row.remove(), 500);
+
+                if (response.ok) {
                     showToast(`${name} accepted`);
-                    // Update stats in background
-                    setTimeout(loadDashboard, 1000); 
+                    // INSTANT VISUAL UPDATE
+                    btn.innerHTML = '<i class="fa-solid fa-check-double"></i> Done';
+                    btn.style.opacity = '0.5';
+                    if(badge) { badge.className = 'status-badge contacted'; badge.innerText = 'contacted'; }
+                    setTimeout(loadDashboard, 1500); 
                 } else { throw new Error("Update failed"); }
-            } catch (error) {
-                btn.innerHTML = 'Retry'; btn.disabled = false;
-            }
+            } catch (error) { showToast("Failed", "error"); btn.innerHTML = 'Retry'; btn.disabled = false; }
         }
 
         function showToast(message, type = 'success') {
