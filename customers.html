@@ -12,7 +12,7 @@
     </script>
 
     <style>
-        /* (REUSE THE SAME CSS FROM INDEX.HTML FOR CONSISTENCY) */
+        /* REUSED CORE STYLES */
         :root { --bg-dark: #0f172a; --bg-card: rgba(30, 41, 59, 0.7); --border: rgba(148, 163, 184, 0.1); --primary: #6366f1; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --text-main: #f8fafc; --text-muted: #94a3b8; --sidebar-width: 260px; }
         ::-webkit-scrollbar { width: 6px; height: 6px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -40,14 +40,16 @@
         td { padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border); color: var(--text-main); font-size: 0.95rem; vertical-align: middle; }
         tr:last-child td { border-bottom: none; }
         
-        /* CLICKABLE ROWS */
         tbody tr { cursor: pointer; transition: background 0.2s; }
         tbody tr:hover { background: rgba(255,255,255,0.05) !important; }
 
+        /* BADGES */
         .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; display: inline-block; white-space: nowrap; }
         .status-badge.pending { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
         .status-badge.contacted { background: rgba(99, 102, 241, 0.15); color: var(--primary); border: 1px solid rgba(99, 102, 241, 0.3); }
-        .status-badge.completed { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status-badge.paid { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status-badge.balance { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .status-badge.cancelled { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); text-decoration: line-through; }
 
         /* MODAL */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); z-index: 2000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
@@ -60,6 +62,14 @@
         .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
         .detail-group label { display: block; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 5px; font-weight: 700; }
         .detail-value { color: var(--text-main); font-size: 1rem; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; border: 1px solid var(--border); }
+        
+        .modal-actions { margin-top: 2rem; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); padding-top: 1rem; }
+        .btn-modal { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: 0.2s; text-decoration: none; }
+        .btn-close { background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border); }
+        .btn-close:hover { color: white; border-color: white; }
+        .btn-book { background: var(--success); color: #0f172a; display: flex; align-items: center; gap: 8px; }
+        .btn-pay { background: var(--warning); color: #0f172a; display: flex; align-items: center; gap: 8px; }
+        .btn-book:hover, .btn-pay:hover { opacity: 0.9; transform: translateY(-2px); }
 
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 90; backdrop-filter: blur(2px); }
         .overlay.active { display: block; }
@@ -99,9 +109,7 @@
             <div class="table-wrapper">
                 <table id="customerTable">
                     <thead><tr><th>Name</th><th>Contact Info</th><th>Event Details</th><th>Date</th><th>Status</th></tr></thead>
-                    <tbody id="table-body">
-                        <tr><td colspan="5" style="text-align:center; padding:3rem; color:var(--text-muted)"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</td></tr>
-                    </tbody>
+                    <tbody id="table-body"><tr><td colspan="5" style="text-align:center; padding:3rem; color:var(--text-muted)"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -115,19 +123,17 @@
                 <button class="modal-close" onclick="closeModal()">&times;</button>
             </div>
             <div class="modal-grid">
-                <div class="detail-group" style="grid-column: span 2;">
-                    <label>Customer ID</label>
-                    <div class="detail-value" id="m-id" style="font-family: monospace; color: var(--warning);">--</div>
-                </div>
+                <div class="detail-group" style="grid-column: span 2;"><label>Customer ID</label><div class="detail-value" id="m-id" style="font-family: monospace; color: var(--warning);">--</div></div>
                 <div class="detail-group"><label>Full Name</label><div class="detail-value" id="m-name">--</div></div>
-                <div class="detail-group"><label>Status</label><div class="detail-value" id="m-status">--</div></div>
+                <div class="detail-group"><label>Status</label><div class="detail-value" id="m-status" style="text-transform: uppercase;">--</div></div>
                 <div class="detail-group"><label>Email</label><div class="detail-value" id="m-email">--</div></div>
                 <div class="detail-group"><label>Phone</label><div class="detail-value" id="m-phone">--</div></div>
                 <div class="detail-group"><label>Event Type</label><div class="detail-value" id="m-event">--</div></div>
                 <div class="detail-group"><label>Date</label><div class="detail-value" id="m-date">--</div></div>
+                <div class="detail-group"><label>Guests</label><div class="detail-value" id="m-guests">--</div></div>
             </div>
-            <div style="margin-top: 2rem; text-align: right;">
-                <button onclick="closeModal()" style="background:var(--border); color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">Close</button>
+            <div class="modal-actions" id="modal-buttons">
+                <button class="btn-modal btn-close" onclick="closeModal()">Close</button>
             </div>
         </div>
     </div>
@@ -147,9 +153,24 @@
             document.getElementById('m-event').innerText = data.event_type || 'N/A';
             document.getElementById('m-date').innerText = data.event_date ? new Date(data.event_date).toLocaleDateString() : 'N/A';
             document.getElementById('m-status').innerText = data.status || 'N/A';
+            document.getElementById('m-guests').innerText = data.guests_count || '0';
+
+            const btnContainer = document.getElementById('modal-buttons');
+            let actionBtn = '';
+            
+            if (data.status === 'pending' || data.status === 'contacted') {
+                actionBtn = `<a href="venuepro_booking.html" class="btn-modal btn-book"><i class="fa-solid fa-calendar-check"></i> Book Now</a>`;
+            }
+            // Logic: If they have a confirmed booking (deposit_paid), allow final payment
+            // Note: This status relies on the customer record status sync we did earlier
+            else if (data.status === 'deposit_paid') {
+                 actionBtn = `<a href="final-payment.html" class="btn-modal btn-pay"><i class="fa-solid fa-credit-card"></i> Pay Balance</a>`;
+            }
+
+            btnContainer.innerHTML = actionBtn + `<button class="btn-modal btn-close" onclick="closeModal()">Close</button>`;
             document.getElementById('custModal').classList.add('open');
         }
-        function closeModal(e) { if(!e || e.target.id === 'custModal' || e.target.innerText === '×' || e.target.innerText === 'Close') document.getElementById('custModal').classList.remove('open'); }
+        function closeModal(e) { if(!e || e.target.id === 'custModal' || e.target.classList.contains('modal-close') || e.target.innerText === 'Close') document.getElementById('custModal').classList.remove('open'); }
 
         async function loadData() {
             try {
