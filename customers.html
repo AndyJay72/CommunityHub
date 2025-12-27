@@ -47,7 +47,8 @@
         .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; display: inline-block; white-space: nowrap; }
         .status-badge.pending { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
         .status-badge.contacted { background: rgba(99, 102, 241, 0.15); color: var(--primary); border: 1px solid rgba(99, 102, 241, 0.3); }
-        .status-badge.paid { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status-badge.deposit_paid { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); } /* Maps to 'paid' visually if needed, using exact DB status here */
+        .status-badge.fully_paid { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
         .status-badge.balance { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
         .status-badge.cancelled { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); text-decoration: line-through; }
 
@@ -109,7 +110,9 @@
             <div class="table-wrapper">
                 <table id="customerTable">
                     <thead><tr><th>Name</th><th>Contact Info</th><th>Event Details</th><th>Date</th><th>Status</th></tr></thead>
-                    <tbody id="table-body"><tr><td colspan="5" style="text-align:center; padding:3rem; color:var(--text-muted)"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</td></tr></tbody>
+                    <tbody id="table-body">
+                        <tr><td colspan="5" style="text-align:center; padding:3rem; color:var(--text-muted)"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</td></tr>
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -130,6 +133,7 @@
                 <div class="detail-group"><label>Phone</label><div class="detail-value" id="m-phone">--</div></div>
                 <div class="detail-group"><label>Event Type</label><div class="detail-value" id="m-event">--</div></div>
                 <div class="detail-group"><label>Date</label><div class="detail-value" id="m-date">--</div></div>
+                <!-- GUEST COUNT INCLUDED -->
                 <div class="detail-group"><label>Guests</label><div class="detail-value" id="m-guests">--</div></div>
             </div>
             <div class="modal-actions" id="modal-buttons">
@@ -158,12 +162,9 @@
             const btnContainer = document.getElementById('modal-buttons');
             let actionBtn = '';
             
-            if (data.status === 'pending' || data.status === 'contacted') {
-                actionBtn = `<a href="venuepro_booking.html" class="btn-modal btn-book"><i class="fa-solid fa-calendar-check"></i> Book Now</a>`;
-            }
-            // Logic: If they have a confirmed booking (deposit_paid), allow final payment
-            // Note: This status relies on the customer record status sync we did earlier
-            else if (data.status === 'deposit_paid') {
+            // Logic: REMOVED "Book Now" for pending. 
+            // Only show "Pay Balance" if they have paid a deposit (status: deposit_paid)
+            if (data.status === 'deposit_paid') {
                  actionBtn = `<a href="final-payment.html" class="btn-modal btn-pay"><i class="fa-solid fa-credit-card"></i> Pay Balance</a>`;
             }
 
@@ -187,13 +188,18 @@
 
                 tbody.innerHTML = customers.map(c => {
                     const dataStr = encodeURIComponent(JSON.stringify(c));
+                    // Status Badge Logic
+                    let badgeClass = c.status;
+                    if(c.status === 'deposit_paid') badgeClass = 'deposit_paid';
+                    if(c.status === 'fully_paid') badgeClass = 'paid';
+                    
                     return `
                     <tr onclick="openModal('${dataStr}')">
                         <td><div style="font-weight:600; color:white;">${c.full_name}</div></td>
                         <td><div>${c.email}</div><div style="font-size:0.8rem; color:var(--text-muted)">${c.phone || ''}</div></td>
                         <td>${c.event_type || 'General'}</td>
                         <td>${c.event_date ? new Date(c.event_date).toLocaleDateString() : 'N/A'}</td>
-                        <td><span class="status-badge ${c.status}">${c.status}</span></td>
+                        <td><span class="status-badge ${badgeClass}">${c.status}</span></td>
                     </tr>`;
                 }).join('');
             } catch (e) {
