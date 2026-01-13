@@ -121,23 +121,33 @@
                 const json = await res.json();
                 const rawEvents = json.data || (Array.isArray(json) ? json : []);
 
-                // Transform API data to FullCalendar format
+                console.log("Raw Events:", rawEvents); // Debugging
+
                 const events = rawEvents
-                    .filter(e => e.status !== 'cancelled') // Hide cancelled events
+                    .filter(e => e.status !== 'cancelled' && e.booking_date) // Ensure date exists
                     .map(e => {
-                        let color = '#6366f1'; // Primary
-                        if(parseFloat(e.balance_due) > 0) color = '#f59e0b'; // Warning (Unpaid)
-                        if(new Date(e.booking_date) < new Date()) color = '#10b981'; // Success (Past)
+                        // Color Logic
+                        let color = '#6366f1'; 
+                        if(parseFloat(e.balance_due) > 0) color = '#f59e0b';
+                        if(new Date(e.booking_date) < new Date()) color = '#10b981';
+
+                        // Robust Time Formatting (Handle HH:MM vs HH:MM:SS)
+                        const startT = e.start_time ? e.start_time.slice(0,5) : '09:00';
+                        const endT = e.end_time ? e.end_time.slice(0,5) : '10:00';
+                        
+                        // Robust Title
+                        const title = `${e.customer_name || 'Guest'} (${e.room_name || 'Room'})`;
 
                         return {
-                            title: `${e.customer_name} (${e.room_name})`,
-                            start: `${e.booking_date}T${e.start_time}`,
-                            end: `${e.booking_date}T${e.end_time}`,
+                            title: title,
+                            start: `${e.booking_date.split('T')[0]}T${startT}:00`, // Ensure ISO format
+                            end: `${e.booking_date.split('T')[0]}T${endT}:00`,
                             backgroundColor: color,
+                            borderColor: color,
                             extendedProps: {
-                                room: e.room_name,
+                                room: e.room_name || 'Unknown',
                                 status: parseFloat(e.balance_due) > 0 ? 'Pending Payment' : 'Confirmed',
-                                time: `${e.start_time.slice(0,5)} - ${e.end_time.slice(0,5)}`
+                                time: `${startT} - ${endT}`
                             }
                         };
                     });
