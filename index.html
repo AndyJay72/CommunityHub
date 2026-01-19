@@ -53,12 +53,17 @@
         .nav-link:hover, .nav-link.active { background: rgba(99, 102, 241, 0.1); color: var(--primary); }
         .close-sidebar { display: none; background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; }
 
-        /* --- MAIN --- */
+        /* --- MAIN CONTENT --- */
         main { margin-left: var(--sidebar-width); flex: 1; padding: 2rem; max-width: 1600px; width: 100%; transition: margin-left 0.3s ease; }
+
+        /* --- HEADER --- */
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem; }
         .header-title h1 { font-size: 1.8rem; font-weight: 700; margin: 0; }
+        .header-title p { color: var(--text-muted); font-size: 0.9rem; margin-top: 5px; }
+        
         .header-left { display: flex; align-items: center; gap: 1rem; }
         .header-right { display: flex; align-items: center; gap: 15px; }
+
         .menu-toggle { display: none; background: var(--bg-card); border: 1px solid var(--border); color: white; width: 40px; height: 40px; border-radius: 8px; align-items: center; justify-content: center; cursor: pointer; }
 
         .live-clock { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text-muted); background: rgba(0,0,0,0.3); border: 1px solid var(--border); padding: 10px 15px; border-radius: 8px; display: flex; align-items: center; gap: 8px; }
@@ -66,7 +71,7 @@
         .refresh-btn { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); padding: 10px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; font-weight: 600; height: 100%; }
         .refresh-btn:hover { background: rgba(255,255,255,0.05); color: white; }
 
-        /* --- KPIS --- */
+        /* --- KPI CARDS --- */
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2.5rem; }
         .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; position: relative; overflow: hidden; }
         .card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, var(--primary), transparent); }
@@ -83,7 +88,6 @@
         th { text-align: left; padding: 1rem 1.5rem; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; font-weight: 600; background: #182235; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
         td { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); color: var(--text-main); font-size: 0.95rem; vertical-align: middle; }
         
-        /* CLICKABLE ROWS */
         tbody tr { cursor: pointer; transition: background 0.2s; }
         tbody tr:hover { background: rgba(255,255,255,0.05) !important; }
 
@@ -144,9 +148,10 @@
             <a href="customers.html" class="nav-link"><i class="fa-solid fa-users"></i> Customers</a>
             <a href="accounts.html" class="nav-link"><i class="fa-solid fa-file-invoice-dollar"></i> Accounts</a>
             <a href="venuepro_booking.html" class="nav-link"><i class="fa-solid fa-building"></i> Event Booking</a>  
-            <a href="final-payment.html" class="nav-link"><i class="fa-solid fa-check-double"></i> Final Payment</a> 
-            <a href="calendar.html" class="nav-link"> <i class="fa-solid fa-calendar-alt"></i> Calendar</a>
-            <a href="users.html" class="nav-link"> <i class="fa-solid fa-user-shield"></i> Users</a>
+            <a href="final-payment.html" class="nav-link"><i class="fa-solid fa-check-double"></i> Final Payment</a>
+            <!-- ADDED CALENDAR LINK -->
+            <a href="calendar.html" class="nav-link"><i class="fa-solid fa-calendar-alt"></i> Calendar</a>
+            <a href="users.html" class="nav-link"><i class="fa-solid fa-user-shield"></i> Users</a>
             <a href="#" onclick="logout()" class="nav-link" style="margin-top: auto; color: #ef4444; border-top: 1px solid rgba(255,255,255,0.05);"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
         </nav>
     </aside>
@@ -271,12 +276,13 @@
                 let requests = data.recent_customers || [];
                 requests = requests.filter(c => c.status === 'pending');
 
-                // Request Deduplication (Just in case)
+                // SAFE DEDUPLICATION FOR REQUESTS
                 const uniqueRequests = [];
                 const seenReqIds = new Set();
                 requests.forEach(r => {
-                    if (!seenReqIds.has(r.id)) {
-                        seenReqIds.add(r.id);
+                    const key = r.id || (r.full_name + r.event_date);
+                    if (!seenReqIds.has(key)) {
+                        seenReqIds.add(key);
                         uniqueRequests.push(r);
                     }
                 });
@@ -301,18 +307,20 @@
                     }).join('');
                 }
 
-                // BOOKINGS - DEDUPLICATION FIX
+                // UPCOMING BOOKINGS (SAFE DEDUPLICATION)
                 const bookBody = document.getElementById('table-bookings');
-                bookBody.innerHTML = ''; // Force Clean
+                bookBody.innerHTML = ''; 
 
                 const bookings = data.upcoming_bookings || [];
                 const uniqueBookings = [];
-                const seenBookIds = new Set();
+                const seenBookKeys = new Set();
 
                 bookings.forEach(b => {
-                    // Only add if we haven't seen this ID before
-                    if (b.id && !seenBookIds.has(b.id)) {
-                        seenBookIds.add(b.id);
+                    // Safe Key Logic: Use ID if present, otherwise Name+Date+Time, otherwise Random fallback to show data
+                    const key = b.id || (b.customer_name + b.booking_date + b.room_name) || Math.random();
+                    
+                    if (!seenBookKeys.has(key)) {
+                        seenBookKeys.add(key);
                         uniqueBookings.push(b);
                     }
                 });
@@ -334,7 +342,6 @@
         async function markContacted(id, name) {
             const btn = document.getElementById(`btn-${id}`);
             const row = btn.closest('tr'); 
-            
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>'; btn.disabled = true;
 
             try {
@@ -345,9 +352,11 @@
                 });
 
                 if (response.ok) {
-                    showToast(`${name} marked as contacted`);
+                    showToast(`${name} accepted`);
+                    // Visual removal
                     row.style.opacity = '0';
                     setTimeout(() => row.remove(), 500);
+                    // Background refresh
                     setTimeout(loadDashboard, 1500); 
                 } else { throw new Error("Update failed"); }
             } catch (error) {
