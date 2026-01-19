@@ -290,10 +290,10 @@
                     }).join('');
                 }
 
-              // 3. Upcoming Bookings Table
-              const bookBody = document.getElementById('table-bookings');
-              bookBody.innerHTML = ''; // Clear previous data to prevent duplicates
-              const bookings = data.upcoming_bookings || [];
+                // 3. Upcoming Bookings Table
+                const bookBody = document.getElementById('table-bookings');
+                bookBody.innerHTML = ''; // Clear previous data to prevent duplicates
+                const bookings = data.upcoming_bookings || [];
                 if (bookings.length === 0) {
                     bookBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding: 2rem;">No upcoming events</td></tr>`;
                 } else {
