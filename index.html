@@ -266,15 +266,25 @@
                 document.getElementById('val-pending').innerText = metrics.pending_requests || 0;
                 document.getElementById('val-contacted').innerText = metrics.contacted_today || 0;
 
-                // REQUESTS (FILTERED)
+                // REQUESTS
                 const reqBody = document.getElementById('table-requests');
                 let requests = data.recent_customers || [];
                 requests = requests.filter(c => c.status === 'pending');
 
-                if (requests.length === 0) {
+                // Request Deduplication (Just in case)
+                const uniqueRequests = [];
+                const seenReqIds = new Set();
+                requests.forEach(r => {
+                    if (!seenReqIds.has(r.id)) {
+                        seenReqIds.add(r.id);
+                        uniqueRequests.push(r);
+                    }
+                });
+
+                if (uniqueRequests.length === 0) {
                     reqBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding: 2rem;">No new pending requests</td></tr>`;
                 } else {
-                    reqBody.innerHTML = requests.map(c => {
+                    reqBody.innerHTML = uniqueRequests.map(c => {
                         const dataStr = encodeURIComponent(JSON.stringify(c));
                         return `
                         <tr onclick="openModal('${dataStr}')">
@@ -291,25 +301,21 @@
                     }).join('');
                 }
 
-                // UPCOMING BOOKINGS (WITH DUPLICATE CHECK)
+                // BOOKINGS - DEDUPLICATION FIX
                 const bookBody = document.getElementById('table-bookings');
-                
-                // --- DUPLICATE PREVENTION LOGIC START ---
-                bookBody.innerHTML = ''; // Force Clean Slate
-                
+                bookBody.innerHTML = ''; // Force Clean
+
                 const bookings = data.upcoming_bookings || [];
-                
-                // Use a Set to track seen IDs
-                const seenIds = new Set();
                 const uniqueBookings = [];
+                const seenBookIds = new Set();
 
                 bookings.forEach(b => {
-                    if (!seenIds.has(b.id)) {
-                        seenIds.add(b.id);
+                    // Only add if we haven't seen this ID before
+                    if (b.id && !seenBookIds.has(b.id)) {
+                        seenBookIds.add(b.id);
                         uniqueBookings.push(b);
                     }
                 });
-                // --- DUPLICATE PREVENTION LOGIC END ---
 
                 if (uniqueBookings.length === 0) {
                     bookBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding: 2rem;">No upcoming events</td></tr>`;
@@ -327,6 +333,8 @@
 
         async function markContacted(id, name) {
             const btn = document.getElementById(`btn-${id}`);
+            const row = btn.closest('tr'); 
+            
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>'; btn.disabled = true;
 
             try {
@@ -337,12 +345,16 @@
                 });
 
                 if (response.ok) {
-                    showToast(`${name} accepted`);
-                    btn.innerHTML = '<i class="fa-solid fa-check-double"></i> Done';
-                    btn.style.opacity = '0.5';
+                    showToast(`${name} marked as contacted`);
+                    row.style.opacity = '0';
+                    setTimeout(() => row.remove(), 500);
                     setTimeout(loadDashboard, 1500); 
                 } else { throw new Error("Update failed"); }
-            } catch (error) { showToast("Failed", "error"); btn.innerHTML = 'Retry'; btn.disabled = false; }
+            } catch (error) {
+                showToast("Failed to update", "error");
+                btn.innerHTML = 'Retry';
+                btn.disabled = false;
+            }
         }
 
         function showToast(message, type = 'success') {
