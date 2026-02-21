@@ -145,13 +145,18 @@
         const CREATE_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/create-user';
         const DELETE_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/delete-user';
 
+        function getAuthHeaders() {
+            return { 'Authorization': 'Bearer ' + (localStorage.getItem('vp_token') || '') };
+        }
+
+
         function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('overlay').classList.toggle('active'); }
         function logout() { if(confirm("Log out?")) { localStorage.removeItem('vp_token'); window.location.href='login.html'; } }
 
         // 1. Load Users
         async function loadUsers() {
             try {
-                const res = await fetch(GET_URL);
+                const res = await fetch(GET_URL, { headers: getAuthHeaders() });
                 if (!res.ok) throw new Error("Connection Error");
                 
                 const json = await res.json();
@@ -199,7 +204,7 @@
             try {
                 const res = await fetch(CREATE_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
                     body: JSON.stringify({ full_name: name, username: user, password: pass, role: role })
                 });
 
@@ -219,7 +224,7 @@
             try {
                 const res = await fetch(DELETE_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
                     body: JSON.stringify({ user_id: id })
                 });
                 if(res.ok) { loadUsers(); } else { alert("Failed to delete."); }
