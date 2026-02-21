@@ -208,10 +208,7 @@
                     <div class="input-wrapper">
                         <i class="fas fa-door-open icon"></i>
                         <select id="roomName" onchange="checkAvailability()" required>
-                            <option value="" disabled selected>Select Room</option>
-                            <option value="Grand Ballroom">Grand Ballroom (Cap: 200)</option>
-                            <option value="Executive Suite">Executive Suite (Cap: 20)</option>
-                            <option value="Garden Terrace">Garden Terrace (Cap: 80)</option>
+                            <option value="" disabled selected>Loading rooms...</option>
                         </select>
                         <i class="fas fa-chevron-down arrow"></i>
                     </div>
@@ -223,13 +220,7 @@
                         <div class="input-wrapper">
                             <i class="fas fa-glass-cheers icon"></i>
                             <select id="eventType" required>
-                                <option value="" disabled selected>Select Type</option>
-                                <option value="Wedding">Wedding</option>
-                                <option value="Birthday Party">Birthday Party</option>
-                                <option value="Corporate Event">Corporate Event</option>
-                                <option value="Conference">Conference</option>
-                                <option value="Christmas Party">Christmas Party</option>
-                                <option value="Other">Other</option>
+                                <option value="" disabled selected>Loading types...</option>
                             </select>
                             <i class="fas fa-chevron-down arrow"></i>
                         </div>
@@ -296,10 +287,44 @@
 
     <script>
         // === CONFIGURATION ===
-        const CHECK_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/check-availability';
-        const SUBMIT_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/d057a40e-fb3e-402a-8ed7-fe16bce70feb'; 
+        const CHECK_API  = 'https://n8n.srv1090894.hstgr.cloud/webhook/check-availability';
+        const SUBMIT_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/d057a40e-fb3e-402a-8ed7-fe16bce70feb';
+        const BASE_API   = 'https://n8n.srv1090894.hstgr.cloud/webhook';
 
         let isAvailable = false;
+
+        // === LOAD ROOMS & EVENT TYPES DYNAMICALLY ===
+        async function loadRoomsAndTypes() {
+            try {
+                const [rRes, eRes] = await Promise.all([
+                    fetch(BASE_API + '/get-rooms'),
+                    fetch(BASE_API + '/get-event-types')
+                ]);
+                const rJson = await rRes.json();
+                const eJson = await eRes.json();
+                const rooms = (rJson.data || rJson).filter(r => r.is_active);
+                const types = (eJson.data || eJson).filter(e => e.is_active);
+
+                const roomSel = document.getElementById('roomName');
+                roomSel.innerHTML = '<option value="" disabled selected>Select Room</option>';
+                rooms.forEach(r => {
+                    const cap = r.capacity ? ` (Cap: ${r.capacity})` : '';
+                    roomSel.add(new Option(r.name + cap, r.name));
+                });
+
+                const typeSel = document.getElementById('eventType');
+                typeSel.innerHTML = '<option value="" disabled selected>Select Type</option>';
+                types.forEach(t => typeSel.add(new Option(t.name, t.name)));
+            } catch(e) {
+                // Fallback — leave selects as-is if API fails
+                console.warn('Could not load rooms/event types:', e);
+                const roomSel = document.getElementById('roomName');
+                if (roomSel.options.length <= 1) {
+                    roomSel.innerHTML = '<option value="" disabled selected>Unable to load rooms</option>';
+                }
+            }
+        }
+        loadRoomsAndTypes();
 
         // Init: Min Date & Times
         document.getElementById('eventDate').min = new Date().toISOString().split('T')[0];
