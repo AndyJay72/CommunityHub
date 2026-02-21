@@ -126,6 +126,11 @@
         const API_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/all-bookings';
         const PAY_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/pay-balance';
         const CANCEL_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/cancel-booking';
+
+        function getAuthHeaders() {
+            return { 'Authorization': 'Bearer ' + (localStorage.getItem('vp_token') || '') };
+        }
+
         
         let allBookings = [];
         const formatCurrency = (num) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(num || 0);
@@ -133,7 +138,7 @@
 
         async function fetchBookings() {
             try {
-                const res = await fetch(API_URL);
+                const res = await fetch(API_URL, { headers: getAuthHeaders() });
                 const json = await res.json();
                 const rawData = json.data || (Array.isArray(json) ? json : []);
                 const now = new Date(); now.setHours(0,0,0,0); 
@@ -167,7 +172,7 @@
             try {
                 const res = await fetch(CANCEL_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
                     body: JSON.stringify({ booking_id: id })
                 });
                 const result = await res.json();
@@ -179,10 +184,13 @@
         async function payBalance(id, customerId, balance) {
             const amount = prompt(`Enter payment amount (Balance Due: £${balance})`, balance);
             if (!amount) return;
+            const parsedAmount = parseFloat(amount);
+            if (isNaN(parsedAmount) || parsedAmount <= 0) { alert("Invalid amount. Must be a positive number."); return; }
+            if (parsedAmount > parseFloat(balance) + 0.01) { alert(`Amount cannot exceed the balance due of £${balance}.`); return; }
             try {
                 const res = await fetch(PAY_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
                     body: JSON.stringify({ booking_id: id, customer_id: customerId, amount: amount })
                 });
                 const result = await res.json();
