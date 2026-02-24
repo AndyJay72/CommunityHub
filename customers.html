@@ -51,6 +51,7 @@
         .status-badge.fully_paid { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
         .status-badge.balance { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
         .status-badge.cancelled { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); text-decoration: line-through; }
+        .status-badge.booked { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
 
         /* MODAL */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); z-index: 2000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
@@ -196,8 +197,9 @@
                     const dataStr = encodeURIComponent(JSON.stringify(c));
                     // Status Badge Logic
                     let badgeClass = c.status;
-                    if(c.status === 'deposit_paid') badgeClass = 'deposit_paid';
-                    if(c.status === 'fully_paid') badgeClass = 'paid';
+                    const isBooked = ['booked', 'fully_paid', 'deposit_paid'].includes(c.status);
+                    if (isBooked) badgeClass = 'booked';
+                    const statusLabel = isBooked ? 'Booked' : c.status;
                     
                     return `
                     <tr onclick="openModal('${dataStr}')">
@@ -205,7 +207,7 @@
                         <td><div>${c.email}</div><div style="font-size:0.8rem; color:var(--text-muted)">${c.phone || ''}</div></td>
                         <td>${c.event_type || 'General'}</td>
                         <td>${c.event_date ? new Date(c.event_date).toLocaleDateString() : 'N/A'}</td>
-                        <td><span class="status-badge ${badgeClass}">${c.status}</span></td>
+                        <td><span class="status-badge ${badgeClass}">${statusLabel}</span></td>
                     </tr>`;
                 }).join('');
             } catch (e) {
