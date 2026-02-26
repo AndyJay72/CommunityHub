@@ -94,6 +94,21 @@
 
         /* Override toggle */
         .override-row { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; }
+
+        /* Conflict modal */
+        .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 900; align-items: center; justify-content: center; }
+        .modal-backdrop.open { display: flex; }
+        .modal-box { background: #1e293b; border: 1px solid rgba(239,68,68,0.4); border-radius: 16px; padding: 2rem; max-width: 440px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.6); text-align: center; }
+        .modal-icon { width: 56px; height: 56px; border-radius: 50%; background: rgba(239,68,68,0.15); border: 2px solid rgba(239,68,68,0.4); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.2rem; font-size: 1.4rem; color: #f87171; }
+        .modal-title { font-size: 1.2rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.6rem; }
+        .modal-body { font-size: 0.92rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1.8rem; }
+        .modal-body strong { color: #f87171; }
+        .modal-actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+        .modal-btn { padding: 10px 22px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s; }
+        .modal-btn-primary { background: var(--primary); color: white; }
+        .modal-btn-primary:hover { background: #4f46e5; }
+        .modal-btn-secondary { background: rgba(255,255,255,0.08); color: var(--text-muted); border: 1px solid var(--border); }
+        .modal-btn-secondary:hover { background: rgba(255,255,255,0.14); color: white; }
         .toggle-switch { position: relative; display: inline-block; width: 40px; height: 22px; flex-shrink: 0; }
         .toggle-switch input { opacity: 0; width: 0; height: 0; }
         .toggle-slider { position: absolute; inset: 0; background: rgba(255,255,255,0.1); border-radius: 22px; cursor: pointer; transition: 0.2s; border: 1px solid var(--border); }
@@ -309,6 +324,23 @@
     </main>
 
     <div id="toast-container"></div>
+
+    <!-- Room conflict modal -->
+    <div id="conflictModal" class="modal-backdrop" onclick="closeConflictModal(event)">
+        <div class="modal-box">
+            <div class="modal-icon"><i class="fa-solid fa-ban"></i></div>
+            <div class="modal-title">Room Not Available</div>
+            <div class="modal-body" id="conflictModalBody">This room is already booked for the selected date and time.</div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-primary" onclick="closeConflictModalAndFocus('bookingDate')">
+                    <i class="fa-solid fa-calendar-days"></i> Change Date / Time
+                </button>
+                <button class="modal-btn modal-btn-secondary" onclick="closeConflictModalAndFocus('roomSelect')">
+                    <i class="fa-solid fa-building"></i> Choose Another Room
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script>
         function logout() {
@@ -578,7 +610,7 @@
                 if (!avData.available) {
                     btns.forEach(b => { b.disabled = false; });
                     calculateCost();
-                    showToast('Slot is no longer available — please choose a different time', 'error');
+                    showConflictModal(roomName, date, start, end);
                     return;
                 }
             } catch(e) {
@@ -623,6 +655,25 @@
                 btns.forEach(b => { b.disabled = false; });
                 calculateCost();
             }
+        }
+
+        function showConflictModal(room, date, start, end) {
+            const fmt = d => { try { return new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short', year:'numeric' }); } catch(e) { return d; } };
+            document.getElementById('conflictModalBody').innerHTML =
+                `<strong>${room}</strong> is already booked on <strong>${fmt(date)}</strong> from <strong>${start}</strong> to <strong>${end}</strong>.<br><br>Please choose a different room, date or time.`;
+            document.getElementById('conflictModal').classList.add('open');
+        }
+
+        function closeConflictModal(e) {
+            if (!e || e.target === document.getElementById('conflictModal')) {
+                document.getElementById('conflictModal').classList.remove('open');
+            }
+        }
+
+        function closeConflictModalAndFocus(fieldId) {
+            document.getElementById('conflictModal').classList.remove('open');
+            const el = document.getElementById(fieldId);
+            if (el) { el.focus(); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
         }
 
         function showToast(message, type = 'success') {
