@@ -140,6 +140,7 @@
             <a href="accounts.html" class="nav-link"><i class="fa-solid fa-file-invoice-dollar"></i> Accounts</a>
             <a href="venuepro_booking.html" class="nav-link"><i class="fa-solid fa-building"></i> Event Booking</a>
             <a href="enquiry-form.html" class="nav-link" target="_blank"><i class="fa-solid fa-file-pen"></i> New Booking</a>
+            <a href="manual-booking.html" class="nav-link active"><i class="fa-solid fa-person-walking-arrow-right"></i> Walk-In Booking</a>
             <a href="final-payment.html" class="nav-link"><i class="fa-solid fa-check-double"></i> Final Payment</a>
             <a href="calendar.html" class="nav-link" target="_blank" rel="noopener"><i class="fa-solid fa-calendar-alt"></i> Calendar <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.6rem;margin-left:auto;opacity:0.5"></i></a>
             <a href="users.html" class="nav-link"><i class="fa-solid fa-user-shield"></i> Users</a>
@@ -266,6 +267,7 @@
                 <div id="costBreakdown" class="breakdown-text">Select a room and times to calculate</div>
 
                 <input type="hidden" id="totalAmount">
+                <input type="hidden" id="depositAmount">
                 <input type="hidden" id="roomId">
                 <input type="hidden" id="roomName">
 
@@ -447,6 +449,7 @@
             if (!document.getElementById('overrideToggle').checked) {
                 document.getElementById('totalDisplay').innerText = formatGBP(cost);
                 document.getElementById('totalAmount').value      = cost.toFixed(2);
+                document.getElementById('depositAmount').value    = deposit.toFixed(2);
                 document.getElementById('payAmount').value        = deposit.toFixed(2);
                 document.getElementById('btnDeposit').innerHTML   =
                     `<i class="fa-solid fa-coins"></i> Pay Deposit (${formatGBP(deposit)})`;
@@ -531,6 +534,7 @@
             const deposit = val * (DEPOSIT_PCT / 100);
             document.getElementById('totalDisplay').innerText = formatGBP(val);
             document.getElementById('totalAmount').value      = val.toFixed(2);
+            document.getElementById('depositAmount').value    = deposit.toFixed(2);
             document.getElementById('payAmount').value        = deposit.toFixed(2);
             document.getElementById('btnDeposit').innerHTML   =
                 `<i class="fa-solid fa-coins"></i> Pay Deposit (${formatGBP(deposit)})`;
