@@ -644,11 +644,21 @@
                     body: JSON.stringify(payload)
                 });
 
-                if (res.ok) {
+                let data = {};
+                try { data = await res.json(); } catch(e) {}
+
+                if (data.success === true) {
                     showToast(`Booking confirmed for ${name}!`, 'success');
                     setTimeout(() => window.location.href = 'index.html', 1800);
                 } else {
-                    throw new Error('Server error');
+                    btns.forEach(b => { b.disabled = false; });
+                    calculateCost();
+                    const msg = (data.message || '').toLowerCase();
+                    if (msg.includes('conflict') || msg.includes('time slot') || msg.includes('buffer')) {
+                        showConflictModal(roomName, date, start, end);
+                    } else {
+                        showToast(data.message || 'Failed to create booking — please try again', 'error');
+                    }
                 }
             } catch(e) {
                 showToast('Failed to create booking — please try again', 'error');
