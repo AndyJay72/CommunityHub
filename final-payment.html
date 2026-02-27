@@ -65,6 +65,10 @@
             .form-grid { grid-template-columns: 1fr; } .full-width { grid-column: span 1; }
             .summary-bar { grid-template-columns: 1fr; } .amount-row { grid-template-columns: 1fr; }
         }
+        .pay-method-row { display: flex; align-items: center; gap: 10px; }
+        .pay-method-label { font-size: 0.82rem; color: var(--text-muted); white-space: nowrap; }
+        .pay-method-select { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 8px; color: white; padding: 7px 12px; font-size: 0.88rem; outline: none; cursor: pointer; flex: 1; }
+        .pay-method-select option { background: #1e293b; }
     </style>
 </head>
 <body>
@@ -185,6 +189,15 @@
 
             <div class="form-section-title"><i class="fa-solid fa-credit-card"></i> Payment Amount</div>
             <div class="payment-box">
+                <div class="pay-method-row" style="margin-bottom:1.2rem;">
+                    <span class="pay-method-label">Payment Method:</span>
+                    <select id="payMethodSelect" class="pay-method-select">
+                        <option value="cash">Cash</option>
+                        <option value="card">Card</option>
+                        <option value="bank_transfer">Bank Transfer</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
                 <div class="amount-row">
                     <div>
                         <label style="display:block; color:var(--text-muted); font-size:0.8rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.4rem;">Amount to Pay (£)</label>
@@ -389,7 +402,7 @@
                         amount:            amount,
                         balance_due:       maxBal,
                         deposit_reference: depositReference,
-                        payment_method:    'cash'
+                        payment_method:    document.getElementById('payMethodSelect').value
                     })
                 });
                 const result = await res.json();
