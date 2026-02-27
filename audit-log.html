@@ -123,7 +123,10 @@
                 <button class="menu-toggle" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></button>
                 <div><h1 style="font-size:1.8rem;font-weight:700">Audit Log</h1><p style="color:var(--text-muted);font-size:0.88rem;margin-top:3px">All payment transactions</p></div>
             </div>
-            <button onclick="loadData()" style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);color:var(--primary);padding:9px 16px;border-radius:8px;cursor:pointer;font-size:0.88rem;font-weight:600;font-family:inherit;display:flex;align-items:center;gap:6px;transition:0.2s" onmouseover="this.style.background='rgba(99,102,241,0.2)'" onmouseout="this.style.background='rgba(99,102,241,0.1)'"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+            <div style="display:flex;gap:8px;align-items:center">
+                <button onclick="exportCSV()" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:9px 16px;border-radius:8px;cursor:pointer;font-size:0.88rem;font-weight:600;font-family:inherit;display:flex;align-items:center;gap:6px;transition:0.2s" onmouseover="this.style.background='rgba(16,185,129,0.2)'" onmouseout="this.style.background='rgba(16,185,129,0.1)'"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+                <button onclick="loadData()" style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);color:var(--primary);padding:9px 16px;border-radius:8px;cursor:pointer;font-size:0.88rem;font-weight:600;font-family:inherit;display:flex;align-items:center;gap:6px;transition:0.2s" onmouseover="this.style.background='rgba(99,102,241,0.2)'" onmouseout="this.style.background='rgba(99,102,241,0.1)'"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+            </div>
         </header>
         <div class="filter-row">
             <input type="text" id="f-search" class="f-input" placeholder="Search customer, room, ref..." oninput="applyFilters()" style="flex:1;min-width:180px">
@@ -234,6 +237,38 @@
             document.getElementById('pg-next').disabled=(page>=totalPages);
         }
         function changePage(dir){page+=dir;render();}
+        function exportCSV(){
+            if(!filtered.length){alert('No data to export. Apply filters or load data first.');return;}
+            const cols=['Date & Time','Customer Name','Customer Email','Room','Payment Type','Payment Method','Amount (GBP)','Reference'];
+            const escape=v=>{
+                const s=String(v==null?'':v).replace(/"/g,'""');
+                return /[",\n\r]/.test(s)?`"${s}"`:s;
+            };
+            const rows=filtered.map(t=>{
+                const dateRaw=t.payment_date||t.created_at||t.date||'';
+                let dateStr='';
+                if(dateRaw){try{dateStr=new Date(dateRaw).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){dateStr=dateRaw;}}
+                return [
+                    dateStr,
+                    t.customer_name||'',
+                    t.customer_email||t.email||'',
+                    t.room_name||'',
+                    t.payment_type||t.type||'',
+                    (t.payment_method||t.method||'').replace(/_/g,' '),
+                    parseFloat(t.amount||0).toFixed(2),
+                    t.reference||t.reference_number||''
+                ].map(escape).join(',');
+            });
+            const csv=[cols.map(escape).join(','),...rows].join('\r\n');
+            const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+            const url=URL.createObjectURL(blob);
+            const a=document.createElement('a');
+            const now=new Date();
+            const stamp=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+            a.href=url;a.download='venuepro-audit-log-'+stamp+'.csv';
+            document.body.appendChild(a);a.click();
+            setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},100);
+        }
         async function loadData(){
             document.getElementById('log-tbody').innerHTML='<tr><td colspan="7" style="text-align:center;padding:3rem;color:var(--text-muted)"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</td></tr>';
             try{
