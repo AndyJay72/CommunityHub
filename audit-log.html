@@ -54,6 +54,50 @@
         .overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:90}
         .overlay.active{display:block}
         @media(max-width:768px){aside{transform:translateX(-100%)}aside.active{transform:translateX(0)}main{margin-left:0;padding:1rem}.menu-toggle{display:flex}.close-sidebar{display:block}.summary-strip{grid-template-columns:1fr 1fr}}
+
+        /* ── LIGHT MODE OVERRIDES ── */
+        body.light-mode { background-color: #eef2f7; background-image: none; color: #0f172a; }
+        body.light-mode aside { background: rgba(255,255,255,0.97); border-right-color: rgba(0,0,0,0.1); }
+        body.light-mode .nav-link { color: #475569; }
+        body.light-mode .nav-link:hover, body.light-mode .nav-link.active { background: rgba(99,102,241,0.1); color: var(--primary); }
+        body.light-mode .brand { color: #0f172a; }
+        body.light-mode main { background: transparent; }
+        body.light-mode .card,
+        body.light-mode .table-container,
+        body.light-mode .metric-card,
+        body.light-mode .booking-card,
+        body.light-mode .glance-card,
+        body.light-mode .sum-card,
+        body.light-mode .table-wrap,
+        body.light-mode #calendar,
+        body.light-mode .section-container { background: rgba(255,255,255,0.92); border-color: rgba(0,0,0,0.1); color: #0f172a; }
+        body.light-mode th { background: rgba(240,244,248,0.9); color: #475569; border-color: rgba(0,0,0,0.07); }
+        body.light-mode td { color: #0f172a; border-color: rgba(0,0,0,0.06); }
+        body.light-mode .stat-value, body.light-mode .glance-val, body.light-mode .sum-val { color: #0f172a; }
+        body.light-mode .stat-label, body.light-mode .glance-lbl, body.light-mode .sum-lbl,
+        body.light-mode .b-meta, body.light-mode .db-month, body.light-mode .metric-info p { color: #64748b; }
+        body.light-mode h1, body.light-mode h2, body.light-mode h3, body.light-mode h4 { color: #0f172a; }
+        body.light-mode .menu-toggle,
+        body.light-mode .search-bar,
+        body.light-mode .sf-input, body.light-mode .sf-select,
+        body.light-mode .f-input, body.light-mode .f-select,
+        body.light-mode .cal-filter-select { background: rgba(255,255,255,0.8); border-color: rgba(0,0,0,0.15); color: #0f172a; }
+        body.light-mode .search-bar input { color: #0f172a; }
+        body.light-mode .filter-btn { background: rgba(255,255,255,0.8); border-color: rgba(0,0,0,0.12); color: #475569; }
+        body.light-mode .filter-btn:hover, body.light-mode .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        body.light-mode .pay-modal-card, body.light-mode .modal-card,
+        body.light-mode .receipt-card { background: #ffffff; border-color: rgba(0,0,0,0.12); color: #0f172a; }
+        body.light-mode .detail-value { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.1); color: #0f172a; }
+        body.light-mode .live-clock { background: rgba(255,255,255,0.8); border-color: rgba(0,0,0,0.12); color: #475569; }
+        body.light-mode .pay-amount-input { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.15); color: #0f172a; }
+        body.light-mode .pay-booking-info { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.08); }
+        body.light-mode .date-badge { background: rgba(0,0,0,0.05); }
+        body.light-mode .bh-stat { background: rgba(0,0,0,0.04); }
+        body.light-mode .log-tbody tr:hover, body.light-mode tbody tr:hover { background: rgba(0,0,0,0.03) !important; }
+        .theme-toggle { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; transition: 0.2s; flex-shrink: 0; }
+        .theme-toggle:hover { color: white; border-color: white; }
+        body.light-mode .theme-toggle { background: rgba(255,255,255,0.8); border-color: rgba(0,0,0,0.15); color: #475569; }
+        body.light-mode .theme-toggle:hover { color: #0f172a; border-color: #94a3b8; }
     </style>
 </head>
 <body>
@@ -207,6 +251,23 @@
             }
         }
         loadData();
-    </script>
+    
+        // ── THEME PERSISTENCE ──
+        (function(){ var t=localStorage.getItem('vp_theme'); if(t==='light') document.body.classList.add('light-mode'); })();
+        function toggleTheme(){
+            var isLight = document.body.classList.toggle('light-mode');
+            localStorage.setItem('vp_theme', isLight ? 'light' : 'dark');
+            var btn = document.getElementById('theme-btn');
+            if(btn) btn.innerHTML = isLight ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+        }
+        // Set correct icon on load
+        document.addEventListener('DOMContentLoaded', function(){
+            var btn = document.getElementById('theme-btn');
+            if(btn) {
+                var isLight = document.body.classList.contains('light-mode');
+                btn.innerHTML = isLight ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+            }
+        });
+</script>
 </body>
 </html>
