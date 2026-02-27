@@ -118,6 +118,7 @@
                 <div class="invoice-section">
                     <div class="invoice-section-title">This Transaction</div>
                     <div class="invoice-row"><span class="ilabel">Payment Type</span><span class="ivalue" id="invType">—</span></div>
+                    <div class="invoice-row"><span class="ilabel">Payment Method</span><span class="ivalue" id="invMethod">—</span></div>
                     <div class="invoice-row"><span class="ilabel">Reference</span><span class="ivalue mono" id="invRefDetail">—</span></div>
                     <div class="invoice-row" id="invOrigRefRow"><span class="ilabel">Linked to Deposit</span><span class="ivalue mono" id="invOrigRef">—</span></div>
                     <div class="invoice-row"><span class="ilabel">Status</span><span class="ivalue" id="invStatus">—</span></div>
@@ -381,6 +382,9 @@
             document.getElementById('invTime').innerText         = time;
             document.getElementById('invTotal').innerText        = t.total_amount != null ? fmt(t.total_amount) : '—';
             document.getElementById('invType').innerHTML         = '<span class="type-badge ' + typeClass(t.payment_type, t.booking_balance_due) + '">' + typeLabel(t.payment_type, t.booking_balance_due) + '</span>';
+            const _mMap = { cash: 'Cash', card: 'Card', bank_transfer: 'Bank Transfer', other: 'Other' };
+            const _mKey = (t.payment_method || '').toLowerCase();
+            document.getElementById('invMethod').innerText        = _mMap[_mKey] || t.payment_method || '—';
             document.getElementById('invRefDetail').innerText    = t.reference_number || '—';
             document.getElementById('invStatus').innerText       = (t.status || '—').toUpperCase();
             document.getElementById('invAmount').innerText       = fmt(amt);
