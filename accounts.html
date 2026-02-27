@@ -254,8 +254,11 @@
 
         <div class="transaction-container">
             <div class="trans-header">
-                <h3><i class="fa-solid fa-list" style="color:var(--text-muted); margin-right:8px;"></i>Recent Transactions</h3>
-                <span class="trans-hint"><i class="fa-solid fa-arrow-pointer"></i> Click a row to view invoice</span>
+                <h3><i class="fa-solid fa-list" style="color:var(--text-muted); margin-right:8px;"></i>Booking Transactions</h3>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                    <span class="trans-hint"><i class="fa-solid fa-arrow-pointer"></i> Click a row to view invoice</span>
+                    <button onclick="exportTransactionsCSV()" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:600;font-family:inherit;display:flex;align-items:center;gap:6px;transition:0.2s" onmouseover="this.style.background='rgba(16,185,129,0.2)'" onmouseout="this.style.background='rgba(16,185,129,0.1)'"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+                </div>
             </div>
             <div class="table-responsive">
                 <table>
@@ -403,6 +406,41 @@
                     '<td><span style="color:' + color + '; text-transform:uppercase; font-size:0.78rem;">' + (t.status || '—') + '</span></td>' +
                     '</tr>';
             }).join('');
+        }
+
+        function exportTransactionsCSV() {
+            if (!allTransactions.length) { alert('No transactions to export.'); return; }
+            const cols = ['Payment Date','Reference','Linked To (Deposit Ref)','Customer Name','Customer Email','Room','Booking Date','Start Time','End Time','Payment Type','Payment Method','Amount (GBP)','Total Booking Value (GBP)','Status'];
+            const escape = v => { const s = String(v == null ? '' : v).replace(/"/g, '""'); return /[",\n\r]/.test(s) ? `"${s}"` : s; };
+            const rows = allTransactions.map(t => {
+                const pDate = t.payment_date ? new Date(t.payment_date).toLocaleDateString('en-GB') : '';
+                const bDate = t.booking_date  ? new Date(t.booking_date).toLocaleDateString('en-GB')  : '';
+                return [
+                    pDate,
+                    t.reference_number || '',
+                    t.deposit_reference || '',
+                    t.customer_name  || '',
+                    t.customer_email || '',
+                    t.room_name      || '',
+                    bDate,
+                    t.start_time || '',
+                    t.end_time   || '',
+                    typeLabel(t.payment_type, t.booking_balance_due),
+                    (t.payment_method || '').replace(/_/g, ' '),
+                    parseFloat(t.amount || 0).toFixed(2),
+                    t.total_amount != null ? parseFloat(t.total_amount).toFixed(2) : '',
+                    t.status || ''
+                ].map(escape).join(',');
+            });
+            const csv = [cols.map(escape).join(','), ...rows].join('\r\n');
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const now = new Date();
+            const stamp = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+            a.href = url; a.download = 'venuepro-transactions-' + stamp + '.csv';
+            document.body.appendChild(a); a.click();
+            setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 100);
         }
 
         function showInvoice(idx) {
