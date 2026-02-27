@@ -66,6 +66,51 @@
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 90; backdrop-filter: blur(2px); }
         .overlay.active { display: block; }
 
+        /* ── PAYMENT MODAL ── */
+        .pay-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); z-index: 3000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+        .pay-modal-overlay.open { opacity: 1; pointer-events: all; }
+        .pay-modal-card { background: #1e293b; border: 1px solid rgba(148,163,184,0.15); border-radius: 20px; padding: 2rem; width: 92%; max-width: 480px; position: relative; transform: translateY(16px); transition: transform 0.25s; }
+        .pay-modal-overlay.open .pay-modal-card { transform: translateY(0); }
+        .pay-modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+        .pay-modal-title { font-size: 1.3rem; font-weight: 700; color: white; display: flex; align-items: center; gap: 8px; }
+        .pay-modal-close { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; line-height: 1; transition: color 0.2s; }
+        .pay-modal-close:hover { color: white; }
+        .pay-booking-info { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem 1rem; margin-bottom: 1.5rem; font-size: 0.88rem; }
+        .pay-booking-info .info-row { display: flex; gap: 6px; margin-bottom: 3px; color: var(--text-muted); }
+        .pay-booking-info .info-row strong { color: var(--text-main); }
+        .pay-amount-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+        .pay-amount-display { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+        .pay-currency { font-size: 1.5rem; font-weight: 700; color: var(--text-muted); }
+        .pay-amount-input { background: rgba(0,0,0,0.4); border: 2px solid var(--border); border-radius: 10px; color: white; font-size: 2rem; font-weight: 700; padding: 8px 14px; width: 100%; outline: none; -moz-appearance: textfield; transition: border-color 0.2s; }
+        .pay-amount-input::-webkit-outer-spin-button, .pay-amount-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+        .pay-amount-input:focus { border-color: var(--primary); }
+        .pay-slider { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; outline: none; cursor: pointer; margin: 0.5rem 0 0.35rem; }
+        .pay-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--primary); cursor: pointer; box-shadow: 0 0 0 4px rgba(99,102,241,0.25); transition: box-shadow 0.2s; }
+        .pay-slider::-webkit-slider-thumb:hover { box-shadow: 0 0 0 6px rgba(99,102,241,0.35); }
+        .pay-slider-labels { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); }
+        .pay-type-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; margin: 0.5rem 0 1rem; letter-spacing: 0.04em; }
+        .pay-type-badge.partial { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.4); color: var(--warning); }
+        .pay-type-badge.full { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); color: var(--success); }
+        .pay-method-row { display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem; }
+        .pay-method-label { font-size: 0.82rem; color: var(--text-muted); white-space: nowrap; }
+        .pay-method-select { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 8px; color: white; padding: 7px 12px; font-size: 0.88rem; outline: none; cursor: pointer; flex: 1; }
+        .pay-method-select option { background: #1e293b; }
+        .pay-modal-actions { display: flex; gap: 10px; }
+        .pay-confirm-btn { flex: 1; background: var(--success); color: #0f172a; border: none; padding: 12px; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.2s, transform 0.2s; }
+        .pay-confirm-btn:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+        .pay-confirm-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+        .pay-cancel-btn { background: rgba(30,41,59,0.9); border: 1px solid var(--border); color: var(--text-muted); padding: 12px 20px; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .pay-cancel-btn:hover { color: white; border-color: white; }
+        .receipt-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); z-index: 4000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+        .receipt-overlay.open { opacity: 1; pointer-events: all; }
+        .receipt-card { background: #1e293b; border: 1px solid rgba(148,163,184,0.15); border-radius: 20px; padding: 2rem; width: 92%; max-width: 400px; text-align: center; }
+        .receipt-icon { font-size: 3rem; color: var(--success); margin-bottom: 0.75rem; }
+        .receipt-amount { font-size: 2.5rem; font-weight: 800; color: var(--success); margin: 0.5rem 0; }
+        .receipt-sub { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem; }
+        .receipt-ref { font-family: monospace; background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 8px; padding: 6px 14px; font-size: 0.85rem; color: var(--warning); display: inline-block; margin-bottom: 1.5rem; }
+        .receipt-done-btn { background: var(--primary); color: white; border: none; padding: 12px 40px; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
+        .receipt-done-btn:hover { opacity: 0.85; }
+
         @media (max-width: 1024px) { .metrics-grid { grid-template-columns: 1fr; } }
         @media (max-width: 768px) {
             aside { transform: translateX(-100%); } aside.active { transform: translateX(0); }
@@ -115,6 +160,60 @@
         </div>
         <div id="booking-container"><div style="text-align: center; padding: 2rem; color: var(--text-muted);"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading data...</div></div>
     </main>
+
+    <!-- PAYMENT MODAL -->
+    <div id="payMod" class="pay-modal-overlay" onclick="if(event.target===this)closePayModal()">
+        <div class="pay-modal-card" onclick="event.stopPropagation()">
+            <div class="pay-modal-header">
+                <div class="pay-modal-title"><i class="fa-solid fa-credit-card" style="color:var(--success)"></i> Take Payment</div>
+                <button class="pay-modal-close" onclick="closePayModal()">&times;</button>
+            </div>
+            <div class="pay-booking-info">
+                <div class="info-row"><span>Customer:</span><strong id="pm-customer">—</strong></div>
+                <div class="info-row"><span>Room:</span><strong id="pm-room">—</strong></div>
+                <div class="info-row"><span>Date:</span><strong id="pm-date">—</strong></div>
+                <div class="info-row"><span>Balance Due:</span><strong id="pm-balance" style="color:var(--warning)">—</strong></div>
+            </div>
+            <div style="margin-bottom:1.25rem;">
+                <div class="pay-amount-label">Payment Amount</div>
+                <div class="pay-amount-display">
+                    <span class="pay-currency">£</span>
+                    <input id="pm-amount" type="number" class="pay-amount-input" min="0.01" step="0.01" oninput="onPayAmountInput()" />
+                </div>
+                <input id="pm-slider" type="range" class="pay-slider" min="1" step="1" oninput="onPaySliderInput()" />
+                <div class="pay-slider-labels"><span>£1</span><span id="pm-slider-max">—</span></div>
+                <div id="pm-type-badge" class="pay-type-badge partial"><i class="fa-solid fa-coins"></i> Part Payment</div>
+            </div>
+            <div class="pay-method-row">
+                <span class="pay-method-label">Payment Method:</span>
+                <select id="pm-method" class="pay-method-select">
+                    <option value="cash">Cash</option>
+                    <option value="card">Card</option>
+                    <option value="bank_transfer">Bank Transfer</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="pay-modal-actions">
+                <button class="pay-cancel-btn" onclick="closePayModal()">Cancel</button>
+                <button id="pm-confirm-btn" class="pay-confirm-btn" onclick="submitPayModal()">
+                    <i class="fa-solid fa-circle-check"></i> Confirm Payment
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RECEIPT MODAL -->
+    <div id="receiptMod" class="receipt-overlay">
+        <div class="receipt-card">
+            <div class="receipt-icon"><i class="fa-solid fa-circle-check"></i></div>
+            <div style="font-size:1.1rem; font-weight:700; color:white; margin-bottom:4px;">Payment Recorded</div>
+            <div class="receipt-amount" id="rc-amount">—</div>
+            <div class="receipt-sub" id="rc-type">—</div>
+            <div class="receipt-ref" id="rc-ref">—</div>
+            <button class="receipt-done-btn" onclick="closeReceipt()">Done</button>
+        </div>
+    </div>
+
     <script>
         function logout() {
            if(confirm("Are you sure you want to log out?")) {
@@ -184,20 +283,117 @@
         }
 
         async function payBalance(id, customerId, balance) {
-            const amount = prompt(`Enter payment amount (Balance Due: £${balance})`, balance);
-            if (!amount) return;
-            const parsedAmount = parseFloat(amount);
-            if (isNaN(parsedAmount) || parsedAmount <= 0) { alert("Invalid amount. Must be a positive number."); return; }
-            if (parsedAmount > parseFloat(balance) + 0.01) { alert(`Amount cannot exceed the balance due of £${balance}.`); return; }
+            // legacy wrapper — prefer openPayModalByData
+            openPayModal({ id, customer_id: customerId, balance_due: balance });
+        }
+
+        function openPayModalByData(dataStr) {
+            const b = JSON.parse(decodeURIComponent(dataStr));
+            openPayModal(b);
+        }
+
+        let _payBooking = null;
+
+        function openPayModal(b) {
+            _payBooking = b;
+            const balance = parseFloat(b.balance_due || b.balanceNum || 0);
+            document.getElementById('pm-customer').innerText = b.customer_name || '—';
+            document.getElementById('pm-room').innerText     = b.room_name     || '—';
+            document.getElementById('pm-date').innerText     = b.booking_date
+                ? new Date(b.booking_date).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'})
+                : '—';
+            document.getElementById('pm-balance').innerText = formatCurrency(balance);
+            const slider = document.getElementById('pm-slider');
+            const amtIn  = document.getElementById('pm-amount');
+            slider.min = 1;
+            slider.max = Math.round(balance * 100);
+            slider.value = slider.max;
+            amtIn.value = balance.toFixed(2);
+            amtIn.max   = balance.toFixed(2);
+            document.getElementById('pm-slider-max').innerText = formatCurrency(balance);
+            updatePaySlider(balance, balance);
+            document.getElementById('pm-method').value = 'cash';
+            document.getElementById('payMod').classList.add('open');
+        }
+
+        function closePayModal() {
+            document.getElementById('payMod').classList.remove('open');
+        }
+
+        function onPayAmountInput() {
+            const balance = parseFloat(_payBooking?.balance_due || _payBooking?.balanceNum || 0);
+            let val = parseFloat(document.getElementById('pm-amount').value) || 0;
+            if (val > balance) { val = balance; document.getElementById('pm-amount').value = balance.toFixed(2); }
+            document.getElementById('pm-slider').value = Math.round(val * 100);
+            updatePaySlider(val, balance);
+        }
+
+        function onPaySliderInput() {
+            const balance = parseFloat(_payBooking?.balance_due || _payBooking?.balanceNum || 0);
+            const val = parseInt(document.getElementById('pm-slider').value) / 100;
+            document.getElementById('pm-amount').value = val.toFixed(2);
+            updatePaySlider(val, balance);
+        }
+
+        function updatePaySlider(val, balance) {
+            const pct    = balance > 0 ? (val / balance) * 100 : 100;
+            const slider = document.getElementById('pm-slider');
+            slider.style.background = `linear-gradient(to right, var(--primary) ${pct}%, rgba(148,163,184,0.2) ${pct}%)`;
+            const badge  = document.getElementById('pm-type-badge');
+            const isPartial = val < balance - 0.005;
+            if (isPartial) {
+                badge.className = 'pay-type-badge partial';
+                badge.innerHTML = '<i class="fa-solid fa-coins"></i> Part Payment';
+            } else {
+                badge.className = 'pay-type-badge full';
+                badge.innerHTML = '<i class="fa-solid fa-circle-check"></i> Full Settlement';
+            }
+            document.getElementById('pm-confirm-btn').disabled = (val <= 0 || val > balance + 0.005);
+        }
+
+        async function submitPayModal() {
+            if (!_payBooking) return;
+            const balance = parseFloat(_payBooking.balance_due || _payBooking.balanceNum || 0);
+            const amount  = parseFloat(document.getElementById('pm-amount').value);
+            if (isNaN(amount) || amount <= 0) return;
+            if (amount > balance + 0.005)      return;
+            const method = document.getElementById('pm-method').value;
+            const btn    = document.getElementById('pm-confirm-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
             try {
                 const res = await fetch(PAY_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-                    body: JSON.stringify({ booking_id: id, customer_id: customerId, amount: amount })
+                    body: JSON.stringify({
+                        booking_id:     _payBooking.booking_id || _payBooking.id,
+                        customer_id:    _payBooking.customer_id,
+                        amount:         amount,
+                        payment_method: method
+                    })
                 });
                 const result = await res.json();
-                if(result.status === 'success' || result.status === 'partial') { alert("Payment Recorded!"); fetchBookings(); }
-            } catch(e) { alert("Connection Failed"); }
+                closePayModal();
+                if (result.status === 'success') {
+                    document.getElementById('rc-amount').innerText = formatCurrency(amount);
+                    document.getElementById('rc-type').innerText   = result.payment_type === 'partial' ? 'Part payment recorded' : 'Balance fully settled';
+                    const ref = result.reference_number || result.reference || '—';
+                    document.getElementById('rc-ref').innerText = 'Ref: ' + ref;
+                    document.getElementById('receiptMod').classList.add('open');
+                    fetchBookings();
+                } else {
+                    alert('Payment failed — please try again');
+                }
+            } catch(e) {
+                alert('Connection error — please try again');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Confirm Payment';
+            }
+        }
+
+        function closeReceipt() {
+            document.getElementById('receiptMod').classList.remove('open');
         }
 
         function updateMetrics() {
@@ -227,7 +423,10 @@
 
                 let actions = '';
                 // Add Pay button if Pre-Booked
-                if(b.category === 'pre') actions += `<button class="pay-btn" onclick="payBalance('${b.id}', '${b.customer_id}', ${b.balanceNum})"><i class="fa-solid fa-credit-card"></i> Pay</button>`;
+                if(b.category === 'pre') {
+                    const safeEnc = encodeURIComponent(JSON.stringify(b));
+                    actions += `<button class="pay-btn" onclick="openPayModalByData('${safeEnc}')"><i class="fa-solid fa-credit-card"></i> Pay</button>`;
+                }
                 
                 // Add Cancel button if Pre or Booked (Active events)
                 if(b.category === 'pre' || b.category === 'booked') {

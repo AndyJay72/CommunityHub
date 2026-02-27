@@ -265,20 +265,28 @@
             document.getElementById('overlay').classList.toggle('active');
         }
 
-        function typeClass(t) {
+        function typeClass(t, bDue) {
             if (!t) return '';
             t = t.toLowerCase();
             if (t === 'deposit')  return 'type-deposit';
             if (t === 'full')     return 'type-full';
             if (t === 'partial')  return 'type-partial';
-            if (t === 'balance')  return 'type-balance';
+            if (t === 'balance') {
+                return (parseFloat(bDue) > 0.005) ? 'type-partial' : 'type-full';
+            }
             return '';
         }
 
-        function typeLabel(t) {
+        function typeLabel(t, bDue) {
             if (!t) return '—';
-            const map = { deposit: 'Deposit', full: 'Final Payment', partial: 'Part Payment', balance: 'Final Payment' };
-            return map[t.toLowerCase()] || t;
+            t = t.toLowerCase();
+            if (t === 'deposit')  return 'Deposit';
+            if (t === 'full')     return 'Final Payment';
+            if (t === 'partial')  return 'Part Payment';
+            if (t === 'balance') {
+                return (parseFloat(bDue) > 0.005) ? 'Part Payment' : 'Final Payment';
+            }
+            return t;
         }
 
         async function loadAccounts() {
@@ -346,7 +354,7 @@
                     '<td>' + (t.customer_name || '—') + '</td>' +
                     '<td>' + (t.room_name     || '—') + '</td>' +
                     '<td>' + bDate + (time ? '<br><span style="font-size:0.78rem; color:var(--text-muted);">' + time + '</span>' : '') + '</td>' +
-                    '<td><span class="type-badge ' + typeClass(t.payment_type) + '">' + typeLabel(t.payment_type) + '</span></td>' +
+                    '<td><span class="type-badge ' + typeClass(t.payment_type, t.booking_balance_due) + '">' + typeLabel(t.payment_type, t.booking_balance_due) + '</span></td>' +
                     '<td style="font-weight:700; color:' + color + '">' + fmt(amt) + '</td>' +
                     '<td><span style="color:' + color + '; text-transform:uppercase; font-size:0.78rem;">' + (t.status || '—') + '</span></td>' +
                     '</tr>';
@@ -372,7 +380,7 @@
             document.getElementById('invBookingDate').innerText  = bDate;
             document.getElementById('invTime').innerText         = time;
             document.getElementById('invTotal').innerText        = t.total_amount != null ? fmt(t.total_amount) : '—';
-            document.getElementById('invType').innerHTML         = '<span class="type-badge ' + typeClass(t.payment_type) + '">' + typeLabel(t.payment_type) + '</span>';
+            document.getElementById('invType').innerHTML         = '<span class="type-badge ' + typeClass(t.payment_type, t.booking_balance_due) + '">' + typeLabel(t.payment_type, t.booking_balance_due) + '</span>';
             document.getElementById('invRefDetail').innerText    = t.reference_number || '—';
             document.getElementById('invStatus').innerText       = (t.status || '—').toUpperCase();
             document.getElementById('invAmount').innerText       = fmt(amt);
