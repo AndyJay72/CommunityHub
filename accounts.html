@@ -382,9 +382,10 @@
             document.getElementById('invTime').innerText         = time;
             document.getElementById('invTotal').innerText        = t.total_amount != null ? fmt(t.total_amount) : '—';
             document.getElementById('invType').innerHTML         = '<span class="type-badge ' + typeClass(t.payment_type, t.booking_balance_due) + '">' + typeLabel(t.payment_type, t.booking_balance_due) + '</span>';
-            const _mMap = { cash: 'Cash', card: 'Card', bank_transfer: 'Bank Transfer', other: 'Other' };
-            const _mKey = (t.payment_method || '').toLowerCase();
-            document.getElementById('invMethod').innerText        = _mMap[_mKey] || t.payment_method || '—';
+            const _mMap = { cash: 'Cash', card: 'Card', credit_card: 'Credit Card', debit_card: 'Debit Card', bank_transfer: 'Bank Transfer', bacs: 'BACS', cheque: 'Cheque', other: 'Other' };
+            const _mKey = (t.payment_method || '').toLowerCase().replace(/[\s-]/g, '_');
+            const _mLabel = _mMap[_mKey] || (_mKey ? _mKey.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : '—');
+            document.getElementById('invMethod').innerText        = _mLabel;
             document.getElementById('invRefDetail').innerText    = t.reference_number || '—';
             document.getElementById('invStatus').innerText       = (t.status || '—').toUpperCase();
             document.getElementById('invAmount').innerText       = fmt(amt);
