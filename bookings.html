@@ -111,6 +111,27 @@
         .receipt-done-btn { background: var(--primary); color: white; border: none; padding: 12px 40px; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
         .receipt-done-btn:hover { opacity: 0.85; }
 
+
+        /* SEARCH / FILTER */
+        .search-filter-bar { display: flex; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
+        .sf-input { background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 10px; color: white; padding: 9px 14px; font-size: 0.88rem; outline: none; flex: 1; min-width: 160px; font-family: inherit; }
+        .sf-input:focus { border-color: var(--primary); }
+        .sf-input::placeholder { color: var(--text-muted); }
+        .sf-select { background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 10px; color: white; padding: 9px 14px; font-size: 0.88rem; outline: none; cursor: pointer; min-width: 140px; font-family: inherit; }
+        .sf-select option { background: #1e293b; }
+        .sf-clear { background: rgba(148,163,184,0.1); border: 1px solid var(--border); color: var(--text-muted); padding: 9px 14px; border-radius: 10px; cursor: pointer; font-size: 0.85rem; font-weight: 600; font-family: inherit; transition: 0.2s; white-space: nowrap; }
+        .sf-clear:hover { color: white; border-color: white; }
+        /* PAYMENT TIMELINE */
+        .card-timeline { display: flex; align-items: center; gap: 4px; margin-top: 8px; }
+        .ct-step { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+        .ct-dot { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: 700; flex-shrink: 0; }
+        .ct-dot.done { background: var(--success); color: #0f172a; }
+        .ct-dot.active { background: var(--warning); color: #0f172a; }
+        .ct-dot.pending { background: rgba(148,163,184,0.12); color: var(--text-muted); border: 1.5px solid rgba(148,163,184,0.25); }
+        .ct-lbl { font-size: 0.6rem; color: var(--text-muted); white-space: nowrap; }
+        .ct-line { flex: 1; height: 2px; margin-bottom: 12px; }
+        .ct-line.done { background: var(--success); }
+        .ct-line.pending { background: rgba(148,163,184,0.15); }
         @media (max-width: 1024px) { .metrics-grid { grid-template-columns: 1fr; } }
         @media (max-width: 768px) {
             aside { transform: translateX(-100%); } aside.active { transform: translateX(0); }
@@ -132,7 +153,8 @@
             <a href="enquiry-form.html" class="nav-link" target="_blank"><i class="fa-solid fa-file-pen"></i> New Booking</a>
             <a href="manual-booking.html" class="nav-link"><i class="fa-solid fa-person-walking-arrow-right"></i> Walk-In Booking</a>
             <a href="final-payment.html" class="nav-link"><i class="fa-solid fa-check-double"></i> Final Payment</a>
-            <a href="calendar.html" class="nav-link"> <i class="fa-solid fa-calendar-alt"></i> Calendar</a>
+            <a href="calendar.html" class="nav-link"><i class="fa-solid fa-calendar-alt"></i> Calendar</a>
+            <a href="audit-log.html" class="nav-link"><i class="fa-solid fa-clock-rotate-left"></i> Audit Log</a>
             <a href="users.html" class="nav-link"> <i class="fa-solid fa-user-shield"></i> Users</a>    
             <a href="#" onclick="logout()" class="nav-link" style="margin-top: auto; color: #ef4444; border-top: 1px solid rgba(255,255,255,0.05);">
             <i class="fa-solid fa-right-from-bracket"></i> Logout</a>            
@@ -149,6 +171,13 @@
             <div class="metric-card card-pre"><div class="dial-ring" id="dial-pre" style="--pct: 0%;">0</div><div class="metric-info"><h3>Pre-Booked</h3><p>Deposit paid</p></div></div>
             <div class="metric-card card-booked"><div class="dial-ring" id="dial-booked" style="--pct: 0%;">0</div><div class="metric-info"><h3>Confirmed</h3><p>Fully paid</p></div></div>
             <div class="metric-card card-post"><div class="dial-ring" id="dial-post" style="--pct: 0%;">0</div><div class="metric-info"><h3>Completed</h3><p>Past events</p></div></div>
+        </div>
+        <div class="search-filter-bar">
+            <input type="text" id="sf-search" class="sf-input" placeholder="&#xf002;  Search name, room, email..." oninput="applySearch()">
+            <input type="date" id="sf-from" class="sf-input" style="min-width:140px;max-width:160px;" title="From date" onchange="applySearch()">
+            <input type="date" id="sf-to" class="sf-input" style="min-width:140px;max-width:160px;" title="To date" onchange="applySearch()">
+            <select id="sf-room" class="sf-select" onchange="applySearch()"><option value="">All Rooms</option></select>
+            <button class="sf-clear" onclick="clearSearch()"><i class="fa-solid fa-xmark"></i> Clear</button>
         </div>
         <div class="filter-bar">
             <!-- UPDATED: Added Cancelled Tab -->
@@ -263,8 +292,26 @@
                     return { ...b, category, dateObj: bDate, balanceNum: balance };
                 });
                 updateMetrics();
+                // Populate room filter
+                const rooms = [...new Set(allBookings.map(b => b.room_name).filter(Boolean))].sort();
+                const roomSel = document.getElementById('sf-room');
+                roomSel.innerHTML = '<option value="">All Rooms</option>';
+                rooms.forEach(r => { const o = document.createElement('option'); o.value = r; o.textContent = r; roomSel.appendChild(o); });
                 filterList('all', document.querySelector('.filter-btn.active')); 
             } catch (e) { console.error(e); }
+        }
+
+        function clearSearch() {
+            document.getElementById('sf-search').value = '';
+            document.getElementById('sf-from').value = '';
+            document.getElementById('sf-to').value = '';
+            document.getElementById('sf-room').value = '';
+            applySearch();
+        }
+
+        let _currentFilter = 'all';
+        function applySearch() {
+            filterList(_currentFilter, null);
         }
 
         async function cancelBooking(id, name) {
@@ -408,8 +455,20 @@
 
         function filterList(filterType, btnElement) {
             if (btnElement) { document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active')); btnElement.classList.add('active'); }
-            
-            const filtered = filterType === 'all' ? allBookings : allBookings.filter(b => b.category === filterType);
+            _currentFilter = filterType;
+            const search   = (document.getElementById('sf-search')?.value || '').toLowerCase();
+            const fromDate = document.getElementById('sf-from')?.value;
+            const toDate   = document.getElementById('sf-to')?.value;
+            const roomVal  = document.getElementById('sf-room')?.value;
+            let filtered   = filterType === 'all' ? allBookings : allBookings.filter(b => b.category === filterType);
+            if (search) filtered = filtered.filter(b =>
+                (b.customer_name || '').toLowerCase().includes(search) ||
+                (b.customer_email || b.email || '').toLowerCase().includes(search) ||
+                (b.room_name || '').toLowerCase().includes(search)
+            );
+            if (fromDate) filtered = filtered.filter(b => b.booking_date && b.booking_date.slice(0,10) >= fromDate);
+            if (toDate)   filtered = filtered.filter(b => b.booking_date && b.booking_date.slice(0,10) <= toDate);
+            if (roomVal)  filtered = filtered.filter(b => b.room_name === roomVal);
             filtered.sort((a, b) => filterType === 'post' ? b.dateObj - a.dateObj : a.dateObj - b.dateObj);
             
             const container = document.getElementById('booking-container');
@@ -444,6 +503,16 @@
                                 <span><i class="fa-solid fa-sterling-sign"></i> Total: ${formatCurrency(b.total_amount)}</span>
                                 ${b.category === 'pre' ? `<span style="color:var(--warning); font-weight:600;"><i class="fa-solid fa-coins"></i> Balance Due: ${formatCurrency(b.balanceNum)}</span>` : ''}
                             </div>
+                            ${(() => {
+                                const bal = b.balanceNum;
+                                const isPast = b.category === 'post';
+                                const allDone = (bal <= 0);
+                                const d1 = 'done', d2 = allDone ? 'done' : (b.category==='pre'?'active':'pending'), d3 = allDone ? 'done' : 'pending';
+                                const l1 = 'done', l2 = allDone ? 'done' : 'pending';
+                                const i1 = '<i class="fa-solid fa-check"></i>', i2 = allDone ? '<i class="fa-solid fa-check"></i>' : '<i class="fa-solid fa-coins"></i>', i3 = allDone ? '<i class="fa-solid fa-circle-check"></i>' : '<i class="fa-solid fa-circle"></i>';
+                                if(b.category === 'cancelled') return '';
+                                return `<div class="card-timeline"><div class="ct-step"><div class="ct-dot ${d1}">${i1}</div><div class="ct-lbl">Deposit</div></div><div class="ct-line ${l1}"></div><div class="ct-step"><div class="ct-dot ${d2}">${i2}</div><div class="ct-lbl">Balance</div></div><div class="ct-line ${l2}"></div><div class="ct-step"><div class="ct-dot ${d3}">${i3}</div><div class="ct-lbl">Settled</div></div></div>`;
+                            })()}
                         </div>
                     </div>
                     <div style="display:flex; align-items:center; gap:10px;">

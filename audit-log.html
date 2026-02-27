@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Audit Log | VenuePro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>if (!localStorage.getItem('vp_token')) { window.location.href = 'login.html'; }</script>
+    <style>
+        :root{--bg-dark:#0f172a;--bg-card:rgba(30,41,59,0.7);--border:rgba(148,163,184,0.1);--primary:#6366f1;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;--text-main:#f8fafc;--text-muted:#94a3b8;--sidebar-width:260px}
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}
+        ::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:3px}
+        body{background-color:var(--bg-dark);background-image:radial-gradient(at 0% 0%,hsla(253,16%,7%,1) 0,transparent 50%),radial-gradient(at 50% 0%,hsla(225,39%,30%,1) 0,transparent 50%);color:var(--text-main);min-height:100vh;display:flex;overflow-x:hidden}
+        aside{width:var(--sidebar-width);background:rgba(15,23,42,0.95);backdrop-filter:blur(10px);border-right:1px solid var(--border);padding:2rem;display:flex;flex-direction:column;position:fixed;height:100vh;z-index:100;transition:transform 0.3s ease}
+        .brand{font-size:1.5rem;font-weight:700;color:white;display:flex;align-items:center;justify-content:space-between;margin-bottom:3rem}
+        .nav-link{display:flex;align-items:center;gap:12px;padding:12px 16px;color:var(--text-muted);text-decoration:none;border-radius:8px;margin-bottom:5px;transition:all 0.2s;font-weight:500}
+        .nav-link:hover,.nav-link.active{background:rgba(99,102,241,0.1);color:var(--primary)}
+        .close-sidebar{display:none;background:none;border:none;color:white;font-size:1.2rem;cursor:pointer}
+        main{margin-left:var(--sidebar-width);flex:1;padding:2rem;max-width:1600px;width:100%;transition:margin-left 0.3s ease}
+        .menu-toggle{display:none;background:var(--bg-card);border:1px solid var(--border);color:white;width:40px;height:40px;border-radius:8px;align-items:center;justify-content:center;cursor:pointer;margin-right:15px}
+        .filter-row{display:flex;gap:10px;margin-bottom:1.5rem;flex-wrap:wrap;align-items:center}
+        .f-input{background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:10px;color:white;padding:9px 14px;font-size:0.88rem;outline:none;font-family:inherit}
+        .f-input:focus{border-color:var(--primary)}
+        .f-input::placeholder{color:var(--text-muted)}
+        .f-select{background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:10px;color:white;padding:9px 14px;font-size:0.88rem;outline:none;cursor:pointer;font-family:inherit}
+        .f-select option{background:#1e293b}
+        .f-btn{background:var(--primary);border:none;color:white;padding:9px 18px;border-radius:10px;cursor:pointer;font-size:0.88rem;font-weight:600;font-family:inherit;display:flex;align-items:center;gap:6px;transition:0.2s}
+        .f-btn:hover{background:#4f46e5}
+        .f-clear{background:rgba(148,163,184,0.1);border:1px solid var(--border);color:var(--text-muted);padding:9px 14px;border-radius:10px;cursor:pointer;font-size:0.85rem;font-weight:600;font-family:inherit;transition:0.2s}
+        .f-clear:hover{color:white;border-color:white}
+        .summary-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+        .sum-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1rem 1.25rem;text-align:center}
+        .sum-val{font-size:1.4rem;font-weight:700;color:white}
+        .sum-lbl{font-size:0.72rem;color:var(--text-muted);margin-top:3px}
+        .table-wrap{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+        .table-inner{overflow-x:auto}
+        table{width:100%;border-collapse:collapse;min-width:700px}
+        th{text-align:left;padding:1rem 1.25rem;color:var(--text-muted);font-size:0.78rem;text-transform:uppercase;font-weight:600;background:rgba(0,0,0,0.2);border-bottom:1px solid var(--border);white-space:nowrap}
+        td{padding:1rem 1.25rem;border-bottom:1px solid var(--border);color:var(--text-main);font-size:0.9rem;vertical-align:middle}
+        tr:last-child td{border-bottom:none}
+        tbody tr:hover{background:rgba(255,255,255,0.03)}
+        .type-pill{padding:3px 10px;border-radius:12px;font-size:0.72rem;font-weight:700;text-transform:uppercase;white-space:nowrap}
+        .type-payment{background:rgba(16,185,129,0.15);color:#10b981;border:1px solid rgba(16,185,129,0.3)}
+        .type-deposit{background:rgba(99,102,241,0.15);color:#6366f1;border:1px solid rgba(99,102,241,0.3)}
+        .type-refund{background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.3)}
+        .type-other{background:rgba(148,163,184,0.1);color:#94a3b8;border:1px solid rgba(148,163,184,0.2)}
+        .method-badge{padding:3px 8px;border-radius:8px;font-size:0.7rem;font-weight:600;background:rgba(0,0,0,0.3);border:1px solid var(--border);text-transform:capitalize}
+        .pagination{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-top:1px solid var(--border)}
+        .pg-btn{background:var(--bg-card);border:1px solid var(--border);color:var(--text-muted);padding:7px 14px;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:600;transition:0.2s;font-family:inherit}
+        .pg-btn:hover:not(:disabled){color:white;border-color:white}
+        .pg-btn:disabled{opacity:0.35;cursor:not-allowed}
+        .pg-info{font-size:0.82rem;color:var(--text-muted)}
+        .overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:90}
+        .overlay.active{display:block}
+        @media(max-width:768px){aside{transform:translateX(-100%)}aside.active{transform:translateX(0)}main{margin-left:0;padding:1rem}.menu-toggle{display:flex}.close-sidebar{display:block}.summary-strip{grid-template-columns:1fr 1fr}}
+    </style>
+</head>
+<body>
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+    <aside id="sidebar">
+        <div class="brand"><span><i class="fa-solid fa-layer-group"></i> VenuePro</span><button class="close-sidebar" onclick="toggleMenu()"><i class="fa-solid fa-xmark"></i></button></div>
+        <nav>
+            <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="bookings.html" class="nav-link"><i class="fa-solid fa-calendar-days"></i> Bookings</a>
+            <a href="calendar.html" class="nav-link"><i class="fa-solid fa-calendar-alt"></i> Calendar</a>
+            <a href="customers.html" class="nav-link"><i class="fa-solid fa-users"></i> Customers</a>
+            <a href="accounts.html" class="nav-link"><i class="fa-solid fa-file-invoice-dollar"></i> Accounts</a>
+            <a href="audit-log.html" class="nav-link active"><i class="fa-solid fa-clock-rotate-left"></i> Audit Log</a>
+            <a href="venuepro_booking.html" class="nav-link"><i class="fa-solid fa-building"></i> Event Booking</a>
+            <a href="enquiry-form.html" class="nav-link" target="_blank"><i class="fa-solid fa-file-pen"></i> New Booking</a>
+            <a href="manual-booking.html" class="nav-link"><i class="fa-solid fa-person-walking-arrow-right"></i> Walk-In Booking</a>
+            <a href="final-payment.html" class="nav-link"><i class="fa-solid fa-check-double"></i> Final Payment</a>
+            <a href="users.html" class="nav-link"><i class="fa-solid fa-user-shield"></i> Users</a>
+            <a href="#" onclick="logout()" class="nav-link" style="margin-top:auto;color:#ef4444;border-top:1px solid rgba(255,255,255,0.05)"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </nav>
+    </aside>
+    <main>
+        <header style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+            <div style="display:flex;align-items:center">
+                <button class="menu-toggle" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></button>
+                <div><h1 style="font-size:1.8rem;font-weight:700">Audit Log</h1><p style="color:var(--text-muted);font-size:0.88rem;margin-top:3px">All payment transactions</p></div>
+            </div>
+            <button onclick="loadData()" style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);color:var(--primary);padding:9px 16px;border-radius:8px;cursor:pointer;font-size:0.88rem;font-weight:600;font-family:inherit;display:flex;align-items:center;gap:6px;transition:0.2s" onmouseover="this.style.background='rgba(99,102,241,0.2)'" onmouseout="this.style.background='rgba(99,102,241,0.1)'"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+        </header>
+        <div class="filter-row">
+            <input type="text" id="f-search" class="f-input" placeholder="Search customer, room, ref..." oninput="applyFilters()" style="flex:1;min-width:180px">
+            <input type="date" id="f-from" class="f-input" title="From" onchange="applyFilters()">
+            <input type="date" id="f-to" class="f-input" title="To" onchange="applyFilters()">
+            <select id="f-type" class="f-select" onchange="applyFilters()">
+                <option value="">All Types</option>
+                <option value="payment">Payment</option>
+                <option value="deposit">Deposit</option>
+                <option value="refund">Refund</option>
+            </select>
+            <select id="f-method" class="f-select" onchange="applyFilters()">
+                <option value="">All Methods</option>
+                <option value="cash">Cash</option>
+                <option value="card">Card</option>
+                <option value="bank_transfer">Bank Transfer</option>
+            </select>
+            <button class="f-clear" onclick="clearFilters()"><i class="fa-solid fa-xmark"></i> Clear</button>
+        </div>
+        <div class="summary-strip">
+            <div class="sum-card"><div class="sum-val" id="s-count">—</div><div class="sum-lbl">Transactions</div></div>
+            <div class="sum-card"><div class="sum-val" id="s-total">—</div><div class="sum-lbl">Total Value</div></div>
+            <div class="sum-card"><div class="sum-val" id="s-deps">—</div><div class="sum-lbl">Deposits</div></div>
+            <div class="sum-card"><div class="sum-val" id="s-bals">—</div><div class="sum-lbl">Balance Payments</div></div>
+        </div>
+        <div class="table-wrap">
+            <div class="table-inner">
+                <table>
+                    <thead><tr><th>Date &amp; Time</th><th>Customer</th><th>Room</th><th>Type</th><th>Method</th><th>Amount</th><th>Reference</th></tr></thead>
+                    <tbody id="log-tbody"><tr><td colspan="7" style="text-align:center;padding:3rem;color:var(--text-muted)"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</td></tr></tbody>
+                </table>
+            </div>
+            <div class="pagination">
+                <button class="pg-btn" id="pg-prev" onclick="changePage(-1)">&#8249; Prev</button>
+                <span class="pg-info" id="pg-info">—</span>
+                <button class="pg-btn" id="pg-next" onclick="changePage(1)">Next &#8250;</button>
+            </div>
+        </div>
+    </main>
+    <script>
+        const API = 'https://n8n.srv1090894.hstgr.cloud/webhook/accounts-data';
+        const fmt = n => new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP'}).format(parseFloat(n)||0);
+        function getAuthHeaders(){return{'Authorization':'Bearer '+(localStorage.getItem('vp_token')||'')};}
+        function toggleMenu(){document.getElementById('sidebar').classList.toggle('active');document.getElementById('overlay').classList.toggle('active');}
+        function logout(){if(confirm("Log out?")){localStorage.removeItem('vp_token');window.location.href='login.html';}}
+        let allTx=[], filtered=[], page=1;
+        const PAGE_SIZE=25;
+        function clearFilters(){document.getElementById('f-search').value='';document.getElementById('f-from').value='';document.getElementById('f-to').value='';document.getElementById('f-type').value='';document.getElementById('f-method').value='';applyFilters();}
+        function applyFilters(){
+            const q=(document.getElementById('f-search').value||'').toLowerCase();
+            const from=document.getElementById('f-from').value;
+            const to=document.getElementById('f-to').value;
+            const typ=document.getElementById('f-type').value;
+            const meth=document.getElementById('f-method').value;
+            filtered=allTx.filter(t=>{
+                if(q&&![(t.customer_name||''),(t.room_name||''),(t.reference||t.reference_number||''),(t.customer_email||t.email||'')].join(' ').toLowerCase().includes(q))return false;
+                const d=(t.payment_date||t.created_at||t.date||'').slice(0,10);
+                if(from&&d<from)return false;
+                if(to&&d>to)return false;
+                if(typ&&(t.payment_type||t.type||'').toLowerCase()!==typ)return false;
+                if(meth&&(t.payment_method||t.method||'').toLowerCase()!==meth)return false;
+                return true;
+            });
+            page=1;
+            updateSummary();
+            render();
+        }
+        function updateSummary(){
+            const total=filtered.reduce((s,t)=>s+parseFloat(t.amount||0),0);
+            const deps=filtered.filter(t=>/(deposit)/i.test(t.payment_type||t.type||'')).reduce((s,t)=>s+parseFloat(t.amount||0),0);
+            const bals=filtered.filter(t=>/(payment|balance)/i.test(t.payment_type||t.type||'')).reduce((s,t)=>s+parseFloat(t.amount||0),0);
+            document.getElementById('s-count').innerText=filtered.length;
+            document.getElementById('s-total').innerText=fmt(total);
+            document.getElementById('s-deps').innerText=fmt(deps);
+            document.getElementById('s-bals').innerText=fmt(bals);
+        }
+        function render(){
+            const tbody=document.getElementById('log-tbody');
+            const totalPages=Math.max(1,Math.ceil(filtered.length/PAGE_SIZE));
+            if(page>totalPages)page=totalPages;
+            const start=(page-1)*PAGE_SIZE;
+            const slice=filtered.slice(start,start+PAGE_SIZE);
+            if(!filtered.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:3rem;color:var(--text-muted)">No transactions found</td></tr>';document.getElementById('pg-info').innerText='No results';document.getElementById('pg-prev').disabled=true;document.getElementById('pg-next').disabled=true;return;}
+            tbody.innerHTML=slice.map(t=>{
+                const raw=t.payment_type||t.type||'other';
+                const typ=raw.toLowerCase();
+                let pillCls='type-other';
+                if(/payment|balance/.test(typ))pillCls='type-payment';
+                else if(/deposit/.test(typ))pillCls='type-deposit';
+                else if(/refund/.test(typ))pillCls='type-refund';
+                const meth=(t.payment_method||t.method||'').replace(/_/g,' ')||'—';
+                const dateRaw=t.payment_date||t.created_at||t.date||'';
+                let dateStr='—';
+                if(dateRaw){try{dateStr=new Date(dateRaw).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){dateStr=dateRaw;}}
+                const ref=t.reference||t.reference_number||'';
+                return `<tr>
+                    <td style="font-size:0.82rem;color:var(--text-muted)">${dateStr}</td>
+                    <td><div style="font-weight:600">${t.customer_name||'—'}</div><div style="font-size:0.75rem;color:var(--text-muted)">${t.customer_email||t.email||''}</div></td>
+                    <td>${t.room_name||'—'}</td>
+                    <td><span class="type-pill ${pillCls}">${raw}</span></td>
+                    <td><span class="method-badge">${meth}</span></td>
+                    <td style="font-weight:700;color:var(--success)">${fmt(t.amount)}</td>
+                    <td style="font-family:monospace;font-size:0.78rem;color:var(--text-muted)">${ref||'—'}</td>
+                </tr>`;
+            }).join('');
+            document.getElementById('pg-info').innerText=`Page ${page} of ${totalPages} (${filtered.length} records)`;
+            document.getElementById('pg-prev').disabled=(page<=1);
+            document.getElementById('pg-next').disabled=(page>=totalPages);
+        }
+        function changePage(dir){page+=dir;render();}
+        async function loadData(){
+            document.getElementById('log-tbody').innerHTML='<tr><td colspan="7" style="text-align:center;padding:3rem;color:var(--text-muted)"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</td></tr>';
+            try{
+                const res=await fetch(API,{headers:getAuthHeaders()});
+                const json=await res.json();
+                const data=json.data||(Array.isArray(json)?json:[]);
+                allTx=(data.transactions||data.payments||data).filter(t=>t&&t.amount);
+                allTx.sort((a,b)=>{const da=new Date(a.payment_date||a.created_at||a.date||0);const db=new Date(b.payment_date||b.created_at||b.date||0);return db-da;});
+                applyFilters();
+            }catch(e){
+                document.getElementById('log-tbody').innerHTML='<tr><td colspan="7" style="text-align:center;padding:3rem;color:#ef4444"><i class="fa-solid fa-triangle-exclamation"></i> Failed to load data</td></tr>';
+                console.error(e);
+            }
+        }
+        loadData();
+    </script>
+</body>
+</html>

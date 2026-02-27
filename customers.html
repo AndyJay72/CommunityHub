@@ -76,6 +76,20 @@
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 90; backdrop-filter: blur(2px); }
         .overlay.active { display: block; }
 
+
+        /* BOOKING HISTORY */
+        .bh-section { margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.25rem; }
+        .bh-title { font-size: 1rem; font-weight: 700; color: white; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
+        .bh-stats { display: flex; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; }
+        .bh-stat { flex: 1; min-width: 100px; background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; text-align: center; }
+        .bh-stat-val { font-size: 1.1rem; font-weight: 700; color: white; }
+        .bh-stat-lbl { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+        .bh-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+        .bh-table th { color: var(--text-muted); font-size: 0.72rem; text-transform: uppercase; padding: 6px 8px; border-bottom: 1px solid var(--border); text-align: left; font-weight: 600; }
+        .bh-table td { padding: 8px 8px; border-bottom: 1px solid rgba(148,163,184,0.06); color: var(--text-main); vertical-align: middle; }
+        .bh-table tr:last-child td { border-bottom: none; }
+        .bh-loading { text-align: center; padding: 1.5rem; color: var(--text-muted); font-size: 0.9rem; }
+        .modal-card { max-height: 90vh; overflow-y: auto; }
         @media (max-width: 768px) { aside { transform: translateX(-100%); } aside.active { transform: translateX(0); } main { margin-left: 0; padding: 1rem; } .menu-toggle { display: flex; } .close-sidebar { display: block; } header { flex-direction: column; align-items: flex-start; gap: 1rem; } .search-bar { width: 100%; } .modal-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -92,7 +106,8 @@
             <a href="enquiry-form.html" class="nav-link" target="_blank"><i class="fa-solid fa-file-pen"></i> New Booking</a>
             <a href="manual-booking.html" class="nav-link"><i class="fa-solid fa-person-walking-arrow-right"></i> Walk-In Booking</a>
             <a href="final-payment.html" class="nav-link"><i class="fa-solid fa-check-double"></i> Final Payment</a>
-            <a href="calendar.html" class="nav-link"> <i class="fa-solid fa-calendar-alt"></i> Calendar</a>
+            <a href="calendar.html" class="nav-link"><i class="fa-solid fa-calendar-alt"></i> Calendar</a>
+            <a href="audit-log.html" class="nav-link"><i class="fa-solid fa-clock-rotate-left"></i> Audit Log</a>
             <a href="users.html" class="nav-link"> <i class="fa-solid fa-user-shield"></i> Users</a>
             <a href="#" onclick="logout()" class="nav-link" style="margin-top: auto; color: #ef4444; border-top: 1px solid rgba(255,255,255,0.05);"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
         </nav>
@@ -140,6 +155,22 @@
                 <!-- GUEST COUNT INCLUDED -->
                 <div class="detail-group"><label>Guests</label><div class="detail-value" id="m-guests">--</div></div>
             </div>
+            <div class="bh-section" id="bh-section">
+                <div class="bh-title"><i class="fa-solid fa-history" style="color:var(--primary)"></i> Booking History</div>
+                <div id="bh-loading" class="bh-loading"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</div>
+                <div id="bh-stats" class="bh-stats" style="display:none">
+                    <div class="bh-stat"><div class="bh-stat-val" id="bh-count">0</div><div class="bh-stat-lbl">Total Bookings</div></div>
+                    <div class="bh-stat"><div class="bh-stat-val" id="bh-spend">£0</div><div class="bh-stat-lbl">Total Spend</div></div>
+                    <div class="bh-stat"><div class="bh-stat-val" id="bh-outstanding">£0</div><div class="bh-stat-lbl">Outstanding</div></div>
+                </div>
+                <div id="bh-table-wrap" style="display:none; overflow-x:auto;">
+                    <table class="bh-table">
+                        <thead><tr><th>Date</th><th>Room</th><th>Total</th><th>Balance</th><th>Status</th></tr></thead>
+                        <tbody id="bh-tbody"></tbody>
+                    </table>
+                </div>
+                <div id="bh-empty" style="display:none; text-align:center; padding:1rem; color:var(--text-muted); font-size:0.85rem;">No bookings found</div>
+            </div>
             <div class="modal-actions" id="modal-buttons">
                 <button class="btn-modal btn-close" onclick="closeModal()">Close</button>
             </div>
@@ -157,6 +188,49 @@
         function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('overlay').classList.toggle('active'); }
         function logout() { if(confirm("Log out?")) { localStorage.removeItem('vp_token'); window.location.href='login.html'; } }
 
+        const BOOKINGS_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/all-bookings';
+        const fmtCur = n => new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP'}).format(parseFloat(n)||0);
+
+        async function loadBookingHistory(email) {
+            const loading = document.getElementById('bh-loading');
+            const stats   = document.getElementById('bh-stats');
+            const tableW  = document.getElementById('bh-table-wrap');
+            const empty   = document.getElementById('bh-empty');
+            const tbody   = document.getElementById('bh-tbody');
+            loading.style.display = 'block'; stats.style.display = 'none'; tableW.style.display = 'none'; empty.style.display = 'none';
+            try {
+                const res  = await fetch(BOOKINGS_API, { headers: getAuthHeaders() });
+                const json = await res.json();
+                const all  = json.data || (Array.isArray(json) ? json : []);
+                const mine = all.filter(b => (b.customer_email || b.email || '').toLowerCase() === (email || '').toLowerCase());
+                loading.style.display = 'none';
+                if (mine.length === 0) { empty.style.display = 'block'; return; }
+                const totalSpend = mine.reduce((s,b) => s + parseFloat(b.total_amount||0), 0);
+                const outstanding = mine.reduce((s,b) => s + parseFloat(b.balance_due||0), 0);
+                document.getElementById('bh-count').innerText = mine.length;
+                document.getElementById('bh-spend').innerText = fmtCur(totalSpend);
+                document.getElementById('bh-outstanding').innerText = fmtCur(outstanding);
+                document.getElementById('bh-outstanding').style.color = outstanding > 0 ? 'var(--warning)' : 'var(--success)';
+                stats.style.display = 'flex';
+                mine.sort((a,b) => new Date(b.booking_date) - new Date(a.booking_date));
+                tbody.innerHTML = mine.map(b => {
+                    const bal = parseFloat(b.balance_due||0);
+                    const st  = b.status || 'unknown';
+                    let pill = `<span style="padding:3px 8px;border-radius:10px;font-size:0.7rem;font-weight:700;text-transform:uppercase;`;
+                    if(st === 'cancelled') pill += `background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.3);">${st}</span>`;
+                    else if(bal <= 0) pill += `background:rgba(16,185,129,0.15);color:#10b981;border:1px solid rgba(16,185,129,0.3);">Paid</span>`;
+                    else pill += `background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);">Balance Due</span>`;
+                    const dateStr = b.booking_date ? new Date(b.booking_date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
+                    return `<tr><td>${dateStr}</td><td>${b.room_name||'—'}</td><td>${fmtCur(b.total_amount)}</td><td style="color:${bal>0?'#f59e0b':'#10b981'}">${fmtCur(bal)}</td><td>${pill}</td></tr>`;
+                }).join('');
+                tableW.style.display = 'block';
+            } catch(err) {
+                loading.style.display = 'none';
+                empty.innerText = 'Failed to load history';
+                empty.style.display = 'block';
+            }
+        }
+
         function openModal(dataString) {
             const data = JSON.parse(decodeURIComponent(dataString));
             document.getElementById('m-id').innerText = data.id || 'N/A';
@@ -170,15 +244,12 @@
 
             const btnContainer = document.getElementById('modal-buttons');
             let actionBtn = '';
-            
-            // Logic: REMOVED "Book Now" for pending. 
-            // Only show "Pay Balance" if they have paid a deposit (status: deposit_paid)
             if (data.status === 'deposit_paid') {
                  actionBtn = `<a href="final-payment.html" class="btn-modal btn-pay"><i class="fa-solid fa-credit-card"></i> Pay Balance</a>`;
             }
-
             btnContainer.innerHTML = actionBtn + `<button class="btn-modal btn-close" onclick="closeModal()">Close</button>`;
             document.getElementById('custModal').classList.add('open');
+            loadBookingHistory(data.email);
         }
         function closeModal(e) { if(!e || e.target.id === 'custModal' || e.target.classList.contains('modal-close') || e.target.innerText === 'Close') document.getElementById('custModal').classList.remove('open'); }
 
