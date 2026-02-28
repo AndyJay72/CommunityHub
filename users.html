@@ -14,21 +14,48 @@
 
     <style>
         /* CORE STYLES */
-        :root { --bg-dark: #0f172a; --bg-card: rgba(30, 41, 59, 0.9); --border: rgba(148, 163, 184, 0.1); --primary: #6366f1; --success: #10b981; --danger: #ef4444; --text-main: #f8fafc; --text-muted: #94a3b8; --sidebar-width: 260px; }
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.9);
+            --border: rgba(148, 163, 184, 0.1);
+            --primary: #6366f1;
+            --success: #10b981;
+            --danger: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --sidebar-width: 260px;
+            --bg-gradient-1: hsla(253,16%,7%,1);
+            --bg-gradient-2: hsla(225,39%,30%,1);
+        }
+        
+        /* LIGHT THEME */
+        :root.light-theme {
+            --bg-dark: #f1f5f9;
+            --bg-card: rgba(255, 255, 255, 0.95);
+            --border: rgba(148, 163, 184, 0.2);
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --bg-gradient-1: hsla(210, 40%, 96%, 1);
+            --bg-gradient-2: hsla(220, 60%, 90%, 1);
+        }
+        :root.light-theme input,
+        :root.light-theme select {
+            background: rgba(0, 0, 0, 0.05);
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-        body { background-color: var(--bg-dark); background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%); color: var(--text-main); min-height: 100vh; display: flex; overflow-x: hidden; }
+        body { background-color: var(--bg-dark); background-image: radial-gradient(at 0% 0%, var(--bg-gradient-1) 0, transparent 50%), radial-gradient(at 50% 0%, var(--bg-gradient-2) 0, transparent 50%); color: var(--text-main); min-height: 100vh; display: flex; overflow-x: hidden; }
 
         /* SIDEBAR */
         aside { width: var(--sidebar-width); background: rgba(15, 23, 42, 0.95); border-right: 1px solid var(--border); padding: 2rem; display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100; transition: transform 0.3s ease; }
-        .brand { font-size: 1.5rem; font-weight: 700; color: white; display: flex; align-items: center; justify-content: space-between; margin-bottom: 3rem; }
+        .brand { font-size: 1.5rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; justify-content: space-between; margin-bottom: 3rem; }
         .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: var(--text-muted); text-decoration: none; border-radius: 8px; margin-bottom: 5px; transition: all 0.2s; font-weight: 500; }
         .nav-link:hover, .nav-link.active { background: rgba(99, 102, 241, 0.1); color: var(--primary); }
-        .close-sidebar { display: none; background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; }
+        .close-sidebar { display: none; background: none; border: none; color: var(--text-main); font-size: 1.2rem; cursor: pointer; }
 
         /* MAIN */
         main { margin-left: var(--sidebar-width); flex: 1; padding: 2rem; width: 100%; transition: margin-left 0.3s ease; }
         header { display: flex; align-items: center; margin-bottom: 2rem; gap: 1rem; }
-        .menu-toggle { display: none; background: var(--bg-card); border: 1px solid var(--border); color: white; width: 40px; height: 40px; border-radius: 8px; align-items: center; justify-content: center; cursor: pointer; }
+        .menu-toggle { display: none; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-main); width: 40px; height: 40px; border-radius: 8px; align-items: center; justify-content: center; cursor: pointer; }
 
         /* GRID */
         .grid-split { display: grid; grid-template-columns: 1fr 1.5fr; gap: 2rem; }
@@ -40,7 +67,7 @@
         /* FORM INPUTS */
         .input-group { margin-bottom: 1rem; }
         .input-group label { display: block; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.5rem; }
-        input, select { width: 100%; padding: 12px; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 10px; color: white; outline: none; font-size: 1rem; transition: border 0.3s; }
+        input, select { width: 100%; padding: 12px; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 10px; color: var(--text-main); outline: none; font-size: 1rem; transition: border 0.3s; }
         input:focus, select:focus { border-color: var(--primary); }
         select { cursor: pointer; }
 
@@ -58,6 +85,10 @@
         
         .btn-delete { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 700; transition: 0.2s; }
         .btn-delete:hover { background: var(--danger); color: white; }
+
+        /* THEME TOGGLE */
+        .theme-toggle { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-main); width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-left: auto; transition: 0.3s; }
+        .theme-toggle:hover { background: var(--primary); color: white; }
 
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 90; backdrop-filter: blur(2px); }
         .overlay.active { display: block; }
@@ -77,11 +108,11 @@
             <a href="bookings.html" class="nav-link"><i class="fa-solid fa-calendar-days"></i> Bookings</a>
             <a href="customers.html" class="nav-link"><i class="fa-solid fa-users"></i> Customers</a>
             <a href="accounts.html" class="nav-link"><i class="fa-solid fa-file-invoice-dollar"></i> Accounts</a>
-            <a href="enquiry-form.html" class="nav-link" target="_blank"><i class="fa-solid fa-file-pen"></i> New Booking</a>
+            <a href="venuepro_booking.html" class="nav-link"><i class="fa-solid fa-building"></i> Event Booking</a>
             <a href="manual-booking.html" class="nav-link"><i class="fa-solid fa-person-walking-arrow-right"></i> Walk-In Booking</a>
+            <a href="final-payment.html" class="nav-link"><i class="fa-solid fa-check-double"></i> Final Payment</a>
             <a href="calendar.html" class="nav-link"><i class="fa-solid fa-calendar-alt"></i> Calendar</a>
             <a href="users.html" class="nav-link active"><i class="fa-solid fa-user-shield"></i> Users</a>
-            <a href="admin-config.html" class="nav-link"><i class="fa-solid fa-sliders"></i> Config</a>
             <a href="#" onclick="logout()" class="nav-link" style="margin-top: auto; color: #ef4444; border-top: 1px solid rgba(255,255,255,0.05);"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
         </nav>
     </aside>
@@ -90,6 +121,9 @@
         <header>
             <button class="menu-toggle" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></button>
             <h1 style="font-size: 1.8rem; font-weight: 700;">User Management</h1>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+                <i class="fa-solid fa-sun" id="themeIcon"></i>
+            </button>
         </header>
 
         <div class="grid-split">
@@ -155,6 +189,25 @@
 
         function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('overlay').classList.toggle('active'); }
         function logout() { if(confirm("Log out?")) { localStorage.removeItem('vp_token'); window.location.href='login.html'; } }
+        
+        // Theme Toggle
+        function toggleTheme() {
+            const root = document.documentElement;
+            const icon = document.getElementById('themeIcon');
+            const isLight = root.classList.toggle('light-theme');
+            icon.className = isLight ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+            localStorage.setItem('vp_theme', isLight ? 'light' : 'dark');
+        }
+        
+        // Load saved theme
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('vp_theme');
+            const icon = document.getElementById('themeIcon');
+            if (savedTheme === 'light') {
+                document.documentElement.classList.add('light-theme');
+                if (icon) icon.className = 'fa-solid fa-moon';
+            }
+        }
 
         // 1. Load Users
         async function loadUsers() {
@@ -163,14 +216,14 @@
                 if (!res.ok) throw new Error("Connection Error");
                 
                 const json = await res.json();
+                console.log('Users response:', json); // Debug log
                 
-                // ROBUST: handle array, {data:[...]}, {users:[...]}, or n8n [{json:{...}}] wrapping
+                // ROBUST FIX: Handle both Array and Object formats
                 let users = [];
                 if (Array.isArray(json)) {
-                    // n8n may wrap each row as {json: {...}} or return flat objects
-                    users = json.map(item => item.json || item);
+                    users = json;
                 } else if (json.data && Array.isArray(json.data)) {
-                    users = json.data.map(item => item.json || item);
+                    users = json.data;
                 } else if (json.users && Array.isArray(json.users)) {
                     users = json.users;
                 }
@@ -184,7 +237,7 @@
 
                 tbody.innerHTML = users.map(u => `
                     <tr>
-                        <td><div style="font-weight:600; color:white;">${u.full_name || '---'}</div></td>
+                        <td><div style="font-weight:600; color:var(--text-main);">${u.full_name || '---'}</div></td>
                         <td style="font-family:monospace; color:var(--primary);">${u.username}</td>
                         <td><span class="role-badge ${u.role === 'admin' ? 'role-admin' : ''}">${u.role}</span></td>
                         <td style="text-align: right;">
@@ -219,13 +272,11 @@
                     body: JSON.stringify({ full_name: name, username: user, password: pass, role: role })
                 });
 
-                const result = await res.json().catch(() => ({}));
-                if(res.ok && result.status !== 'error') {
+                if(res.ok) {
                     alert("User created successfully!");
                     document.getElementById('createUserForm').reset();
-                    // Small delay so DB write is committed before re-fetching
-                    setTimeout(loadUsers, 400);
-                } else { throw new Error(result.message || "Failed"); }
+                    loadUsers(); // Reload list
+                } else { throw new Error("Failed"); }
             } catch(e) { alert("Error creating user."); }
             finally { btn.disabled = false; btn.innerHTML = "Create User"; }
         }
@@ -244,6 +295,8 @@
             } catch(e) { alert("Connection Error"); }
         }
 
+        // Initialize on page load
+        loadTheme();
         loadUsers();
 </script>
 </body>
