@@ -88,8 +88,50 @@
         .bh-table th { color: var(--text-muted); font-size: 0.72rem; text-transform: uppercase; padding: 6px 8px; border-bottom: 1px solid var(--border); text-align: left; font-weight: 600; }
         .bh-table td { padding: 8px 8px; border-bottom: 1px solid rgba(148,163,184,0.06); color: var(--text-main); vertical-align: middle; }
         .bh-table tr:last-child td { border-bottom: none; }
+        .bh-table tbody tr { cursor: pointer; transition: background 0.2s; }
+        .bh-table tbody tr:hover { background: rgba(99, 102, 241, 0.1) !important; }
         .bh-loading { text-align: center; padding: 1.5rem; color: var(--text-muted); font-size: 0.9rem; }
         .modal-card { max-height: 90vh; overflow-y: auto; }
+        
+        /* INTERACTION MODAL */
+        .interaction-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px); z-index: 3000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
+        .interaction-modal.open { display: flex; opacity: 1; }
+        .interaction-card { background: #1e293b; border: 1px solid var(--border); width: 90%; max-width: 700px; max-height: 85vh; overflow-y: auto; border-radius: 20px; padding: 2rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); transform: translateY(20px); transition: transform 0.3s ease; }
+        .interaction-modal.open .interaction-card { transform: translateY(0); }
+        .interaction-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+        .interaction-title { font-size: 1.3rem; font-weight: 700; color: white; display: flex; align-items: center; gap: 10px; }
+        .interaction-form { display: flex; flex-direction: column; gap: 1.25rem; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 700; }
+        .form-input, .form-textarea, .form-select { background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: var(--text-main); padding: 10px 12px; border-radius: 8px; font-size: 0.95rem; font-family: 'Plus Jakarta Sans', sans-serif; }
+        .form-input:focus, .form-textarea:focus { outline: none; border-color: var(--primary); }
+        .form-input:disabled { opacity: 0.6; cursor: not-allowed; }
+        .form-textarea { min-height: 120px; resize: vertical; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .interaction-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+        .btn-save { background: var(--primary); color: white; padding: 10px 24px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .btn-save:hover { opacity: 0.9; transform: translateY(-2px); }
+        .btn-cancel { background: var(--bg-card); color: var(--text-muted); padding: 10px 24px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; font-weight: 600; transition: 0.2s; }
+        .btn-cancel:hover { color: white; border-color: white; }
+        .interaction-info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; padding: 1rem; background: rgba(0,0,0,0.15); border-radius: 8px; margin-bottom: 1rem; }
+        .interaction-info-item { display: flex; flex-direction: column; gap: 4px; }
+        .interaction-info-label { font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; }
+        .interaction-info-value { font-size: 0.9rem; color: var(--text-main); }
+        
+        /* INTERACTIONS HISTORY */
+        .interactions-section { margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.25rem; }
+        .interactions-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .interactions-title { font-size: 1rem; font-weight: 700; color: white; display: flex; align-items: center; gap: 8px; }
+        .btn-export { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); padding: 6px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
+        .btn-export:hover { background: rgba(16, 185, 129, 0.25); }
+        .interaction-item { background: rgba(0,0,0,0.15); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin-bottom: 0.75rem; transition: background 0.2s; }
+        .interaction-item:hover { background: rgba(0,0,0,0.25); }
+        .interaction-item-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem; }
+        .interaction-item-subject { font-weight: 700; color: white; font-size: 0.95rem; }
+        .interaction-item-date { font-size: 0.75rem; color: var(--text-muted); }
+        .interaction-item-meta { display: flex; gap: 1rem; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+        .interaction-item-notes { font-size: 0.88rem; color: var(--text-main); line-height: 1.5; white-space: pre-wrap; }
+        .no-interactions { text-align: center; padding: 1.5rem; color: var(--text-muted); font-size: 0.85rem; }
         @media (max-width: 768px) { aside { transform: translateX(-100%); } aside.active { transform: translateX(0); } main { margin-left: 0; padding: 1rem; } .menu-toggle { display: flex; } .close-sidebar { display: block; } header { flex-direction: column; align-items: flex-start; gap: 1rem; } .search-bar { width: 100%; } .modal-grid { grid-template-columns: 1fr; } }
 
         /* ── LIGHT MODE OVERRIDES ── */
@@ -124,6 +166,15 @@
         body.light-mode .filter-btn:hover, body.light-mode .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
         body.light-mode .pay-modal-card, body.light-mode .modal-card,
         body.light-mode .receipt-card { background: #ffffff; border-color: rgba(0,0,0,0.12); color: #0f172a; }
+        body.light-mode .interaction-card { background: #ffffff; border-color: rgba(0,0,0,0.12); color: #0f172a; }
+        body.light-mode .interaction-title { color: #0f172a; }
+        body.light-mode .form-input, body.light-mode .form-textarea, body.light-mode .form-select { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.15); color: #0f172a; }
+        body.light-mode .interaction-info-grid { background: rgba(0,0,0,0.04); }
+        body.light-mode .interaction-info-value { color: #0f172a; }
+        body.light-mode .interaction-item { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.1); }
+        body.light-mode .interaction-item:hover { background: rgba(0,0,0,0.08); }
+        body.light-mode .interaction-item-subject { color: #0f172a; }
+        body.light-mode .interaction-item-notes { color: #0f172a; }
         body.light-mode .detail-value { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.1); color: #0f172a; }
         body.light-mode .live-clock { background: rgba(255,255,255,0.8); border-color: rgba(0,0,0,0.12); color: #475569; }
         body.light-mode .pay-amount-input { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.15); color: #0f172a; }
@@ -213,9 +264,57 @@
                 </div>
                 <div id="bh-empty" style="display:none; text-align:center; padding:1rem; color:var(--text-muted); font-size:0.85rem;">No bookings found</div>
             </div>
+            <div class="interactions-section" id="interactions-section">
+                <div class="interactions-header">
+                    <div class="interactions-title"><i class="fa-solid fa-comments" style="color:var(--primary)"></i> Customer Interactions</div>
+                    <button class="btn-export" onclick="exportInteractions()"><i class="fa-solid fa-download"></i> Export</button>
+                </div>
+                <div id="interactions-loading" class="bh-loading" style="display:none"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</div>
+                <div id="interactions-list"></div>
+                <div id="no-interactions" class="no-interactions" style="display:none">No interactions recorded yet</div>
+            </div>
             <div class="modal-actions" id="modal-buttons">
                 <button class="btn-modal btn-close" onclick="closeModal()">Close</button>
             </div>
+        </div>
+    </div>
+
+    <!-- INTERACTION LOGGING MODAL -->
+    <div id="interactionModal" class="interaction-modal" onclick="closeInteractionModal(event)">
+        <div class="interaction-card" onclick="event.stopPropagation()">
+            <div class="interaction-header">
+                <div class="interaction-title"><i class="fa-solid fa-message" style="color:var(--primary)"></i> Log Customer Interaction</div>
+                <button class="modal-close" onclick="closeInteractionModal()">&times;</button>
+            </div>
+            <div class="interaction-info-grid" id="interaction-info">
+                <!-- Auto-populated info will go here -->
+            </div>
+            <form class="interaction-form" id="interactionForm" onsubmit="saveInteraction(event)">
+                <div class="form-group">
+                    <label>Subject *</label>
+                    <input type="text" class="form-input" id="interaction-subject" placeholder="e.g., Payment follow-up, Menu selection, Schedule change" required>
+                </div>
+                <div class="form-group">
+                    <label>Interaction Type *</label>
+                    <select class="form-select" id="interaction-type" required>
+                        <option value="">Select type...</option>
+                        <option value="Phone Call">Phone Call</option>
+                        <option value="Email">Email</option>
+                        <option value="In Person">In Person</option>
+                        <option value="SMS">SMS</option>
+                        <option value="WhatsApp">WhatsApp</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Notes *</label>
+                    <textarea class="form-textarea" id="interaction-notes" placeholder="Enter detailed notes about this interaction..." required></textarea>
+                </div>
+                <div class="interaction-actions">
+                    <button type="button" class="btn-cancel" onclick="closeInteractionModal()">Cancel</button>
+                    <button type="submit" class="btn-save"><i class="fa-solid fa-save"></i> Save Interaction</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -263,7 +362,8 @@
                     else if(bal <= 0) pill += `background:rgba(16,185,129,0.15);color:#10b981;border:1px solid rgba(16,185,129,0.3);">Paid</span>`;
                     else pill += `background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);">Balance Due</span>`;
                     const dateStr = b.booking_date ? new Date(b.booking_date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
-                    return `<tr><td>${dateStr}</td><td>${b.room_name||'—'}</td><td>${fmtCur(b.total_amount)}</td><td style="color:${bal>0?'#f59e0b':'#10b981'}">${fmtCur(bal)}</td><td>${pill}</td></tr>`;
+                    const bookingData = encodeURIComponent(JSON.stringify(b));
+                    return `<tr onclick="openInteractionModal('${bookingData}')"><td>${dateStr}</td><td>${b.room_name||'—'}</td><td>${fmtCur(b.total_amount)}</td><td style="color:${bal>0?'#f59e0b':'#10b981'}">${fmtCur(bal)}</td><td>${pill}</td></tr>`;
                 }).join('');
                 tableW.style.display = 'block';
             } catch(err) {
@@ -292,6 +392,7 @@
             btnContainer.innerHTML = actionBtn + `<button class="btn-modal btn-close" onclick="closeModal()">Close</button>`;
             document.getElementById('custModal').classList.add('open');
             loadBookingHistory(data.email);
+            loadInteractions(data.email);
         }
         function closeModal(e) { if(!e || e.target.id === 'custModal' || e.target.classList.contains('modal-close') || e.target.innerText === 'Close') document.getElementById('custModal').classList.remove('open'); }
 
@@ -346,6 +447,223 @@
                 }
             }
         }
+
+        // ── INTERACTION LOGGING FUNCTIONS ──
+        const INTERACTIONS_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/customer-interactions';
+        let currentCustomerData = null;
+
+        function openInteractionModal(bookingDataString) {
+            event.stopPropagation();
+            const booking = JSON.parse(decodeURIComponent(bookingDataString));
+            const customer = {
+                name: document.getElementById('m-name').innerText,
+                email: document.getElementById('m-email').innerText,
+                phone: document.getElementById('m-phone').innerText,
+                id: document.getElementById('m-id').innerText
+            };
+            currentCustomerData = { customer, booking };
+            
+            const infoGrid = document.getElementById('interaction-info');
+            const dateStr = booking.booking_date ? new Date(booking.booking_date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : 'N/A';
+            infoGrid.innerHTML = `
+                <div class="interaction-info-item">
+                    <div class="interaction-info-label">Customer</div>
+                    <div class="interaction-info-value">${customer.name}</div>
+                </div>
+                <div class="interaction-info-item">
+                    <div class="interaction-info-label">Email</div>
+                    <div class="interaction-info-value">${customer.email}</div>
+                </div>
+                <div class="interaction-info-item">
+                    <div class="interaction-info-label">Booking Date</div>
+                    <div class="interaction-info-value">${dateStr}</div>
+                </div>
+                <div class="interaction-info-item">
+                    <div class="interaction-info-label">Room/Venue</div>
+                    <div class="interaction-info-value">${booking.room_name || 'N/A'}</div>
+                </div>
+                <div class="interaction-info-item">
+                    <div class="interaction-info-label">Booking ID</div>
+                    <div class="interaction-info-value" style="font-family: monospace;">${booking.id || 'N/A'}</div>
+                </div>
+                <div class="interaction-info-item">
+                    <div class="interaction-info-label">Status</div>
+                    <div class="interaction-info-value" style="text-transform: capitalize;">${booking.status || 'N/A'}</div>
+                </div>
+            `;
+            
+            document.getElementById('interactionForm').reset();
+            document.getElementById('interactionModal').classList.add('open');
+        }
+
+        function closeInteractionModal(e) {
+            if(!e || e.target.id === 'interactionModal' || e.target.classList.contains('modal-close')) {
+                document.getElementById('interactionModal').classList.remove('open');
+                currentCustomerData = null;
+            }
+        }
+
+        async function saveInteraction(event) {
+            event.preventDefault();
+            if (!currentCustomerData) return;
+            
+            const subject = document.getElementById('interaction-subject').value;
+            const type = document.getElementById('interaction-type').value;
+            const notes = document.getElementById('interaction-notes').value;
+            const timestamp = new Date().toISOString();
+            const staffMember = localStorage.getItem('vp_user_name') || 'Staff Member';
+            
+            const interactionData = {
+                customer_id: currentCustomerData.customer.id,
+                customer_name: currentCustomerData.customer.name,
+                customer_email: currentCustomerData.customer.email,
+                customer_phone: currentCustomerData.customer.phone,
+                booking_id: currentCustomerData.booking.id,
+                booking_date: currentCustomerData.booking.booking_date,
+                room_name: currentCustomerData.booking.room_name,
+                subject: subject,
+                interaction_type: type,
+                notes: notes,
+                timestamp: timestamp,
+                staff_member: staffMember
+            };
+            
+            try {
+                const submitBtn = event.target.querySelector('button[type="submit"]');
+                const originalHTML = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
+                submitBtn.disabled = true;
+                
+                const response = await fetch(INTERACTIONS_API, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...getAuthHeaders()
+                    },
+                    body: JSON.stringify(interactionData)
+                });
+                
+                if (!response.ok) throw new Error('Failed to save interaction');
+                
+                submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> Saved!';
+                setTimeout(() => {
+                    closeInteractionModal();
+                    loadInteractions(currentCustomerData.customer.email);
+                }, 800);
+                
+            } catch (error) {
+                console.error('Error saving interaction:', error);
+                alert('Failed to save interaction. Please try again.');
+                event.target.querySelector('button[type="submit"]').innerHTML = '<i class="fa-solid fa-save"></i> Save Interaction';
+                event.target.querySelector('button[type="submit"]').disabled = false;
+            }
+        }
+
+        async function loadInteractions(email) {
+            const loadingEl = document.getElementById('interactions-loading');
+            const listEl = document.getElementById('interactions-list');
+            const noInteractionsEl = document.getElementById('no-interactions');
+            
+            loadingEl.style.display = 'block';
+            listEl.innerHTML = '';
+            noInteractionsEl.style.display = 'none';
+            
+            try {
+                const response = await fetch(`${INTERACTIONS_API}?email=${encodeURIComponent(email)}`, {
+                    headers: getAuthHeaders()
+                });
+                
+                if (!response.ok) throw new Error('Failed to load interactions');
+                
+                const json = await response.json();
+                const interactions = json.data || (Array.isArray(json) ? json : []);
+                
+                loadingEl.style.display = 'none';
+                
+                if (interactions.length === 0) {
+                    noInteractionsEl.style.display = 'block';
+                    return;
+                }
+                
+                interactions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
+                listEl.innerHTML = interactions.map(interaction => {
+                    const date = new Date(interaction.timestamp);
+                    const dateStr = date.toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'});
+                    const timeStr = date.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
+                    
+                    return `
+                        <div class="interaction-item">
+                            <div class="interaction-item-header">
+                                <div class="interaction-item-subject">${interaction.subject}</div>
+                                <div class="interaction-item-date">${dateStr} ${timeStr}</div>
+                            </div>
+                            <div class="interaction-item-meta">
+                                <span><i class="fa-solid fa-tag"></i> ${interaction.interaction_type}</span>
+                                <span><i class="fa-solid fa-user"></i> ${interaction.staff_member}</span>
+                                <span><i class="fa-solid fa-calendar"></i> Booking: ${new Date(interaction.booking_date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}</span>
+                            </div>
+                            <div class="interaction-item-notes">${interaction.notes}</div>
+                        </div>
+                    `;
+                }).join('');
+                
+            } catch (error) {
+                console.error('Error loading interactions:', error);
+                loadingEl.style.display = 'none';
+                listEl.innerHTML = '<div class="no-interactions" style="display:block; color:#ef4444;">Failed to load interactions</div>';
+            }
+        }
+
+        function exportInteractions() {
+            const email = document.getElementById('m-email').innerText;
+            const customerName = document.getElementById('m-name').innerText;
+            
+            fetch(`${INTERACTIONS_API}?email=${encodeURIComponent(email)}`, {
+                headers: getAuthHeaders()
+            })
+            .then(res => res.json())
+            .then(json => {
+                const interactions = json.data || (Array.isArray(json) ? json : []);
+                if (interactions.length === 0) {
+                    alert('No interactions to export');
+                    return;
+                }
+                
+                const headers = ['Timestamp', 'Customer Name', 'Customer Email', 'Booking Date', 'Room/Venue', 'Subject', 'Type', 'Notes', 'Staff Member'];
+                const rows = interactions.map(i => [
+                    new Date(i.timestamp).toLocaleString('en-GB'),
+                    i.customer_name,
+                    i.customer_email,
+                    new Date(i.booking_date).toLocaleDateString('en-GB'),
+                    i.room_name || '',
+                    i.subject,
+                    i.interaction_type,
+                    i.notes.replace(/"/g, '""'),
+                    i.staff_member
+                ]);
+                
+                const csvContent = [
+                    headers.join(','),
+                    ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+                ].join('\n');
+                
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', `customer_interactions_${customerName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            })
+            .catch(err => {
+                console.error('Export error:', err);
+                alert('Failed to export interactions');
+            });
+        }
+
         loadData();
     
         // ── THEME PERSISTENCE ──
