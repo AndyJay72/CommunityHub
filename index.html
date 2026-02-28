@@ -630,6 +630,49 @@
 
     <div id="toast-container"></div>
 
+    <!-- INTERACTION DETAIL MODAL -->
+    <div id="interactionModal" class="modal-overlay" onclick="closeInteractionModal(event)" style="z-index:4000;">
+        <div class="modal-card" onclick="event.stopPropagation()" style="max-width:540px;">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fa-solid fa-comments" style="color:#8b5cf6;"></i> Interaction Details</div>
+                <button class="modal-close" onclick="closeInteractionModal()">&times;</button>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem;">
+                <div class="detail-group">
+                    <label>Customer</label>
+                    <div class="detail-value" id="im-name">--</div>
+                </div>
+                <div class="detail-group">
+                    <label>Email</label>
+                    <div class="detail-value" id="im-email" style="font-size:0.85rem;">--</div>
+                </div>
+                <div class="detail-group">
+                    <label>Subject</label>
+                    <div class="detail-value" id="im-subject">--</div>
+                </div>
+                <div class="detail-group">
+                    <label>Type</label>
+                    <div class="detail-value" id="im-type">--</div>
+                </div>
+                <div class="detail-group">
+                    <label>Date &amp; Time</label>
+                    <div class="detail-value" id="im-date">--</div>
+                </div>
+                <div class="detail-group">
+                    <label>Staff Member</label>
+                    <div class="detail-value" id="im-staff">--</div>
+                </div>
+                <div class="detail-group" style="grid-column:span 2;">
+                    <label>Notes</label>
+                    <div class="detail-value" id="im-notes" style="white-space:pre-wrap;line-height:1.6;">--</div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal btn-close" onclick="closeInteractionModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- PAYMENT MODAL -->
     <div id="payMod" class="pay-modal-overlay" onclick="if(event.target===this)closePayModal()">
         <div class="pay-modal-card" onclick="event.stopPropagation()">
@@ -1492,7 +1535,8 @@
                 const dt = r.interaction_date ? new Date(r.interaction_date).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '--';
                 const typeCol = typeColors[r.interaction_type] || '#94a3b8';
                 const notes = (r.notes || '').length > 80 ? r.notes.substring(0, 80) + '\u2026' : (r.notes || '--');
-                return `<tr style="border-bottom:1px solid var(--border);transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
+                const rowData = encodeURIComponent(JSON.stringify(r));
+                return `<tr onclick="openInteractionModal('${rowData}')" style="border-bottom:1px solid var(--border);transition:background 0.15s;cursor:pointer;" onmouseover="this.style.background='rgba(139,92,246,0.06)'" onmouseout="this.style.background=''">
                     <td style="padding:10px 12px;font-weight:600;color:white;white-space:nowrap;">${r.customer_name || '--'}</td>
                     <td style="padding:10px 12px;color:var(--text-muted);font-size:0.85rem;">${r.customer_email || '--'}</td>
                     <td style="padding:10px 12px;color:var(--text-main);">${r.subject || '--'}</td>
@@ -1503,6 +1547,27 @@
                 </tr>`;
             }).join('');
             if (countEl) countEl.textContent = `Showing ${rows.length} of ${allInteractions.length} interaction${allInteractions.length !== 1 ? 's' : ''}`;
+        }
+
+        function openInteractionModal(dataStr) {
+            const r = JSON.parse(decodeURIComponent(dataStr));
+            const typeColors = { 'Call':'#6366f1', 'Email':'#0ea5e9', 'In-Person':'#10b981', 'SMS':'#f59e0b', 'Note':'#94a3b8' };
+            const typeCol = typeColors[r.interaction_type] || '#94a3b8';
+            const dt = r.interaction_date
+                ? new Date(r.interaction_date).toLocaleString('en-GB', { weekday:'short', day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })
+                : 'No date recorded';
+            document.getElementById('im-name').textContent = r.customer_name || '--';
+            document.getElementById('im-email').textContent = r.customer_email || '--';
+            document.getElementById('im-subject').textContent = r.subject || '--';
+            document.getElementById('im-type').innerHTML = `<span style="background:${typeCol}22;color:${typeCol};padding:3px 12px;border-radius:20px;font-size:0.82rem;font-weight:600;">${r.interaction_type || '--'}</span>`;
+            document.getElementById('im-date').textContent = dt;
+            document.getElementById('im-staff').textContent = r.staff_member || '--';
+            document.getElementById('im-notes').textContent = r.notes || 'No notes recorded';
+            document.getElementById('interactionModal').classList.add('open');
+        }
+        function closeInteractionModal(e) {
+            if (!e || e.target.id === 'interactionModal' || e.target.classList.contains('modal-close') || e.target.innerText === 'Close')
+                document.getElementById('interactionModal').classList.remove('open');
         }
 
         function exportInteractionsCSV() {
