@@ -142,6 +142,8 @@
         .filter-outstanding:hover, .filter-outstanding.active { background: var(--warning); color: #0f172a; border-color: var(--warning); }
         .filter-upcoming { border-color: rgba(16, 185, 129, 0.3); }
         .filter-upcoming:hover, .filter-upcoming.active { background: var(--success); color: #0f172a; border-color: var(--success); }
+        .filter-interactions { border-color: rgba(139, 92, 246, 0.3); }
+        .filter-interactions:hover, .filter-interactions.active { background: #8b5cf6; color: white; border-color: #8b5cf6; }
         
         /* --- BOOKING CARDS --- */
         .booking-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s; }
@@ -519,10 +521,11 @@
             <button class="filter-btn filter-requests" onclick="filterListView('requests', this)"><i class="fa-solid fa-inbox"></i> New Requests</button>
             <button class="filter-btn filter-outstanding" onclick="filterListView('outstanding', this)"><i class="fa-solid fa-coins"></i> Outstanding Payments</button>
             <button class="filter-btn filter-upcoming" onclick="filterListView('upcoming', this)"><i class="fa-solid fa-calendar-check"></i> Upcoming Events</button>
+            <button class="filter-btn filter-interactions" onclick="filterListView('interactions', this)"><i class="fa-solid fa-comments"></i> Customer Interactions</button>
         </div>
 
         <!-- MAIN CONTENT AREA -->
-        <div class="table-container" style="margin-bottom: 2rem;">
+        <div class="table-container" id="cards-section" style="margin-bottom: 2rem;">
             <div class="table-header">
                 <h3 id="section-title"><i class="fa-solid fa-list"></i> All Items</h3>
                 <div class="search-wrapper">
@@ -537,6 +540,43 @@
                 <button class="btn-page" id="main-prev" onclick="changeMainPage(-1)">&#8249; Prev</button>
                 <span id="main-page-info" style="font-size:0.85rem; color:var(--text-muted);"></span>
                 <button class="btn-page" id="main-next" onclick="changeMainPage(1)">Next &#8250;</button>
+            </div>
+        </div>
+
+        <!-- CUSTOMER INTERACTIONS VIEW -->
+        <div id="interactions-section" style="display:none; margin-bottom:2rem;">
+            <div class="table-container">
+                <div class="table-header">
+                    <h3><i class="fa-solid fa-comments" style="color:#8b5cf6;"></i> Customer Interactions</h3>
+                    <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
+                        <div class="search-wrapper">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input id="interactions-search" class="search-input" type="text" placeholder="Search interactions..." oninput="renderInteractionsTable()">
+                        </div>
+                        <button onclick="exportInteractionsCSV()" style="background:#8b5cf6;border:none;color:white;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+                    </div>
+                </div>
+                <div style="padding:1rem 1.5rem;">
+                    <div class="table-wrap">
+                    <table style="width:100%;border-collapse:collapse;">
+                        <thead>
+                            <tr style="border-bottom:1px solid var(--border);">
+                                <th style="padding:10px 12px;text-align:left;font-size:0.8rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;white-space:nowrap;">Customer</th>
+                                <th style="padding:10px 12px;text-align:left;font-size:0.8rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;white-space:nowrap;">Email</th>
+                                <th style="padding:10px 12px;text-align:left;font-size:0.8rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;white-space:nowrap;">Subject</th>
+                                <th style="padding:10px 12px;text-align:left;font-size:0.8rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;white-space:nowrap;">Type</th>
+                                <th style="padding:10px 12px;text-align:left;font-size:0.8rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;white-space:nowrap;">Date &amp; Time</th>
+                                <th style="padding:10px 12px;text-align:left;font-size:0.8rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;white-space:nowrap;">Staff</th>
+                                <th style="padding:10px 12px;text-align:left;font-size:0.8rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;white-space:nowrap;">Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="interactions-tbody">
+                            <tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-muted);"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+                    <div id="interactions-count" style="padding-top:0.75rem;font-size:0.82rem;color:var(--text-muted);"></div>
+                </div>
             </div>
         </div>
     </main>
@@ -665,6 +705,7 @@
         let allRequests = [];
         let allOutstandingPayments = [];
         let allUpcomingEvents = [];
+        let allInteractions = [];
         let currentView = 'all';
         let currentPage = 1;
         const PAGE_SIZE = 10;
@@ -718,7 +759,17 @@
             currentView = view;
             currentPage = 1;
             searchTerm = document.getElementById('main-search').value;
-            renderCurrentView();
+            const cardsSection = document.getElementById('cards-section');
+            const interactionsSection = document.getElementById('interactions-section');
+            if (view === 'interactions') {
+                if (cardsSection) cardsSection.style.display = 'none';
+                if (interactionsSection) interactionsSection.style.display = 'block';
+                renderInteractionsTable();
+            } else {
+                if (cardsSection) cardsSection.style.display = 'block';
+                if (interactionsSection) interactionsSection.style.display = 'none';
+                renderCurrentView();
+            }
         }
 
         function applyMainSearch() {
@@ -1393,7 +1444,77 @@
             if (!e || e.target.id === 'bookMod') document.getElementById('bookMod').classList.remove('open');
         }
 
-        startClock(); loadDashboard(); loadAllBookings(); setInterval(() => { loadDashboard(); loadAllBookings(); }, 60000);
+        startClock(); loadDashboard(); loadAllBookings(); loadAllInteractions(); setInterval(() => { loadDashboard(); loadAllBookings(); loadAllInteractions(); }, 60000);
+
+        async function loadAllInteractions() {
+            const INTERACTIONS_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/customer-interactions';
+            try {
+                const res = await fetch(INTERACTIONS_API + '?email=all');
+                const json = await res.json();
+                allInteractions = (json.data || []).sort((a, b) => new Date(b.interaction_date) - new Date(a.interaction_date));
+                if (currentView === 'interactions') renderInteractionsTable();
+            } catch(e) {
+                console.warn('loadAllInteractions error:', e);
+            }
+        }
+
+        function renderInteractionsTable() {
+            const tbody = document.getElementById('interactions-tbody');
+            const countEl = document.getElementById('interactions-count');
+            if (!tbody) return;
+            const term = (document.getElementById('interactions-search')?.value || '').toLowerCase();
+            let rows = allInteractions;
+            if (term) {
+                rows = rows.filter(r =>
+                    (r.customer_name || '').toLowerCase().includes(term) ||
+                    (r.customer_email || '').toLowerCase().includes(term) ||
+                    (r.subject || '').toLowerCase().includes(term) ||
+                    (r.interaction_type || '').toLowerCase().includes(term) ||
+                    (r.staff_member || '').toLowerCase().includes(term) ||
+                    (r.notes || '').toLowerCase().includes(term)
+                );
+            }
+            if (rows.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-muted);">${term ? 'No matching interactions' : 'No interactions logged yet'}</td></tr>`;
+                if (countEl) countEl.textContent = '';
+                return;
+            }
+            const typeColors = { 'Call':'#6366f1', 'Email':'#0ea5e9', 'In-Person':'#10b981', 'SMS':'#f59e0b', 'Note':'#94a3b8' };
+            tbody.innerHTML = rows.map(r => {
+                const dt = r.interaction_date ? new Date(r.interaction_date).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '--';
+                const typeCol = typeColors[r.interaction_type] || '#94a3b8';
+                const notes = (r.notes || '').length > 80 ? r.notes.substring(0, 80) + '\u2026' : (r.notes || '--');
+                return `<tr style="border-bottom:1px solid var(--border);transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
+                    <td style="padding:10px 12px;font-weight:600;color:white;white-space:nowrap;">${r.customer_name || '--'}</td>
+                    <td style="padding:10px 12px;color:var(--text-muted);font-size:0.85rem;">${r.customer_email || '--'}</td>
+                    <td style="padding:10px 12px;color:var(--text-main);">${r.subject || '--'}</td>
+                    <td style="padding:10px 12px;"><span style="background:${typeCol}22;color:${typeCol};padding:3px 10px;border-radius:20px;font-size:0.78rem;font-weight:600;white-space:nowrap;">${r.interaction_type || '--'}</span></td>
+                    <td style="padding:10px 12px;color:var(--text-muted);font-size:0.83rem;white-space:nowrap;">${dt}</td>
+                    <td style="padding:10px 12px;color:var(--text-muted);font-size:0.85rem;">${r.staff_member || '--'}</td>
+                    <td style="padding:10px 12px;color:var(--text-muted);font-size:0.83rem;max-width:200px;">${notes}</td>
+                </tr>`;
+            }).join('');
+            if (countEl) countEl.textContent = `Showing ${rows.length} of ${allInteractions.length} interaction${allInteractions.length !== 1 ? 's' : ''}`;
+        }
+
+        function exportInteractionsCSV() {
+            if (!allInteractions.length) return;
+            const headers = ['Customer','Email','Subject','Type','Date & Time','Staff','Notes'];
+            const rows = allInteractions.map(r => [
+                r.customer_name || '',
+                r.customer_email || '',
+                r.subject || '',
+                r.interaction_type || '',
+                r.interaction_date ? new Date(r.interaction_date).toLocaleString('en-GB') : '',
+                r.staff_member || '',
+                (r.notes || '').replace(/,/g, ';').replace(/\n/g, ' ')
+            ]);
+            const csv = [headers, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+            const a = document.createElement('a');
+            a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+            a.download = `interactions_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+        }
     
         // ── THEME PERSISTENCE ──
         (function(){ var t=localStorage.getItem('vp_theme'); if(t==='light') document.body.classList.add('light-mode'); })();
