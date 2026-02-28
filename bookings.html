@@ -704,7 +704,7 @@
                     actions += `<button class="cancel-btn" onclick="event.stopPropagation();cancelBooking('${b.id}', '${b.customer_name}')"><i class="fa-solid fa-trash"></i> Cancel</button>`;
                 }
 
-                return `<div class="booking-card" ${cardClick} style="border-left: 4px solid ${statusInfo.color}; cursor:${b.category === 'pre' ? 'pointer' : 'default'};">`;
+                return `<div class="booking-card" ${cardClick} style="border-left: 4px solid ${statusInfo.color}; cursor:${b.category === 'pre' ? 'pointer' : 'default'};">
                     <div class="b-left">
                         <div class="date-badge"><div class="db-day">${b.dateObj.getDate()}</div><div class="db-month">${b.dateObj.toLocaleString('default', { month: 'short' })}</div></div>
                         <div class="b-details">
