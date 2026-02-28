@@ -744,7 +744,7 @@
             </div>
 
             <!-- CUSTOMER INTERACTIONS -->
-            <div class="modal-int-section">
+            <div class="modal-int-section" id="modal-int-section">
                 <div class="modal-int-header">
                     <div class="modal-int-title"><i class="fa-solid fa-comments" style="color:var(--primary)"></i> Customer Interactions</div>
                     <button class="btn-export" onclick="exportCustInteractions()"><i class="fa-solid fa-download"></i> Export</button>
@@ -1223,9 +1223,10 @@
             } else {
                 btnContainer.innerHTML = `<button class="btn-modal btn-close" onclick="closeModal()">Close</button>`;
             }
+            // Hide history/interactions — not needed for New Request view
+            document.getElementById('bh-section').style.display = 'none';
+            document.getElementById('modal-int-section').style.display = 'none';
             document.getElementById('custModal').classList.add('open');
-            loadBookingHistoryForModal(data.email);
-            loadCustInteractions(data.email);
         }
         function closeModal(e) { if(!e || e.target.id === 'custModal' || e.target.classList.contains('modal-close') || e.target.innerText === 'Close') document.getElementById('custModal').classList.remove('open'); }
 
@@ -2068,6 +2069,9 @@
             document.getElementById('m-status').innerText = isBooked ? 'Booked' : (c.status || '—');
             const btnContainer = document.getElementById('modal-buttons');
             btnContainer.innerHTML = `<button class="btn-modal btn-close" onclick="closeModal()">Close</button>`;
+            // Show history/interactions for Customers tab
+            document.getElementById('bh-section').style.display = '';
+            document.getElementById('modal-int-section').style.display = '';
             document.getElementById('custModal').classList.add('open');
             loadBookingHistoryForModal(c.email);
             loadCustInteractions(c.email);
