@@ -691,18 +691,20 @@
                 else if(b.category === 'cancelled') statusInfo = { text: 'Cancelled', cls: 'status-cancelled', color: 'var(--danger)' };
 
                 let actions = '';
+                let cardClick = '';
                 // Add Pay button if Pre-Booked
                 if(b.category === 'pre') {
                     const safeEnc = encodeURIComponent(JSON.stringify(b));
-                    actions += `<button class="pay-btn" onclick="openPayModalByData('${safeEnc}')"><i class="fa-solid fa-credit-card"></i> Pay</button>`;
+                    actions += `<button class="pay-btn" onclick="event.stopPropagation();openPayModalByData('${safeEnc}')"><i class="fa-solid fa-credit-card"></i> Pay</button>`;
+                    cardClick = `onclick="openPayModalByData('${safeEnc}')"`;
                 }
                 
                 // Add Cancel button if Pre or Booked (Active events)
                 if(b.category === 'pre' || b.category === 'booked') {
-                    actions += `<button class="cancel-btn" onclick="cancelBooking('${b.id}', '${b.customer_name}')"><i class="fa-solid fa-trash"></i> Cancel</button>`;
+                    actions += `<button class="cancel-btn" onclick="event.stopPropagation();cancelBooking('${b.id}', '${b.customer_name}')"><i class="fa-solid fa-trash"></i> Cancel</button>`;
                 }
 
-                return `<div class="booking-card" style="border-left: 4px solid ${statusInfo.color}">
+                return `<div class="booking-card" ${cardClick} style="border-left: 4px solid ${statusInfo.color}; cursor:${b.category === 'pre' ? 'pointer' : 'default'};">`;
                     <div class="b-left">
                         <div class="date-badge"><div class="db-day">${b.dateObj.getDate()}</div><div class="db-month">${b.dateObj.toLocaleString('default', { month: 'short' })}</div></div>
                         <div class="b-details">

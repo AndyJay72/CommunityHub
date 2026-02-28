@@ -872,26 +872,34 @@
             let actionHtml = '';
             let metaHtml = '';
             
+            let cardOnclick = '';
+
             if (isRequest) {
                 const daysPassed = item.created_at ? Math.floor((Date.now() - new Date(item.created_at).getTime()) / 86400000) : 0;
                 const daysLeft = Math.max(0, 7 - daysPassed);
                 statusHtml = `<span class="status-pill status-pending">${item.status}</span><br><small style="color:var(--text-muted)">${daysLeft}d left</small>`;
                 const canAccept = item.has_booking === true || item.has_booking === 'true';
                 const disabledAttr = canAccept ? '' : 'disabled title="Make a booking request first"';
-                actionHtml = `<button class="pay-btn" ${disabledAttr} onclick="markContacted('${item.id}', '${(name || '').replace(/'/g, "\\'")}')"><i class="fa-solid fa-check"></i> Accept</button>`;
+                actionHtml = `<button class="pay-btn" ${disabledAttr} onclick="event.stopPropagation();markContacted('${item.id}', '${(name || '').replace(/'/g, "\\'")}')"><i class="fa-solid fa-check"></i> Accept</button>`;
                 metaHtml = `<span><i class="fa-solid fa-user"></i> ${item.event_type || 'Event'}</span><span><i class="fa-solid fa-user-group"></i> ${guests} guests</span>`;
+                const reqDataStr = encodeURIComponent(JSON.stringify(item));
+                cardOnclick = `openModal('${reqDataStr}')`;
             } else if (isOutstanding) {
                 statusHtml = `<span class="status-pill status-outstanding">${formatCurrency(balance)} Due</span>`;
-                actionHtml = `<button class="pay-btn" onclick="payBooking('${item.booking_id || item.id}', '${item.customer_id}', ${balance})"><i class="fa-solid fa-credit-card"></i> Pay</button>`;
+                actionHtml = `<button class="pay-btn" onclick="event.stopPropagation();payBooking('${item.booking_id || item.id}', '${item.customer_id}', ${balance})"><i class="fa-solid fa-credit-card"></i> Pay</button>`;
                 metaHtml = `<span><i class="fa-solid fa-door-open"></i> ${room}</span><span><i class="fa-solid fa-user-group"></i> ${guests} guests</span>`;
+                const outDataStr = encodeURIComponent(JSON.stringify(item));
+                cardOnclick = `openBookingModal('${outDataStr}')`;
             } else {
                 statusHtml = `<span class="status-pill status-upcoming">Confirmed</span>`;
-                actionHtml = `<button class="view-btn" onclick="viewBookingDetails('${item.booking_id || item.id}')"><i class="fa-solid fa-eye"></i> View</button>`;
+                actionHtml = `<button class="view-btn" onclick="event.stopPropagation();viewBookingDetails('${item.booking_id || item.id}')"><i class="fa-solid fa-eye"></i> View</button>`;
                 metaHtml = `<span><i class="fa-solid fa-door-open"></i> ${room}</span><span><i class="fa-solid fa-sterling-sign"></i> ${formatCurrency(balance)}</span>`;
+                const upDataStr = encodeURIComponent(JSON.stringify(item));
+                cardOnclick = `openBookingModal('${upDataStr}')`;
             }
             
             return `
-                <div class="booking-card">
+                <div class="booking-card" onclick="${cardOnclick}" style="cursor:pointer;">
                     <div class="b-left">
                         <div class="date-badge">
                             <div class="db-day">${dayNum}</div>
