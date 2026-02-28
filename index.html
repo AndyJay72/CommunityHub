@@ -6,6 +6,7 @@
     <title>Dashboard | Venue Manager Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
     
     <script>
         // SECURITY CHECK
@@ -98,6 +99,8 @@
         .status-badge.paid { background: rgba(16, 185, 129, 0.15); color: var(--success); }
         .status-badge.balance { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
         .status-badge.cancelled { background: rgba(239, 68, 68, 0.1); color: #f87171; text-decoration: line-through; }
+        .status-badge.booked { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+        .status-badge.enquiry { background: rgba(99, 102, 241, 0.15); color: var(--primary); }
 
         .btn-action { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; white-space: nowrap; transition: 0.2s; }
         .btn-action:hover { background: var(--primary-hover); transform: translateY(-1px); }
@@ -144,6 +147,10 @@
         .filter-upcoming:hover, .filter-upcoming.active { background: var(--success); color: #0f172a; border-color: var(--success); }
         .filter-interactions { border-color: rgba(139, 92, 246, 0.3); }
         .filter-interactions:hover, .filter-interactions.active { background: #8b5cf6; color: white; border-color: #8b5cf6; }
+        .filter-customers { border-color: rgba(14, 165, 233, 0.3); }
+        .filter-customers:hover, .filter-customers.active { background: #0ea5e9; color: white; border-color: #0ea5e9; }
+        .filter-calendar { border-color: rgba(236, 72, 153, 0.3); }
+        .filter-calendar:hover, .filter-calendar.active { background: #ec4899; color: white; border-color: #ec4899; }
         
         /* --- BOOKING CARDS --- */
         .booking-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s; }
@@ -313,6 +320,65 @@
         body.light-mode .pay-booking-info { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.08); }
         body.light-mode .date-badge { background: rgba(0,0,0,0.05); }
         body.light-mode .bh-stat { background: rgba(0,0,0,0.04); }
+
+        /* --- CUSTOMER MODAL: BOOKING HISTORY --- */
+        .bh-section { margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.25rem; }
+        .bh-title { font-size: 1rem; font-weight: 700; color: white; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
+        .bh-stats { display: flex; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; }
+        .bh-stat { flex: 1; min-width: 100px; background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; text-align: center; }
+        .bh-stat-val { font-size: 1.1rem; font-weight: 700; color: white; }
+        .bh-stat-lbl { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+        .bh-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+        .bh-table th { color: var(--text-muted); font-size: 0.72rem; text-transform: uppercase; padding: 6px 8px; border-bottom: 1px solid var(--border); text-align: left; font-weight: 600; }
+        .bh-table td { padding: 8px; border-bottom: 1px solid rgba(148,163,184,0.06); color: var(--text-main); vertical-align: middle; }
+        .bh-table tr:last-child td { border-bottom: none; }
+        .bh-loading { text-align: center; padding: 1.5rem; color: var(--text-muted); font-size: 0.9rem; }
+
+        /* --- CUSTOMER MODAL: INTERACTIONS --- */
+        .modal-int-section { margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.25rem; }
+        .modal-int-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .modal-int-title { font-size: 1rem; font-weight: 700; color: white; display: flex; align-items: center; gap: 8px; }
+        .btn-export { background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3); padding: 6px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
+        .btn-export:hover { background: rgba(16,185,129,0.25); }
+        .no-interactions { text-align: center; padding: 1.5rem; color: var(--text-muted); font-size: 0.85rem; }
+        .interaction-item { background: rgba(0,0,0,0.15); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin-bottom: 0.75rem; }
+        .interaction-item-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem; }
+        .interaction-item-subject { font-weight: 700; color: white; font-size: 0.95rem; }
+        .interaction-item-date { font-size: 0.75rem; color: var(--text-muted); }
+        .interaction-item-meta { display: flex; gap: 1rem; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem; flex-wrap: wrap; }
+        .interaction-item-notes { font-size: 0.88rem; color: var(--text-main); line-height: 1.5; white-space: pre-wrap; }
+        body.light-mode .bh-title, body.light-mode .modal-int-title { color: #0f172a; }
+        body.light-mode .bh-table td { color: #0f172a; }
+        body.light-mode .interaction-item { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.1); }
+        body.light-mode .interaction-item-subject { color: #0f172a; }
+        body.light-mode .interaction-item-notes { color: #0f172a; }
+
+        /* --- LOG INTERACTION MODAL --- */
+        .log-int-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); z-index: 5000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
+        .log-int-modal.open { display: flex; opacity: 1; }
+        .log-int-card { background: #1e293b; border: 1px solid var(--border); width: 90%; max-width: 680px; max-height: 90vh; overflow-y: auto; border-radius: 20px; padding: 2rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); transform: translateY(20px); transition: transform 0.3s ease; }
+        .log-int-modal.open .log-int-card { transform: translateY(0); }
+        .log-int-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+        .log-int-title { font-size: 1.3rem; font-weight: 700; color: white; display: flex; align-items: center; gap: 10px; }
+        .log-int-info-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1rem; padding: 1rem; background: rgba(0,0,0,0.15); border-radius: 8px; margin-bottom: 1.25rem; }
+        .log-int-info-item { display: flex; flex-direction: column; gap: 4px; }
+        .log-int-info-label { font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; }
+        .log-int-info-value { font-size: 0.9rem; color: var(--text-main); }
+        .log-int-form { display: flex; flex-direction: column; gap: 1.25rem; }
+        .log-form-group { display: flex; flex-direction: column; gap: 6px; }
+        .log-form-group label { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 700; }
+        .log-form-input, .log-form-select, .log-form-textarea { background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: var(--text-main); padding: 10px 12px; border-radius: 8px; font-size: 0.95rem; font-family: 'Plus Jakarta Sans', sans-serif; width: 100%; box-sizing: border-box; }
+        .log-form-input:focus, .log-form-select:focus, .log-form-textarea:focus { outline: none; border-color: var(--primary); }
+        .log-form-textarea { min-height: 120px; resize: vertical; }
+        .log-int-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+        .btn-log-save { background: var(--primary); color: white; padding: 10px 24px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .btn-log-save:hover { opacity: 0.9; transform: translateY(-2px); }
+        .btn-log-cancel { background: var(--bg-card); color: var(--text-muted); padding: 10px 24px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; font-weight: 600; transition: 0.2s; }
+        .btn-log-cancel:hover { color: white; border-color: white; }
+        body.light-mode .log-int-card { background: #ffffff; border-color: rgba(0,0,0,0.12); }
+        body.light-mode .log-int-title { color: #0f172a; }
+        body.light-mode .log-int-info-value { color: #0f172a; }
+        body.light-mode .log-form-input, body.light-mode .log-form-select, body.light-mode .log-form-textarea { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.15); color: #0f172a; }
         body.light-mode .log-tbody tr:hover, body.light-mode tbody tr:hover { background: rgba(0,0,0,0.03) !important; }
         .theme-toggle { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; transition: 0.2s; flex-shrink: 0; }
         .theme-toggle:hover { color: white; border-color: white; }
@@ -486,10 +552,7 @@
             <a href="enquiry-form.html" class="nav-link" target="_blank"><i class="fa-solid fa-file-pen"></i> New Booking</a>
             <a href="manual-booking.html" class="nav-link"><i class="fa-solid fa-person-walking-arrow-right"></i> Walk-In Booking</a>
             <a href="bookings.html" class="nav-link"><i class="fa-solid fa-calendar-days"></i> Bookings</a>
-            <a href="customers.html" class="nav-link"><i class="fa-solid fa-users"></i> Customers</a>
             <a href="accounts.html" class="nav-link"><i class="fa-solid fa-file-invoice-dollar"></i> Accounts</a>
-            <!-- ADDED CALENDAR LINK -->
-            <a href="calendar.html" class="nav-link" target="_blank" rel="noopener"><i class="fa-solid fa-calendar-alt"></i> Calendar <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.6rem;margin-left:auto;opacity:0.5"></i></a>
             <a href="audit-log.html" class="nav-link"><i class="fa-solid fa-clock-rotate-left"></i> Audit Log</a>
             <a href="users.html" class="nav-link"><i class="fa-solid fa-user-shield"></i> Users</a>
             <a href="admin-config.html"    class="nav-link"><i class="fa-solid fa-sliders"></i> Config</a>
@@ -522,6 +585,8 @@
             <button class="filter-btn filter-outstanding" onclick="filterListView('outstanding', this)"><i class="fa-solid fa-coins"></i> Outstanding Payments</button>
             <button class="filter-btn filter-upcoming" onclick="filterListView('upcoming', this)"><i class="fa-solid fa-calendar-check"></i> Upcoming Events</button>
             <button class="filter-btn filter-interactions" onclick="filterListView('interactions', this)"><i class="fa-solid fa-comments"></i> Customer Interactions</button>
+            <button class="filter-btn filter-customers" onclick="filterListView('customers', this)"><i class="fa-solid fa-users"></i> Customers</button>
+            <button class="filter-btn filter-calendar" onclick="filterListView('calendar', this)"><i class="fa-solid fa-calendar-alt"></i> Calendar</button>
         </div>
 
         <!-- MAIN CONTENT AREA -->
@@ -579,11 +644,72 @@
                 </div>
             </div>
         </div>
+
+        <!-- CUSTOMERS VIEW -->
+        <div id="customers-section" style="display:none; margin-bottom:2rem;">
+            <div class="table-container">
+                <div class="table-header">
+                    <h3><i class="fa-solid fa-users" style="color:#0ea5e9;"></i> Customers</h3>
+                    <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
+                        <div class="search-wrapper">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input id="cust-search" class="search-input" type="text" placeholder="Search customers..." oninput="searchCustomersTab()">
+                        </div>
+                    </div>
+                </div>
+                <div style="padding:1rem 1.5rem;">
+                    <div class="table-wrap">
+                    <table style="width:100%;border-collapse:collapse;">
+                        <thead>
+                            <tr style="border-bottom:1px solid var(--border);">
+                                <th style="padding:10px 12px;text-align:left;font-size:0.8rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;white-space:nowrap;">Name</th>
+                                <th style="padding:10px 12px;text-align:left;font-size:0.8rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;white-space:nowrap;">Email / Phone</th>
+                                <th style="padding:10px 12px;text-align:left;font-size:0.8rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;white-space:nowrap;">Event Type</th>
+                                <th style="padding:10px 12px;text-align:left;font-size:0.8rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;white-space:nowrap;">Date</th>
+                                <th style="padding:10px 12px;text-align:left;font-size:0.8rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;white-space:nowrap;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cust-tbody">
+                            <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--text-muted);"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+                    <div id="cust-pagination" class="pagination-bar" style="display:none;margin-top:1rem;">
+                        <button class="btn-page" id="cust-prev" onclick="changeCustomersPage(-1)">&#8249; Prev</button>
+                        <span id="cust-page-info" style="font-size:0.85rem;color:var(--text-muted);"></span>
+                        <button class="btn-page" id="cust-next" onclick="changeCustomersPage(1)">Next &#8250;</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CALENDAR VIEW -->
+        <div id="calendar-section" style="display:none; margin-bottom:2rem;">
+            <div class="table-container">
+                <div class="table-header">
+                    <h3><i class="fa-solid fa-calendar-alt" style="color:#ec4899;"></i> Event Calendar</h3>
+                    <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
+                        <select id="cal-room-filter" onchange="applyCalendarFilters()" style="background:var(--bg-card);border:1px solid var(--border);color:var(--text-main);padding:6px 12px;border-radius:8px;font-size:0.85rem;cursor:pointer;">
+                            <option value="">All Rooms</option>
+                        </select>
+                        <select id="cal-status-filter" onchange="applyCalendarFilters()" style="background:var(--bg-card);border:1px solid var(--border);color:var(--text-main);padding:6px 12px;border-radius:8px;font-size:0.85rem;cursor:pointer;">
+                            <option value="">All Status</option>
+                            <option value="paid">Fully Paid</option>
+                            <option value="balance">Balance Due</option>
+                            <option value="past">Past</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="padding:1rem 1.5rem;">
+                    <div id="cal-container" style="min-height:500px;"></div>
+                </div>
+            </div>
+        </div>
     </main>
 
     <!-- MODAL -->
     <div id="custModal" class="modal-overlay" onclick="closeModal(event)">
-        <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-card" onclick="event.stopPropagation()" style="max-width:660px;max-height:90vh;overflow-y:auto;">
             <div class="modal-header">
                 <div class="modal-title"><i class="fa-solid fa-id-card" style="color:var(--primary)"></i> Customer Details</div>
                 <button class="modal-close" onclick="closeModal()">&times;</button>
@@ -598,6 +724,36 @@
                 <div class="detail-group"><label>Date</label><div class="detail-value" id="m-date">--</div></div>
                 <div class="detail-group"><label>Guests</label><div class="detail-value" id="m-guests">--</div></div>
             </div>
+
+            <!-- BOOKING HISTORY -->
+            <div class="bh-section" id="bh-section">
+                <div class="bh-title"><i class="fa-solid fa-history" style="color:var(--primary)"></i> Booking History</div>
+                <div id="modal-bh-loading" class="bh-loading"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</div>
+                <div id="modal-bh-stats" class="bh-stats" style="display:none">
+                    <div class="bh-stat"><div class="bh-stat-val" id="modal-bh-count">0</div><div class="bh-stat-lbl">Total Bookings</div></div>
+                    <div class="bh-stat"><div class="bh-stat-val" id="modal-bh-spend">&pound;0</div><div class="bh-stat-lbl">Total Spend</div></div>
+                    <div class="bh-stat"><div class="bh-stat-val" id="modal-bh-outstanding">&pound;0</div><div class="bh-stat-lbl">Outstanding</div></div>
+                </div>
+                <div id="modal-bh-table-wrap" style="display:none; overflow-x:auto;">
+                    <table class="bh-table">
+                        <thead><tr><th>Date</th><th>Room</th><th>Total</th><th>Balance</th><th>Status</th></tr></thead>
+                        <tbody id="modal-bh-tbody"></tbody>
+                    </table>
+                </div>
+                <div id="modal-bh-empty" style="display:none; text-align:center; padding:1rem; color:var(--text-muted); font-size:0.85rem;">No bookings found</div>
+            </div>
+
+            <!-- CUSTOMER INTERACTIONS -->
+            <div class="modal-int-section">
+                <div class="modal-int-header">
+                    <div class="modal-int-title"><i class="fa-solid fa-comments" style="color:var(--primary)"></i> Customer Interactions</div>
+                    <button class="btn-export" onclick="exportCustInteractions()"><i class="fa-solid fa-download"></i> Export</button>
+                </div>
+                <div id="modal-int-loading" class="bh-loading" style="display:none"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</div>
+                <div id="modal-int-list"></div>
+                <div id="modal-int-none" class="no-interactions" style="display:none">No interactions recorded yet</div>
+            </div>
+
             <div class="modal-actions" id="modal-buttons">
                 <button class="btn-modal btn-close" onclick="closeModal()">Close</button>
             </div>
@@ -670,6 +826,45 @@
             <div class="modal-actions">
                 <button class="btn-modal btn-close" onclick="closeInteractionModal()">Close</button>
             </div>
+        </div>
+    </div>
+
+    <!-- LOG INTERACTION MODAL -->
+    <div id="logIntModal" class="log-int-modal" onclick="closeLogIntModal(event)">
+        <div class="log-int-card" onclick="event.stopPropagation()">
+            <div class="log-int-header">
+                <div class="log-int-title"><i class="fa-solid fa-message" style="color:var(--primary)"></i> Log Customer Interaction</div>
+                <button class="modal-close" onclick="closeLogIntModal()">&times;</button>
+            </div>
+            <div class="log-int-info-grid" id="log-int-info">
+                <!-- auto-populated -->
+            </div>
+            <form class="log-int-form" id="logIntForm" onsubmit="saveLogInteraction(event)">
+                <div class="log-form-group">
+                    <label>Subject *</label>
+                    <input type="text" class="log-form-input" id="log-subject" placeholder="e.g. Payment follow-up, Menu selection, Schedule change" required>
+                </div>
+                <div class="log-form-group">
+                    <label>Interaction Type *</label>
+                    <select class="log-form-select" id="log-type" required>
+                        <option value="">Select type...</option>
+                        <option value="Phone Call">Phone Call</option>
+                        <option value="Email">Email</option>
+                        <option value="In Person">In Person</option>
+                        <option value="SMS">SMS</option>
+                        <option value="WhatsApp">WhatsApp</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="log-form-group">
+                    <label>Notes *</label>
+                    <textarea class="log-form-textarea" id="log-notes" placeholder="Enter detailed notes about this interaction..." required></textarea>
+                </div>
+                <div class="log-int-actions">
+                    <button type="button" class="btn-log-cancel" onclick="closeLogIntModal()">Cancel</button>
+                    <button type="submit" class="btn-log-save" id="log-save-btn"><i class="fa-solid fa-save"></i> Save Interaction</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -796,21 +991,24 @@
         // ══════════════════════════════════════════════════════════════════
         
         function filterListView(view, btn) {
-            // Update active button
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentView = view;
             currentPage = 1;
             searchTerm = document.getElementById('main-search').value;
-            const cardsSection = document.getElementById('cards-section');
-            const interactionsSection = document.getElementById('interactions-section');
+            const sections = ['cards-section','interactions-section','customers-section','calendar-section'];
+            sections.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
             if (view === 'interactions') {
-                if (cardsSection) cardsSection.style.display = 'none';
-                if (interactionsSection) interactionsSection.style.display = 'block';
+                document.getElementById('interactions-section').style.display = 'block';
                 renderInteractionsTable();
+            } else if (view === 'customers') {
+                document.getElementById('customers-section').style.display = 'block';
+                loadCustomersTab();
+            } else if (view === 'calendar') {
+                document.getElementById('calendar-section').style.display = 'block';
+                initCalendarTab();
             } else {
-                if (cardsSection) cardsSection.style.display = 'block';
-                if (interactionsSection) interactionsSection.style.display = 'none';
+                document.getElementById('cards-section').style.display = 'block';
                 renderCurrentView();
             }
         }
@@ -1026,6 +1224,8 @@
                 btnContainer.innerHTML = `<button class="btn-modal btn-close" onclick="closeModal()">Close</button>`;
             }
             document.getElementById('custModal').classList.add('open');
+            loadBookingHistoryForModal(data.email);
+            loadCustInteractions(data.email);
         }
         function closeModal(e) { if(!e || e.target.id === 'custModal' || e.target.classList.contains('modal-close') || e.target.innerText === 'Close') document.getElementById('custModal').classList.remove('open'); }
 
@@ -1502,7 +1702,7 @@
             try {
                 const res = await fetch(INTERACTIONS_API + '?email=all');
                 const json = await res.json();
-                allInteractions = (json.data || []).sort((a, b) => new Date(b.interaction_date) - new Date(a.interaction_date));
+                allInteractions = (json.data || []).sort((a, b) => new Date(b.timestamp || b.interaction_date) - new Date(a.timestamp || a.interaction_date));
                 if (currentView === 'interactions') renderInteractionsTable();
             } catch(e) {
                 console.warn('loadAllInteractions error:', e);
@@ -1532,7 +1732,7 @@
             }
             const typeColors = { 'Call':'#6366f1', 'Email':'#0ea5e9', 'In-Person':'#10b981', 'SMS':'#f59e0b', 'Note':'#94a3b8' };
             tbody.innerHTML = rows.map(r => {
-                const dt = r.interaction_date ? new Date(r.interaction_date).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '--';
+                const dt = (r.timestamp || r.interaction_date) ? new Date(r.timestamp || r.interaction_date).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '--';
                 const typeCol = typeColors[r.interaction_type] || '#94a3b8';
                 const notes = (r.notes || '').length > 80 ? r.notes.substring(0, 80) + '\u2026' : (r.notes || '--');
                 const rowData = encodeURIComponent(JSON.stringify(r));
@@ -1553,8 +1753,8 @@
             const r = JSON.parse(decodeURIComponent(dataStr));
             const typeColors = { 'Call':'#6366f1', 'Email':'#0ea5e9', 'In-Person':'#10b981', 'SMS':'#f59e0b', 'Note':'#94a3b8' };
             const typeCol = typeColors[r.interaction_type] || '#94a3b8';
-            const dt = r.interaction_date
-                ? new Date(r.interaction_date).toLocaleString('en-GB', { weekday:'short', day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })
+            const dt = (r.timestamp || r.interaction_date)
+                ? new Date(r.timestamp || r.interaction_date).toLocaleString('en-GB', { weekday:'short', day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })
                 : 'No date recorded';
             document.getElementById('im-name').textContent = r.customer_name || '--';
             document.getElementById('im-email').textContent = r.customer_email || '--';
@@ -1578,7 +1778,7 @@
                 r.customer_email || '',
                 r.subject || '',
                 r.interaction_type || '',
-                r.interaction_date ? new Date(r.interaction_date).toLocaleString('en-GB') : '',
+                (r.timestamp || r.interaction_date) ? new Date(r.timestamp || r.interaction_date).toLocaleString('en-GB') : '',
                 r.staff_member || '',
                 (r.notes || '').replace(/,/g, ';').replace(/\n/g, ' ')
             ]);
@@ -1589,6 +1789,378 @@
             a.click();
         }
     
+        // ══════════════════════════════════════════════════════════════════
+        // CUSTOMER MODAL HELPERS (Booking History + Interactions)
+        // ══════════════════════════════════════════════════════════════════
+        const BOOKINGS_API_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/all-bookings';
+        const CUST_INTERACTIONS_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/customer-interactions';
+        const fmtCur = n => new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP'}).format(parseFloat(n)||0);
+
+        async function loadBookingHistoryForModal(email) {
+            const loading = document.getElementById('modal-bh-loading');
+            const stats   = document.getElementById('modal-bh-stats');
+            const tableW  = document.getElementById('modal-bh-table-wrap');
+            const empty   = document.getElementById('modal-bh-empty');
+            const tbody   = document.getElementById('modal-bh-tbody');
+            loading.style.display = 'block'; stats.style.display = 'none'; tableW.style.display = 'none'; empty.style.display = 'none';
+            try {
+                const res  = await fetch(BOOKINGS_API_URL, { headers: getAuthHeaders() });
+                const json = await res.json();
+                const all  = json.data || (Array.isArray(json) ? json : []);
+                const mine = all.filter(b => (b.customer_email || b.email || '').toLowerCase() === (email || '').toLowerCase());
+                loading.style.display = 'none';
+                if (mine.length === 0) { empty.style.display = 'block'; return; }
+                const totalSpend  = mine.reduce((s,b) => s + parseFloat(b.total_amount||0), 0);
+                const outstanding = mine.reduce((s,b) => s + parseFloat(b.balance_due||0), 0);
+                document.getElementById('modal-bh-count').innerText       = mine.length;
+                document.getElementById('modal-bh-spend').innerText       = fmtCur(totalSpend);
+                document.getElementById('modal-bh-outstanding').innerText = fmtCur(outstanding);
+                document.getElementById('modal-bh-outstanding').style.color = outstanding > 0 ? 'var(--warning)' : 'var(--success)';
+                stats.style.display = 'flex';
+                mine.sort((a,b) => new Date(b.booking_date) - new Date(a.booking_date));
+                tbody.innerHTML = mine.map(b => {
+                    const bal = parseFloat(b.balance_due||0);
+                    const st  = b.status || 'unknown';
+                    let pill;
+                    if (st === 'cancelled')  pill = `<span style="padding:3px 8px;border-radius:10px;font-size:0.7rem;font-weight:700;text-transform:uppercase;background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.3);">Cancelled</span>`;
+                    else if (bal <= 0)        pill = `<span style="padding:3px 8px;border-radius:10px;font-size:0.7rem;font-weight:700;text-transform:uppercase;background:rgba(16,185,129,0.15);color:#10b981;border:1px solid rgba(16,185,129,0.3);">Paid</span>`;
+                    else                      pill = `<span style="padding:3px 8px;border-radius:10px;font-size:0.7rem;font-weight:700;text-transform:uppercase;background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);">Balance Due</span>`;
+                    const dateStr = b.booking_date ? new Date(b.booking_date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
+                    const bookingData = encodeURIComponent(JSON.stringify(b));
+                    return `<tr style="cursor:pointer;" onclick="openLogIntModal('${bookingData}')" onmouseover="this.style.background='rgba(99,102,241,0.1)'" onmouseout="this.style.background=''"><td>${dateStr}</td><td>${b.room_name||'—'}</td><td>${fmtCur(b.total_amount)}</td><td style="color:${bal>0?'#f59e0b':'#10b981'}">${fmtCur(bal)}</td><td>${pill}</td></tr>`;
+                }).join('');
+                tableW.style.display = 'block';
+            } catch(err) {
+                loading.style.display = 'none';
+                empty.innerText = 'Failed to load history';
+                empty.style.display = 'block';
+            }
+        }
+
+        async function loadCustInteractions(email) {
+            const loadingEl  = document.getElementById('modal-int-loading');
+            const listEl     = document.getElementById('modal-int-list');
+            const noneEl     = document.getElementById('modal-int-none');
+            loadingEl.style.display = 'block'; listEl.innerHTML = ''; noneEl.style.display = 'none';
+            try {
+                const res  = await fetch(`${CUST_INTERACTIONS_API}?email=${encodeURIComponent(email)}`, { headers: getAuthHeaders() });
+                const json = await res.json();
+                const items = json.data || (Array.isArray(json) ? json : []);
+                loadingEl.style.display = 'none';
+                if (items.length === 0) { noneEl.style.display = 'block'; return; }
+                items.sort((a,b) => new Date(b.interaction_date||b.timestamp) - new Date(a.interaction_date||a.timestamp));
+                listEl.innerHTML = items.map(i => {
+                    const d = new Date(i.interaction_date || i.timestamp);
+                    const dateStr = d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+                    const timeStr = d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+                    const typeColors = { Call:'#6366f1', Email:'#10b981', Visit:'#f59e0b', Note:'#94a3b8' };
+                    const tc = typeColors[i.interaction_type] || '#94a3b8';
+                    return `<div class="interaction-item">
+                        <div class="interaction-item-header">
+                            <div class="interaction-item-subject">${i.subject||'—'}</div>
+                            <div class="interaction-item-date">${dateStr} ${timeStr}</div>
+                        </div>
+                        <div class="interaction-item-meta">
+                            <span style="color:${tc};"><i class="fa-solid fa-tag"></i> ${i.interaction_type||'—'}</span>
+                            <span><i class="fa-solid fa-user"></i> ${i.staff_member||'—'}</span>
+                            ${i.booking_date ? `<span><i class="fa-solid fa-calendar"></i> Booking: ${new Date(i.booking_date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}</span>` : ''}
+                        </div>
+                        <div class="interaction-item-notes">${i.notes||''}</div>
+                    </div>`;
+                }).join('');
+            } catch(err) {
+                loadingEl.style.display = 'none';
+                listEl.innerHTML = '<div class="no-interactions" style="display:block;color:#ef4444;">Failed to load interactions</div>';
+            }
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        // LOG INTERACTION MODAL
+        // ══════════════════════════════════════════════════════════════════
+        let _logIntBooking = null;
+
+        function openLogIntModal(bookingDataStr) {
+            event.stopPropagation();
+            const b = JSON.parse(decodeURIComponent(bookingDataStr));
+            _logIntBooking = b;
+            const customer = {
+                name:  document.getElementById('m-name').innerText,
+                email: document.getElementById('m-email').innerText,
+                phone: document.getElementById('m-phone').innerText,
+                id:    document.getElementById('m-id').innerText
+            };
+            const dateStr = b.booking_date ? new Date(b.booking_date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : 'N/A';
+            document.getElementById('log-int-info').innerHTML = `
+                <div class="log-int-info-item"><div class="log-int-info-label">Customer</div><div class="log-int-info-value">${customer.name}</div></div>
+                <div class="log-int-info-item"><div class="log-int-info-label">Email</div><div class="log-int-info-value">${customer.email}</div></div>
+                <div class="log-int-info-item"><div class="log-int-info-label">Booking Date</div><div class="log-int-info-value">${dateStr}</div></div>
+                <div class="log-int-info-item"><div class="log-int-info-label">Room / Venue</div><div class="log-int-info-value">${b.room_name||'N/A'}</div></div>
+                <div class="log-int-info-item"><div class="log-int-info-label">Booking ID</div><div class="log-int-info-value" style="font-family:monospace;font-size:0.8rem;">${b.id||'N/A'}</div></div>
+                <div class="log-int-info-item"><div class="log-int-info-label">Status</div><div class="log-int-info-value" style="text-transform:capitalize;">${b.status||'N/A'}</div></div>`;
+            document.getElementById('logIntForm').reset();
+            _logIntBooking = { booking: b, customer };
+            document.getElementById('logIntModal').classList.add('open');
+        }
+
+        function closeLogIntModal(e) {
+            if (!e || e.target.id === 'logIntModal' || e.target.classList.contains('modal-close')) {
+                document.getElementById('logIntModal').classList.remove('open');
+                _logIntBooking = null;
+            }
+        }
+
+        async function saveLogInteraction(e) {
+            e.preventDefault();
+            if (!_logIntBooking) return;
+            const { booking, customer } = _logIntBooking;
+            const saveBtn = document.getElementById('log-save-btn');
+            const origHTML = saveBtn.innerHTML;
+            saveBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
+            saveBtn.disabled = true;
+            try {
+                const res = await fetch(CUST_INTERACTIONS_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                    body: JSON.stringify({
+                        customer_id:      customer.id,
+                        customer_name:    customer.name,
+                        customer_email:   customer.email,
+                        customer_phone:   customer.phone,
+                        booking_id:       booking.id,
+                        booking_date:     booking.booking_date,
+                        room_name:        booking.room_name,
+                        subject:          document.getElementById('log-subject').value,
+                        interaction_type: document.getElementById('log-type').value,
+                        notes:            document.getElementById('log-notes').value,
+                        timestamp:        new Date().toISOString(),
+                        staff_member:     localStorage.getItem('vp_user_name') || 'Staff Member'
+                    })
+                });
+                if (!res.ok) throw new Error('Save failed');
+                saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Saved!';
+                setTimeout(() => {
+                    document.getElementById('logIntModal').classList.remove('open');
+                    _logIntBooking = null;
+                    // Reload interactions panel so new entry shows immediately
+                    loadCustInteractions(customer.email);
+                }, 800);
+            } catch(err) {
+                alert('Failed to save interaction. Please try again.');
+                saveBtn.innerHTML = origHTML;
+                saveBtn.disabled = false;
+            }
+        }
+
+        function exportCustInteractions() {
+            const email = document.getElementById('m-email').innerText;
+            const name  = document.getElementById('m-name').innerText;
+            fetch(`${CUST_INTERACTIONS_API}?email=${encodeURIComponent(email)}`, { headers: getAuthHeaders() })
+                .then(r => r.json())
+                .then(json => {
+                    const items = json.data || (Array.isArray(json) ? json : []);
+                    if (!items.length) { alert('No interactions to export'); return; }
+                    const hdrs = ['Timestamp','Customer Name','Customer Email','Booking Date','Room','Subject','Type','Notes','Staff'];
+                    const rows = items.map(i => [
+                        new Date(i.interaction_date||i.timestamp).toLocaleString('en-GB'),
+                        i.customer_name||'', i.customer_email||'',
+                        i.booking_date ? new Date(i.booking_date).toLocaleDateString('en-GB') : '',
+                        i.room_name||'', i.subject||'', i.interaction_type||'',
+                        (i.notes||'').replace(/"/g,'""'), i.staff_member||''
+                    ]);
+                    const csv = [hdrs,...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+                    const a = document.createElement('a');
+                    a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+                    a.download = `interactions_${name.replace(/\s+/g,'_')}_${new Date().toISOString().slice(0,10)}.csv`;
+                    a.click();
+                })
+                .catch(() => alert('Failed to export'));
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        // CUSTOMERS TAB
+        // ══════════════════════════════════════════════════════════════════
+        const CUSTOMERS_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/all-customers';
+        const CUST_PAGE_SIZE = 10;
+        let allCustomersData = [];
+        let custFiltered = [];
+        let custPage = 1;
+        let custLoaded = false;
+
+        async function loadCustomersTab() {
+            if (custLoaded) { renderCustomersTable(); return; }
+            const tbody = document.getElementById('cust-tbody');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--text-muted);"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</td></tr>';
+            try {
+                const res = await fetch(CUSTOMERS_API, { headers: getAuthHeaders() });
+                const json = await res.json();
+                allCustomersData = json.data || (Array.isArray(json) ? json : []);
+                custLoaded = true;
+                custPage = 1;
+                document.getElementById('cust-search').value = '';
+                custFiltered = allCustomersData;
+                renderCustomersTable();
+            } catch(e) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:#ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> Failed to load customers</td></tr>';
+            }
+        }
+
+        function searchCustomersTab() {
+            const q = (document.getElementById('cust-search').value || '').toLowerCase();
+            custFiltered = q ? allCustomersData.filter(c =>
+                (c.full_name||'').toLowerCase().includes(q) ||
+                (c.email||'').toLowerCase().includes(q) ||
+                (c.phone||'').toLowerCase().includes(q) ||
+                (c.event_type||'').toLowerCase().includes(q)
+            ) : allCustomersData;
+            custPage = 1;
+            renderCustomersTable();
+        }
+
+        function renderCustomersTable() {
+            const tbody = document.getElementById('cust-tbody');
+            const totalPages = Math.max(1, Math.ceil(custFiltered.length / CUST_PAGE_SIZE));
+            if (custPage > totalPages) custPage = totalPages;
+            const start = (custPage - 1) * CUST_PAGE_SIZE;
+            const page = custFiltered.slice(start, start + CUST_PAGE_SIZE);
+            if (page.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--text-muted);">No customers found.</td></tr>';
+                document.getElementById('cust-pagination').style.display = 'none';
+                return;
+            }
+            tbody.innerHTML = page.map(c => {
+                const isBooked = ['booked','fully_paid','deposit_paid'].includes(c.status);
+                const badgeCls = isBooked ? 'booked' : (c.status || 'enquiry');
+                const badgeLabel = isBooked ? 'Booked' : (c.status || 'Enquiry');
+                const dataStr = encodeURIComponent(JSON.stringify(c));
+                return `<tr onclick="openCustomerFromDash('${dataStr}')" style="cursor:pointer;border-bottom:1px solid var(--border);transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background=''">
+                    <td style="padding:12px;"><span style="font-weight:600;color:var(--text-main);">${c.full_name||'Unknown'}</span></td>
+                    <td style="padding:12px;"><div>${c.email||'—'}</div><div style="font-size:0.8rem;color:var(--text-muted);">${c.phone||''}</div></td>
+                    <td style="padding:12px;color:var(--text-muted);">${c.event_type||'General'}</td>
+                    <td style="padding:12px;color:var(--text-muted);">${c.event_date ? new Date(c.event_date).toLocaleDateString('en-GB') : 'N/A'}</td>
+                    <td style="padding:12px;"><span class="status-badge ${badgeCls}">${badgeLabel}</span></td>
+                </tr>`;
+            }).join('');
+            const paginationEl = document.getElementById('cust-pagination');
+            const prevBtn = document.getElementById('cust-prev');
+            const nextBtn = document.getElementById('cust-next');
+            const pageInfo = document.getElementById('cust-page-info');
+            paginationEl.style.display = custFiltered.length > CUST_PAGE_SIZE ? 'flex' : 'none';
+            pageInfo.textContent = `Page ${custPage} of ${totalPages}  (${custFiltered.length} customers)`;
+            prevBtn.disabled = custPage <= 1;
+            nextBtn.disabled = custPage >= totalPages;
+        }
+
+        function changeCustomersPage(delta) {
+            custPage += delta;
+            renderCustomersTable();
+        }
+
+        function openCustomerFromDash(dataStr) {
+            const c = JSON.parse(decodeURIComponent(dataStr));
+            document.getElementById('m-id').innerText    = c.id || c.customer_id || '—';
+            document.getElementById('m-name').innerText  = c.full_name || '—';
+            document.getElementById('m-email').innerText = c.email || '—';
+            document.getElementById('m-phone').innerText = c.phone || '—';
+            document.getElementById('m-event').innerText = c.event_type || '—';
+            document.getElementById('m-date').innerText  = c.event_date ? new Date(c.event_date).toLocaleDateString('en-GB') : '—';
+            document.getElementById('m-guests').innerText= c.guest_count || '—';
+            const isBooked = ['booked','fully_paid','deposit_paid'].includes(c.status);
+            document.getElementById('m-status').innerText = isBooked ? 'Booked' : (c.status || '—');
+            const btnContainer = document.getElementById('modal-buttons');
+            btnContainer.innerHTML = `<button class="btn-modal btn-close" onclick="closeModal()">Close</button>`;
+            document.getElementById('custModal').classList.add('open');
+            loadBookingHistoryForModal(c.email);
+            loadCustInteractions(c.email);
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        // CALENDAR TAB
+        // ══════════════════════════════════════════════════════════════════
+        let calInstance = null;
+        let calAllEvents = [];
+        let calLoaded = false;
+
+        async function initCalendarTab() {
+            if (calLoaded && calInstance) { setTimeout(() => calInstance.render(), 50); return; }
+            const container = document.getElementById('cal-container');
+            container.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted);"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading calendar...</div>';
+            try {
+                const res = await fetch('https://n8n.srv1090894.hstgr.cloud/webhook/all-bookings', { headers: getAuthHeaders() });
+                const json = await res.json();
+                const raw = json.data || (Array.isArray(json) ? json : []);
+                const now = new Date(); now.setHours(0,0,0,0);
+                const rooms = [...new Set(raw.map(e => e.room_name).filter(Boolean))].sort();
+                const roomSel = document.getElementById('cal-room-filter');
+                roomSel.innerHTML = '<option value="">All Rooms</option>';
+                rooms.forEach(r => { const o = document.createElement('option'); o.value = r; o.textContent = r; roomSel.appendChild(o); });
+                calAllEvents = raw.filter(e => e.status !== 'cancelled' && e.booking_date).map(e => {
+                    const bDate = new Date(e.booking_date.split('T')[0]);
+                    const balance = parseFloat(e.balance_due || 0);
+                    const isPast = bDate < now;
+                    const startT = (e.start_time || '09:00').slice(0, 5);
+                    const endT   = (e.end_time   || '10:00').slice(0, 5);
+                    const dateStr = e.booking_date.split('T')[0];
+                    const color = isPast ? '#475569' : balance > 0 ? '#f59e0b' : '#10b981';
+                    return {
+                        title: e.customer_name || 'Guest',
+                        start: `${dateStr}T${startT}:00`,
+                        end:   `${dateStr}T${endT}:00`,
+                        backgroundColor: color, borderColor: color,
+                        extendedProps: { customer_name: e.customer_name||'Guest', customer_email: e.customer_email||'', room_name: e.room_name||'Unknown', booking_date: e.booking_date, time: `${startT} – ${endT}`, total_amount: e.total_amount, balance_due: e.balance_due, isPast }
+                    };
+                });
+                container.innerHTML = '';
+                calInstance = new FullCalendar.Calendar(container, {
+                    initialView: 'dayGridMonth',
+                    headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,listWeek' },
+                    events: calAllEvents,
+                    height: 'auto',
+                    eventContent: function(arg) {
+                        const p = arg.event.extendedProps;
+                        return { html: `<div style="padding:2px 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><strong>${arg.event.title}</strong><span style="opacity:0.75;font-size:0.74rem"> · ${p.room_name}</span></div>` };
+                    },
+                    eventClick: function(info) {
+                        const p = info.event.extendedProps;
+                        const balance = parseFloat(p.balance_due || 0);
+                        const fmt = n => new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP'}).format(parseFloat(n)||0);
+                        document.getElementById('bm-name').innerText    = p.customer_name;
+                        document.getElementById('bm-email').innerText   = p.customer_email;
+                        document.getElementById('bm-room').innerText    = p.room_name;
+                        document.getElementById('bm-date').innerText    = p.booking_date ? new Date(p.booking_date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '—';
+                        document.getElementById('bm-time').innerText    = p.time;
+                        document.getElementById('bm-phone').innerText   = p.customer_phone || '—';
+                        document.getElementById('bm-total').innerText   = fmt(p.total_amount);
+                        document.getElementById('bm-balance').innerText = fmt(balance);
+                        document.getElementById('bm-status').innerHTML  = p.isPast ? '<span class="status-badge paid">Completed</span>' : balance > 0 ? `<span class="status-badge balance">${fmt(balance)} Due</span>` : '<span class="status-badge booked">Fully Paid</span>';
+                        document.getElementById('bookMod').classList.add('open');
+                    }
+                });
+                calInstance.render();
+                calLoaded = true;
+            } catch(e) {
+                container.innerHTML = '<div style="text-align:center;padding:3rem;color:#ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> Failed to load calendar</div>';
+            }
+        }
+
+        function applyCalendarFilters() {
+            if (!calInstance) return;
+            const roomVal   = document.getElementById('cal-room-filter').value;
+            const statusVal = document.getElementById('cal-status-filter').value;
+            const now = new Date(); now.setHours(0,0,0,0);
+            let filtered = calAllEvents;
+            if (roomVal)   filtered = filtered.filter(e => e.extendedProps.room_name === roomVal);
+            if (statusVal) filtered = filtered.filter(e => {
+                const isPast = new Date(e.extendedProps.booking_date) < now;
+                const hasBal = parseFloat(e.extendedProps.balance_due || 0) > 0;
+                if (statusVal === 'paid')    return !hasBal && !isPast;
+                if (statusVal === 'balance') return hasBal && !isPast;
+                if (statusVal === 'past')    return isPast;
+                return true;
+            });
+            calInstance.removeAllEvents();
+            calInstance.addEventSource(filtered);
+        }
+
         // ── THEME PERSISTENCE ──
         (function(){ var t=localStorage.getItem('vp_theme'); if(t==='light') document.body.classList.add('light-mode'); })();
         function toggleTheme(){
