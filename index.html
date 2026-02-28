@@ -132,6 +132,42 @@
         .days-badge.danger { background: rgba(239,68,68,0.15); color: #f87171; }
         .countdown-bar { margin: 1rem 0 0.5rem; padding: 10px 12px; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid var(--border); font-size: 0.82rem; display: flex; align-items: center; gap: 10px; }
 
+        /* --- FILTER TABS --- */
+        .filter-bar { display: flex; gap: 10px; margin-bottom: 1.5rem; overflow-x: auto; padding-bottom: 5px; }
+        .filter-btn { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; font-weight: 600; white-space: nowrap; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+        .filter-btn:hover, .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .filter-requests { border-color: rgba(245, 158, 11, 0.3); }
+        .filter-requests:hover, .filter-requests.active { background: var(--warning); color: #0f172a; border-color: var(--warning); }
+        .filter-outstanding { border-color: rgba(245, 158, 11, 0.3); }
+        .filter-outstanding:hover, .filter-outstanding.active { background: var(--warning); color: #0f172a; border-color: var(--warning); }
+        .filter-upcoming { border-color: rgba(16, 185, 129, 0.3); }
+        .filter-upcoming:hover, .filter-upcoming.active { background: var(--success); color: #0f172a; border-color: var(--success); }
+        
+        /* --- BOOKING CARDS --- */
+        .booking-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s; }
+        .booking-card:hover { transform: translateY(-2px); background: rgba(255,255,255,0.04); }
+        .b-left { display: flex; align-items: center; gap: 1.5rem; flex: 1; min-width: 0; }
+        .date-badge { background: rgba(255,255,255,0.05); padding: 8px 15px; border-radius: 10px; text-align: center; min-width: 70px; border: 1px solid var(--border); }
+        .db-day { font-size: 1.2rem; font-weight: 700; color: white; }
+        .db-month { font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); }
+        .b-details { flex: 1; min-width: 0; }
+        .b-details h4 { font-size: 1.1rem; color: white; margin: 0 0 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .b-meta { font-size: 0.9rem; color: var(--text-muted); display: flex; gap: 15px; flex-wrap: wrap; margin-top: 5px; }
+        .b-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .status-pill { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
+        .status-pending { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid var(--warning); }
+        .status-contacted { background: rgba(99, 102, 241, 0.15); color: var(--primary); border: 1px solid var(--primary); }
+        .status-outstanding { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid var(--warning); }
+        .status-upcoming { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid var(--success); }
+        .pay-btn { background: var(--success); color: #0f172a; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 5px; }
+        .view-btn { background: rgba(99, 102, 241, 0.15); color: var(--primary); border: 1px solid var(--primary); padding: 6px 12px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 5px; }
+        
+        /* --- PAGINATION --- */
+        .pagination-bar { display: flex; align-items: center; justify-content: space-between; padding: 1rem; border-top: 1px solid var(--border); background: rgba(30,41,59,0.4); margin-top: 1rem; border-radius: 0 0 12px 12px; }
+        .btn-page { background: none; border: 1px solid var(--border); color: var(--text-muted); padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: 0.2s; }
+        .btn-page:hover:not(:disabled) { color: white; border-color: white; }
+        .btn-page:disabled { opacity: 0.3; cursor: not-allowed; }
+
         /* --- TOAST & OVERLAY --- */
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; pointer-events: none; }
         .toast { background: #1e293b; color: white; padding: 1rem 1.5rem; border-radius: 8px; margin-top: 10px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); border-left: 4px solid var(--primary); display: flex; align-items: center; gap: 12px; animation: slideIn 0.3s ease; min-width: 300px; pointer-events: auto; }
@@ -314,60 +350,36 @@
             </div>
         </header>
 
-        <div class="stats-grid">
+       <div class="stats-grid">
             <div class="card"><div class="stat-header"><span class="stat-label">Monthly Revenue</span><div class="stat-icon" style="color: var(--success);"><i class="fa-solid fa-sterling-sign"></i></div></div><div style="display:flex;align-items:center;gap:8px"><button class="btn-month-nav" onclick="changeRevenueMonth(-1)">&#8249;</button><div style="flex:1;text-align:center"><div class="stat-value" id="val-revenue">--</div><div id="val-revenue-label" style="font-size:0.72rem;color:var(--text-muted);margin-top:3px">-- ----</div></div><button class="btn-month-nav" onclick="changeRevenueMonth(1)">&#8250;</button></div></div>
             <div class="card"><div class="stat-header"><span class="stat-label">Pending Reviews</span><div class="stat-icon" style="color: var(--warning);"><i class="fa-solid fa-clipboard-list"></i></div></div><div class="stat-value" id="val-pending">--</div></div>
-            <div class="card"><div class="stat-header"><span class="stat-label">Tasks Completed</span><div class="stat-icon" style="color: var(--primary);"><i class="fa-solid fa-check-double"></i></div></div><div class="stat-value" id="val-contacted">--</div></div>
+            <div class="card"><div class="stat-header"><span class="stat-label">Monthly Bookings</span><div class="stat-icon" style="color: var(--primary);"><i class="fa-solid fa-calendar-check"></i></div></div><div style="display:flex;align-items:center;gap:8px"><button class="btn-month-nav" onclick="changeBookingsMonth(-1)">&#8249;</button><div style="flex:1;text-align:center"><div class="stat-value" id="val-bookings">--</div><div id="val-bookings-label" style="font-size:0.72rem;color:var(--text-muted);margin-top:3px">-- ----</div></div><button class="btn-month-nav" onclick="changeBookingsMonth(1)">&#8250;</button></div></div>
         </div>
 
-        <div class="grid-split">
-            <!-- REQUESTS -->
-            <div class="table-container">
-                <div class="table-header"><h3 style="color: var(--warning);"><i class="fa-solid fa-inbox"></i> New Requests</h3></div>
-                <div class="table-wrapper">
-                    <table>
-                        <thead><tr><th>Customer</th><th>Event Type</th><th>Guests</th><th>Status</th><th style="text-align: right;">Action</th></tr></thead>
-                        <tbody id="table-requests"></tbody>
-                    </table>
-                </div>
-            </div>
-            <!-- BOOKINGS -->
-            <div class="table-container">
-                <div class="table-header">
-                    <h3 style="color: var(--success);"><i class="fa-solid fa-calendar-check"></i> Upcoming Events</h3>
-                    <div class="search-wrapper">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input id="search-upcoming" class="search-input" type="text" placeholder="Search name or email..." oninput="filterUpcoming()">
-                    </div>
-                </div>
-                <div class="table-wrapper">
-                    <table>
-                        <thead><tr><th>Date</th><th>Customer</th><th>Room</th><th>Balance</th></tr></thead>
-                        <tbody id="table-bookings"></tbody>
-                    </table>
-                </div>
-                <div id="upcoming-pagination" class="pagination-bar" style="display:none;">
-                    <button class="btn-page" id="upcoming-prev" onclick="changeUpcomingPage(-1)">&#8249; Prev</button>
-                    <span id="upcoming-page-info" style="font-size:0.82rem; color:var(--text-muted);"></span>
-                    <button class="btn-page" id="upcoming-next" onclick="changeUpcomingPage(1)">Next &#8250;</button>
-                </div>
-            </div>
+        <!-- FILTER TABS -->
+        <div class="filter-bar">
+            <button class="filter-btn active" onclick="filterListView('all', this)">All</button>
+            <button class="filter-btn filter-requests" onclick="filterListView('requests', this)"><i class="fa-solid fa-inbox"></i> New Requests</button>
+            <button class="filter-btn filter-outstanding" onclick="filterListView('outstanding', this)"><i class="fa-solid fa-coins"></i> Outstanding Payments</button>
+            <button class="filter-btn filter-upcoming" onclick="filterListView('upcoming', this)"><i class="fa-solid fa-calendar-check"></i> Upcoming Events</button>
         </div>
 
-        <!-- PRE-BOOKED SECTION -->
-        <div class="section-container">
-            <div class="section-header" style="flex-wrap:wrap; gap:0.75rem;">
-                <h3 style="color: var(--warning);"><i class="fa-solid fa-coins"></i> Pre-Booked <span style="font-size:0.75rem; color:var(--text-muted); font-weight:400; margin-left:8px;">Deposit paid — balance outstanding</span></h3>
-                <div style="display:flex; align-items:center; gap:1rem;">
-                    <span id="prebooked-count" style="font-size:0.8rem; color:var(--text-muted);"></span>
-                    <div class="search-wrapper">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input id="search-prebooked" class="search-input" type="text" placeholder="Search name or email..." oninput="filterPreBooked()">
-                    </div>
+        <!-- MAIN CONTENT AREA -->
+        <div class="table-container" style="margin-bottom: 2rem;">
+            <div class="table-header">
+                <h3 id="section-title"><i class="fa-solid fa-list"></i> All Items</h3>
+                <div class="search-wrapper">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input id="main-search" class="search-input" type="text" placeholder="Search..." oninput="applyMainSearch()">
                 </div>
             </div>
-            <div class="section-body" id="prebooked-list">
-                <div style="text-align:center; padding:1.5rem; color:var(--text-muted);"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</div>
+            <div id="main-list-container" style="padding: 1.5rem;">
+                <div style="text-align:center; padding:2rem; color:var(--text-muted);"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</div>
+            </div>
+            <div id="main-pagination" class="pagination-bar" style="display:none;">
+                <button class="btn-page" id="main-prev" onclick="changeMainPage(-1)">&#8249; Prev</button>
+                <span id="main-page-info" style="font-size:0.85rem; color:var(--text-muted);"></span>
+                <button class="btn-page" id="main-next" onclick="changeMainPage(1)">Next &#8250;</button>
             </div>
         </div>
     </main>
@@ -491,11 +503,15 @@
         const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
         let revenueMonth = new Date().getMonth() + 1;
         let revenueYear  = new Date().getFullYear();
-        let allUpcomingBookings  = [];
-        let allPreBookedBookings = [];
-        let upcomingFiltered     = [];
-        let upcomingPage         = 1;
-        const UPCOMING_PAGE_SIZE = 10;
+        let bookingsMonth = new Date().getMonth() + 1;
+        let bookingsYear  = new Date().getFullYear();
+        let allRequests = [];
+        let allOutstandingPayments = [];
+        let allUpcomingEvents = [];
+        let currentView = 'all';
+        let currentPage = 1;
+        const PAGE_SIZE = 10;
+        let searchTerm = '';
 
         const formatCurrency = (num) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(num);
 
@@ -522,6 +538,179 @@
         }
         function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('overlay').classList.toggle('active'); }
         function logout() { if(confirm("Log out?")) { localStorage.removeItem('vp_token'); window.location.href='login.html'; } }
+
+        // ══════════════════════════════════════════════════════════════════
+        // TAB FILTERING & PAGINATION FUNCTIONS
+        // ══════════════════════════════════════════════════════════════════
+        
+        function filterListView(view, btn) {
+            // Update active button
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentView = view;
+            currentPage = 1;
+            searchTerm = document.getElementById('main-search').value;
+            renderCurrentView();
+        }
+
+        function applyMainSearch() {
+            searchTerm = document.getElementById('main-search').value.toLowerCase();
+            currentPage = 1;
+            renderCurrentView();
+        }
+
+        function changeMainPage(direction) {
+            currentPage += direction;
+            renderCurrentView();
+        }
+
+        function renderCurrentView() {
+            const container = document.getElementById('main-list-container');
+            const titleEl = document.getElementById('section-title');
+            const paginationEl = document.getElementById('main-pagination');
+            
+            let items = [];
+            let title = '';
+            let icon = '';
+            
+            // Get items based on current view
+            switch(currentView) {
+                case 'requests':
+                    items = allRequests;
+                    title = 'New Requests';
+                    icon = 'fa-inbox';
+                    break;
+                case 'outstanding':
+                    items = allOutstandingPayments;
+                    title = 'Outstanding Payments';
+                    icon = 'fa-coins';
+                    break;
+                case 'upcoming':
+                    items = allUpcomingEvents;
+                    title = 'Upcoming Events';
+                    icon = 'fa-calendar-check';
+                    break;
+                default:
+                    items = [...allRequests, ...allOutstandingPayments, ...allUpcomingEvents];
+                    title = 'All Items';
+                    icon = 'fa-list';
+            }
+            
+            // Apply search filter
+            if (searchTerm) {
+                items = items.filter(item => {
+                    const name = (item.full_name || item.customer_name || '').toLowerCase();
+                    const email = (item.email || '').toLowerCase();
+                    const room = (item.room_name || '').toLowerCase();
+                    return name.includes(searchTerm) || email.includes(searchTerm) || room.includes(searchTerm);
+                });
+            }
+            
+            // Update title
+            titleEl.innerHTML = `<i class="fa-solid ${icon}"></i> ${title}`;
+            
+            // Pagination logic
+            const totalPages = Math.ceil(items.length / PAGE_SIZE);
+            const startIndex = (currentPage - 1) * PAGE_SIZE;
+            const endIndex = startIndex + PAGE_SIZE;
+            const paginatedItems = items.slice(startIndex, endIndex);
+            
+            // Render items
+            if (items.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:2rem; color:var(--text-muted);">No items found</div>`;
+                paginationEl.style.display = 'none';
+            } else {
+                container.innerHTML = paginatedItems.map(item => renderCard(item)).join('');
+                
+                // Show/hide pagination
+                if (totalPages > 1) {
+                    paginationEl.style.display = 'flex';
+                    document.getElementById('main-page-info').innerText = `Page ${currentPage} of ${totalPages} (${items.length} items)`;
+                    document.getElementById('main-prev').disabled = currentPage === 1;
+                    document.getElementById('main-next').disabled = currentPage === totalPages;
+                } else {
+                    paginationEl.style.display = 'none';
+                }
+            }
+        }
+
+        function renderCard(item) {
+            // Determine item type
+            const isRequest = item.status === 'pending' || item.status === 'contacted';
+            const isOutstanding = item.balance_due && parseFloat(item.balance_due) > 0 && item.booking_date;
+            const isUpcoming = item.booking_date && !isOutstanding && !isRequest;
+            
+            const date = new Date(item.event_date || item.booking_date);
+            const dayNum = date.getDate();
+            const monthName = MONTHS[date.getMonth()];
+            
+            const name = item.full_name || item.customer_name || 'N/A';
+            const room = item.room_name || 'N/A';
+            const guests = item.guests_count || 0;
+            const balance = parseFloat(item.balance_due || 0);
+            
+            let statusHtml = '';
+            let actionHtml = '';
+            let metaHtml = '';
+            
+            if (isRequest) {
+                const daysPassed = item.created_at ? Math.floor((Date.now() - new Date(item.created_at).getTime()) / 86400000) : 0;
+                const daysLeft = Math.max(0, 7 - daysPassed);
+                statusHtml = `<span class="status-pill status-pending">${item.status}</span><br><small style="color:var(--text-muted)">${daysLeft}d left</small>`;
+                const canAccept = item.has_booking === true || item.has_booking === 'true';
+                const disabledAttr = canAccept ? '' : 'disabled title="Make a booking request first"';
+                actionHtml = `<button class="pay-btn" ${disabledAttr} onclick="markContacted('${item.id}', '${(name || '').replace(/'/g, "\\'")}')"><i class="fa-solid fa-check"></i> Accept</button>`;
+                metaHtml = `<span><i class="fa-solid fa-user"></i> ${item.event_type || 'Event'}</span><span><i class="fa-solid fa-user-group"></i> ${guests} guests</span>`;
+            } else if (isOutstanding) {
+                statusHtml = `<span class="status-pill status-outstanding">${formatCurrency(balance)} Due</span>`;
+                actionHtml = `<button class="pay-btn" onclick="payBooking('${item.booking_id || item.id}', '${item.customer_id}', ${balance})"><i class="fa-solid fa-credit-card"></i> Pay</button>`;
+                metaHtml = `<span><i class="fa-solid fa-door-open"></i> ${room}</span><span><i class="fa-solid fa-user-group"></i> ${guests} guests</span>`;
+            } else {
+                statusHtml = `<span class="status-pill status-upcoming">Confirmed</span>`;
+                actionHtml = `<button class="view-btn" onclick="viewBookingDetails('${item.booking_id || item.id}')"><i class="fa-solid fa-eye"></i> View</button>`;
+                metaHtml = `<span><i class="fa-solid fa-door-open"></i> ${room}</span><span><i class="fa-solid fa-sterling-sign"></i> ${formatCurrency(balance)}</span>`;
+            }
+            
+            return `
+                <div class="booking-card">
+                    <div class="b-left">
+                        <div class="date-badge">
+                            <div class="db-day">${dayNum}</div>
+                            <div class="db-month">${monthName}</div>
+                        </div>
+                        <div class="b-details">
+                            <h4>${name}</h4>
+                            <div class="b-meta">${metaHtml}</div>
+                        </div>
+                    </div>
+                    <div class="b-right">
+                        ${statusHtml}
+                        &nbsp;&nbsp;
+                        ${actionHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        function viewBookingDetails(bookingId) {
+            // Find booking and open modal
+            const booking = allUpcomingEvents.find(b => (b.booking_id || b.id) == bookingId);
+            if (booking) {
+                const dataStr = encodeURIComponent(JSON.stringify(booking));
+                openBookingModal(dataStr);
+            }
+        }
+
+        function payBooking(bookingId, customerId, balance) {
+            const booking = allOutstandingPayments.find(b => (b.booking_id || b.id) == bookingId);
+            if (booking) {
+                openPayModal(booking);
+            }
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        // END TAB FILTERING & PAGINATION
+        // ══════════════════════════════════════════════════════════════════
 
         function openModal(dataString) {
             const data = JSON.parse(decodeURIComponent(dataString));
@@ -583,10 +772,8 @@
                 document.getElementById('val-revenue').innerText = formatCurrency(metrics.total_revenue_month || 0);
                 document.getElementById('val-revenue-label').innerText = `${MONTHS[revenueMonth-1]} ${revenueYear}`;
                 document.getElementById('val-pending').innerText = metrics.pending_requests || 0;
-                document.getElementById('val-contacted').innerText = metrics.contacted_today || 0;
 
-                // REQUESTS
-                const reqBody = document.getElementById('table-requests');
+                // REQUESTS - Store in global array
                 let requests = data.recent_customers || [];
                 requests = requests.filter(c => c.status === 'pending');
 
@@ -601,37 +788,13 @@
                     }
                 });
 
+                allRequests = uniqueRequests;
+
                 // Fire warning emails for requests with <= 3 days left
                 sendExpiryWarnings(uniqueRequests);
 
-                if (uniqueRequests.length === 0) {
-                    reqBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding: 2rem;">No new pending requests</td></tr>`;
-                } else {
-                    reqBody.innerHTML = uniqueRequests.map(c => {
-                        const dataStr    = encodeURIComponent(JSON.stringify(c));
-                        const daysPassed = c.created_at ? Math.floor((Date.now() - new Date(c.created_at).getTime()) / 86400000) : 0;
-                        const daysLeft   = Math.max(0, 7 - daysPassed);
-                        const badgeCls   = daysLeft <= 1 ? 'danger' : daysLeft <= 3 ? 'warn' : 'ok';
-                        const rowStyle   = daysLeft <= 1 ? 'background:rgba(239,68,68,0.06);' : '';
-                        const canAccept  = c.has_booking === true || c.has_booking === 'true';
-                        const disabledAttr = canAccept ? '' : 'disabled title="Make a booking request first"';
-                        return `
-                        <tr onclick="openModal('${dataStr}')" style="${rowStyle}">
-                            <td><div style="font-weight: 600;">${c.full_name}</div><div style="font-size: 0.8rem; color: var(--text-muted);">${new Date(c.event_date).toLocaleDateString()}</div></td>
-                            <td>${c.event_type}</td>
-                            <td><i class="fa-solid fa-user-group" style="font-size: 0.7rem; margin-right:5px"></i> ${c.guests_count}</td>
-                            <td><span class="status-badge pending">${c.status}</span><br><span class="days-badge ${badgeCls}">${daysLeft}d left</span></td>
-                            <td style="text-align: right;">
-                                <button id="btn-${c.id}" class="btn-action" style="margin-left: auto;" ${disabledAttr} onclick="event.stopPropagation(); markContacted('${c.id}', '${c.full_name.replace(/'/g, "\\'")}')">
-                                    <i class="fa-solid fa-check"></i> Accept
-                                </button>
-                            </td>
-                        </tr>`;
-                    }).join('');
-                }
-
-                // Upcoming Events are loaded by loadAllBookings() from /all-bookings
-                // which provides full customer data (email, phone, time slots)
+                // Render the unified view
+                renderCurrentView();
             } catch (error) { console.error('Error:', error); } finally { refreshIcon.classList.remove('fa-spin'); }
         }
 
@@ -672,9 +835,10 @@
         }
 
         async function markContacted(id, name) {
-            const btn = document.getElementById(`btn-${id}`);
-            const row = btn.closest('tr'); 
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>'; btn.disabled = true;
+            const btn = event.target.closest('button');
+            if (!btn) return;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>'; 
+            btn.disabled = true;
 
             try {
                 const response = await fetch(UPDATE_STATUS_URL, {
@@ -685,15 +849,12 @@
 
                 if (response.ok) {
                     showToast(`${name} accepted`);
-                    // Visual removal
-                    row.style.opacity = '0';
-                    setTimeout(() => row.remove(), 500);
-                    // Background refresh
-                    setTimeout(loadDashboard, 1500); 
+                    // Refresh data to update the view
+                    await loadDashboard(); 
                 } else { throw new Error("Update failed"); }
             } catch (error) {
                 showToast("Failed to update", "error");
-                btn.innerHTML = 'Retry';
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Accept';
                 btn.disabled = false;
             }
         }
@@ -729,6 +890,25 @@
             fetchMonthlyRevenue(revenueMonth, revenueYear);
         }
 
+        function changeBookingsMonth(delta) {
+            bookingsMonth += delta;
+            if (bookingsMonth > 12) { bookingsMonth = 1;  bookingsYear++; }
+            if (bookingsMonth < 1)  { bookingsMonth = 12; bookingsYear--; }
+            // Reload all bookings to recalculate
+            loadAllBookings();
+        }
+
+        function calculateMonthlyBookings(bookings, month, year) {
+            const count = bookings.filter(b => {
+                if (b.status === 'cancelled') return false;
+                const bookingDate = new Date(b.booking_date);
+                return bookingDate.getMonth() + 1 === month && bookingDate.getFullYear() === year;
+            }).length;
+            
+            document.getElementById('val-bookings').innerText = count;
+            document.getElementById('val-bookings-label').innerText = `${MONTHS[month-1]} ${year}`;
+        }
+
         async function cancelRequest(id, name) {
             if (!confirm(`Cancel the pending request for ${name}?`)) return;
             try {
@@ -744,48 +924,53 @@
             } catch(e) { showToast('Failed to cancel', 'error'); }
         }
 
-        // Single fetch for both Upcoming Events and Pre-Booked sections
+        // Single fetch for both Upcoming Events and Outstanding Payments
         async function loadAllBookings() {
-            const container = document.getElementById('prebooked-list');
-            const countEl   = document.getElementById('prebooked-count');
             try {
                 const res  = await fetch(ALL_BOOKINGS_URL, { headers: getAuthHeaders() });
                 const json = await res.json();
                 const raw  = json.data || (Array.isArray(json) ? json : []);
                 updateGlanceStats(raw);
+                
+                // Calculate monthly bookings
+                calculateMonthlyBookings(raw, bookingsMonth, bookingsYear);
+                
                 const now  = new Date(); now.setHours(0,0,0,0);
 
-                // --- UPCOMING EVENTS: all future, not cancelled, deduplicated ---
-                const seenKeys       = new Set();
-                const uniqueUpcoming = [];
-                raw.filter(b => {
-                    if (b.status === 'cancelled') return false;
-                    return new Date(b.booking_date) >= now;
-                }).sort((a, b) => new Date(a.booking_date) - new Date(b.booking_date))
-                  .forEach(b => {
-                    const key = b.id || (b.customer_name + b.booking_date + b.room_name);
-                    if (!seenKeys.has(key)) { seenKeys.add(key); uniqueUpcoming.push(b); }
-                  });
-
-                allUpcomingBookings = uniqueUpcoming;
-                document.getElementById('search-upcoming').value = '';
-                upcomingPage = 1;
-                renderUpcomingRows(allUpcomingBookings);
-
-                // --- PRE-BOOKED: future + balance outstanding ---
-                allPreBookedBookings = raw.filter(b => {
+                // --- OUTSTANDING PAYMENTS: future + balance outstanding ---
+                allOutstandingPayments = raw.filter(b => {
                     if (b.status === 'cancelled') return false;
                     const bDate   = new Date(b.booking_date);
                     const balance = parseFloat(b.balance_due || 0);
                     return bDate >= now && balance > 0;
                 }).sort((a, b) => new Date(a.booking_date) - new Date(b.booking_date));
 
-                countEl.innerText = allPreBookedBookings.length ? `${allPreBookedBookings.length} booking${allPreBookedBookings.length === 1 ? '' : 's'}` : '';
-                document.getElementById('search-prebooked').value = '';
-                renderPreBookedCards(allPreBookedBookings);
+                // --- UPCOMING EVENTS: all future, not cancelled, deduplicated, no balance ---
+                const seenKeys = new Set();
+                const upcoming = raw.filter(b => {
+                    if (b.status === 'cancelled') return false;
+                    const bDate = new Date(b.booking_date);
+                    const balance = parseFloat(b.balance_due || 0);
+                    return bDate >= now && balance === 0;
+                }).sort((a, b) => new Date(a.booking_date) - new Date(b.booking_date));
+
+                allUpcomingEvents = [];
+                upcoming.forEach(b => {
+                    const key = b.id || (b.customer_name + b.booking_date + b.room_name);
+                    if (!seenKeys.has(key)) {
+                        seenKeys.add(key);
+                        allUpcomingEvents.push(b);
+                    }
+                });
+
+                // Render the unified view
+                renderCurrentView();
             } catch(e) {
-                container.innerHTML = `<div style="text-align:center; padding:1.5rem; color:var(--text-muted);">Could not load booking data</div>`;
                 console.error('loadAllBookings error:', e);
+                const container = document.getElementById('main-list-container');
+                if (container) {
+                    container.innerHTML = `<div style="text-align:center; padding:1.5rem; color:var(--text-muted);">Could not load booking data</div>`;
+                }
             }
         }
 
