@@ -527,8 +527,24 @@
         const ROOMS_API     = BASE_API + '/get-rooms';
         const PRICING_API   = BASE_API + '/get-pricing';
         const TYPES_API     = BASE_API + '/get-event-types';
+        const BLOCKED_API   = BASE_API + '/blocked-dates';
 
         const DEPOSIT_PCT = 30;
+
+        let manualBlockedRules = [];
+
+        function isManualDateBlocked(dateStr) {
+            const d = new Date(dateStr + 'T00:00:00');
+            const dow = d.getDay();
+            for (const b of manualBlockedRules) {
+                if (b.block_type === 'recurring' && parseInt(b.day_of_week) === dow) return b.label || 'Closed';
+                if (b.block_type === 'oneoff' && b.block_date && b.block_date.split('T')[0] === dateStr) return b.label || 'Closed';
+                if (b.block_type === 'range' && b.date_from && b.date_to) {
+                    if (dateStr >= b.date_from.split('T')[0] && dateStr <= b.date_to.split('T')[0]) return b.label || 'Closed';
+                }
+            }
+            return null;
+        }
 
         function getAuthHeaders() {
             return { 'Authorization': 'Bearer ' + (localStorage.getItem('vp_token') || '') };
@@ -567,14 +583,16 @@
             }
 
             try {
-                const [rRes, pRes, tRes] = await Promise.all([
+                const [rRes, pRes, tRes, bRes] = await Promise.all([
                     fetch(ROOMS_API,   { headers: getAuthHeaders() }),
                     fetch(PRICING_API, { headers: getAuthHeaders() }),
-                    fetch(TYPES_API,   { headers: getAuthHeaders() })
+                    fetch(TYPES_API,   { headers: getAuthHeaders() }),
+                    fetch(BLOCKED_API).catch(() => null)
                 ]);
                 const rJson = await rRes.json();
                 const pJson = await pRes.json();
                 const tJson = await tRes.json();
+                if (bRes) { try { const bJson = await bRes.json(); manualBlockedRules = bJson.data || []; } catch(e){} }
 
                 roomsData   = rJson.data || (Array.isArray(rJson) ? rJson : []);
                 pricingData = pJson.data || (Array.isArray(pJson) ? pJson : []);
@@ -683,6 +701,16 @@
                 return;
             }
 
+            // Blocked date check
+            const blockLabel = isManualDateBlocked(date);
+            if (blockLabel) {
+                el.className = 'avail-status unavailable';
+                el.querySelector('i').className = 'fa-solid fa-circle-xmark';
+                txt.textContent = `Venue closed on this date (${blockLabel}) — choose a different date`;
+                setButtons(false);
+                return;
+            }
+
             clearTimeout(_availTimeout);
             _availTimeout = setTimeout(async () => {
                 el.className = 'avail-status checking';
@@ -753,6 +781,11 @@
         }
 
         async function submitBooking(type) {
+            const _sbDate = document.getElementById('bookingDate').value;
+            if (_sbDate) {
+                const _sbBlock = isManualDateBlocked(_sbDate);
+                if (_sbBlock) { showToast(`Cannot book — venue is closed on this date (${_sbBlock})`, 'error'); return; }
+            }
             const name     = document.getElementById('customerName').value.trim();
             const phone    = document.getElementById('customerPhone').value.trim();
             const email    = document.getElementById('customerEmail').value.trim();
