@@ -45,6 +45,26 @@
         .fc-list-event-title a{color:var(--text-main) !important;text-decoration:none}
         .fc-list-event-time{color:var(--text-muted) !important}
         .fc-list-empty{background:var(--bg-card) !important;color:var(--text-muted) !important}
+        .fc-bg-event{opacity:0.25 !important}
+        /* ── Blocked Dates Modal ── */
+        .bd-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.72);backdrop-filter:blur(6px);z-index:3000;display:none;justify-content:center;align-items:flex-start;padding-top:3rem;overflow-y:auto}
+        .bd-modal-overlay.open{display:flex}
+        .bd-modal-card{background:#1e293b;border:1px solid var(--border);width:92%;max-width:580px;border-radius:20px;padding:2rem;box-shadow:0 30px 60px rgba(0,0,0,0.5);animation:slideUp 0.25s ease;max-height:80vh;overflow-y:auto;margin-bottom:2rem}
+        .bd-input,.bd-select{background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:8px;color:var(--text-main);padding:9px 12px;font-size:0.88rem;font-family:inherit;width:100%;outline:none;min-height:unset}
+        .bd-input:focus,.bd-select:focus{border-color:#ef4444}
+        .bd-select option{background:#1e293b}
+        .bd-btn-add{background:#ef4444;border:none;color:white;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;font-family:inherit;font-size:0.9rem;min-height:unset;width:100%}
+        .bd-btn-add:hover{background:#dc2626}
+        .bd-item{display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;gap:1rem;margin-bottom:0.5rem}
+        .bd-item-label{font-weight:600;color:white;font-size:0.9rem}
+        .bd-item-detail{font-size:0.8rem;color:var(--text-muted);margin-top:2px}
+        .bd-item-del{background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#ef4444;width:32px;height:32px;min-height:unset;border-radius:6px;cursor:pointer;font-size:0.85rem;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+        .bd-item-del:hover{background:rgba(239,68,68,0.3)}
+        .bd-empty{text-align:center;padding:1.5rem;color:var(--text-muted);font-size:0.88rem}
+        body.light-mode .bd-modal-card{background:#ffffff;border-color:rgba(0,0,0,0.12);color:#0f172a}
+        body.light-mode .bd-input,body.light-mode .bd-select{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.15);color:#0f172a}
+        body.light-mode .bd-item{background:rgba(0,0,0,0.03);border-color:rgba(0,0,0,0.1)}
+        body.light-mode .bd-item-label{color:#0f172a}
         .modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.72);backdrop-filter:blur(6px);z-index:2000;display:none;justify-content:center;align-items:center}
         .modal-overlay.open{display:flex}
         .modal-card{background:#1e293b;border:1px solid var(--border);width:92%;max-width:520px;border-radius:20px;padding:2rem;box-shadow:0 30px 60px rgba(0,0,0,0.5);animation:slideUp 0.25s ease}
@@ -307,6 +327,9 @@
             <a href="calendar.html" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:8px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);color:var(--primary);padding:8px 14px;border-radius:8px;text-decoration:none;font-size:0.85rem;font-weight:600">
                 <i class="fa-solid fa-arrow-up-right-from-square"></i> New tab
             </a>
+            <button onclick="openBlockModal()" style="display:flex;align-items:center;gap:8px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:8px 14px;border-radius:8px;font-family:inherit;font-size:0.85rem;font-weight:600;cursor:pointer;">
+                <i class="fa-solid fa-ban"></i> Blocked Dates
+            </button>
         </header>
         <div class="cal-filter-bar">
             <select id="roomFilter" class="cal-filter-select" onchange="applyFilters()">
@@ -325,10 +348,65 @@
                 <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div> Fully Paid</div>
                 <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div> Balance Due</div>
                 <div class="legend-item"><div class="legend-dot" style="background:#475569"></div> Past Event</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#ef4444;opacity:0.5"></div> Closed</div>
             </div>
         </div>
         <div id="calendar"></div>
     </main>
+
+    <!-- BLOCKED DATES MODAL -->
+    <div id="blockModal" class="bd-modal-overlay" onclick="if(event.target.id==='blockModal')closeBlockModal()">
+        <div class="bd-modal-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+                <h3 style="font-size:1.1rem;font-weight:700;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-ban" style="color:#ef4444"></i> Manage Blocked Dates</h3>
+                <button onclick="closeBlockModal()" style="background:none;border:none;color:var(--text-muted);font-size:1.4rem;cursor:pointer;min-height:unset;">&times;</button>
+            </div>
+            <div style="background:rgba(0,0,0,0.15);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1.25rem;">
+                <div style="font-size:0.78rem;font-weight:600;color:var(--text-muted);margin-bottom:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Add New Block</div>
+                <div style="display:flex;flex-direction:column;gap:0.75rem;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                        <div>
+                            <label style="font-size:0.78rem;color:var(--text-muted);display:block;margin-bottom:4px;">Type</label>
+                            <select id="bd-type" class="bd-select" onchange="toggleBlockFields()">
+                                <option value="recurring">Recurring weekday</option>
+                                <option value="oneoff">Specific date</option>
+                                <option value="range">Date range</option>
+                            </select>
+                        </div>
+                        <div id="bd-field-dow">
+                            <label style="font-size:0.78rem;color:var(--text-muted);display:block;margin-bottom:4px;">Day</label>
+                            <select id="bd-dow" class="bd-select">
+                                <option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option>
+                                <option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option><option value="0">Sunday</option>
+                            </select>
+                        </div>
+                        <div id="bd-field-date" style="display:none;">
+                            <label style="font-size:0.78rem;color:var(--text-muted);display:block;margin-bottom:4px;">Date</label>
+                            <input type="date" id="bd-date" class="bd-input">
+                        </div>
+                    </div>
+                    <div id="bd-field-range" style="display:none;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                        <div>
+                            <label style="font-size:0.78rem;color:var(--text-muted);display:block;margin-bottom:4px;">From</label>
+                            <input type="date" id="bd-from" class="bd-input">
+                        </div>
+                        <div>
+                            <label style="font-size:0.78rem;color:var(--text-muted);display:block;margin-bottom:4px;">To</label>
+                            <input type="date" id="bd-to" class="bd-input">
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size:0.78rem;color:var(--text-muted);display:block;margin-bottom:4px;">Label <span style="opacity:0.65">(shown on calendar)</span></label>
+                        <input type="text" id="bd-label" class="bd-input" placeholder="e.g. Closed, Bank Holiday, Private Event...">
+                    </div>
+                    <button onclick="addBlockedDate()" class="bd-btn-add" id="bd-save-btn"><i class="fa-solid fa-plus"></i> Add Blocked Date</button>
+                </div>
+            </div>
+            <div style="font-size:0.78rem;font-weight:600;color:var(--text-muted);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.05em;">Current Blocks</div>
+            <div id="bd-list-wrap"><div class="bd-empty">No dates blocked yet</div></div>
+        </div>
+    </div>
+
     <div id="eventModal" class="modal-overlay" onclick="if(event.target.id==='eventModal')closeModal()">
         <div class="modal-card">
             <div class="modal-top">
@@ -356,8 +434,100 @@
     </div>
     <script>
         const API_URL='https://n8n.srv1090894.hstgr.cloud/webhook/all-bookings';
+        const BLOCKED_API='https://n8n.srv1090894.hstgr.cloud/webhook/blocked-dates';
+        const DAY_NAMES=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
         const fmt=n=>new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP'}).format(parseFloat(n)||0);
         function getAuthHeaders(){return{'Authorization':'Bearer '+(localStorage.getItem('vp_token')||'')};}
+
+        let allBlockedRules=[], blockedBgEvents=[];
+
+        function generateBlockedBgEvents(rules){
+            const events=[];
+            const rs=new Date(); rs.setMonth(rs.getMonth()-1);
+            const re=new Date(); re.setFullYear(re.getFullYear()+2);
+            for(const b of rules){
+                const label=b.label||'Closed';
+                const ep={blockId:b.id,blockType:b.block_type,label};
+                if(b.block_type==='recurring'&&b.day_of_week!==null&&b.day_of_week!==undefined){
+                    const d=new Date(rs);
+                    while(d.getDay()!==parseInt(b.day_of_week))d.setDate(d.getDate()+1);
+                    while(d<=re){events.push({title:label,start:d.toISOString().split('T')[0],display:'background',backgroundColor:'#ef4444',extendedProps:{...ep,dayName:DAY_NAMES[b.day_of_week]}});d.setDate(d.getDate()+7);}
+                }else if(b.block_type==='oneoff'&&b.block_date){
+                    events.push({title:label,start:b.block_date.split('T')[0],display:'background',backgroundColor:'#ef4444',extendedProps:ep});
+                }else if(b.block_type==='range'&&b.date_from&&b.date_to){
+                    const d=new Date(b.date_from.split('T')[0]+'T00:00:00');
+                    const to=new Date(b.date_to.split('T')[0]+'T00:00:00');
+                    while(d<=to){events.push({title:label,start:d.toISOString().split('T')[0],display:'background',backgroundColor:'#ef4444',extendedProps:ep});d.setDate(d.getDate()+1);}
+                }
+            }
+            return events;
+        }
+
+        async function loadBlockedDates(){
+            try{
+                const res=await fetch(BLOCKED_API);
+                const json=await res.json();
+                allBlockedRules=json.data||[];
+                blockedBgEvents=generateBlockedBgEvents(allBlockedRules);
+            }catch(e){console.warn('Blocked dates load failed:',e);}
+        }
+
+        function openBlockModal(){renderBlockedList();document.getElementById('blockModal').classList.add('open');}
+        function closeBlockModal(){document.getElementById('blockModal').classList.remove('open');}
+
+        function toggleBlockFields(){
+            const t=document.getElementById('bd-type').value;
+            document.getElementById('bd-field-dow').style.display  =t==='recurring'?'':'none';
+            document.getElementById('bd-field-date').style.display =t==='oneoff'?'':'none';
+            const rf=document.getElementById('bd-field-range');
+            rf.style.display=t==='range'?'grid':'none';
+        }
+
+        function renderBlockedList(){
+            const wrap=document.getElementById('bd-list-wrap');
+            if(!allBlockedRules.length){wrap.innerHTML='<div class="bd-empty">No dates blocked yet</div>';return;}
+            wrap.innerHTML=allBlockedRules.map(b=>{
+                let detail='';
+                if(b.block_type==='recurring')detail=`Every ${DAY_NAMES[b.day_of_week]}`;
+                else if(b.block_type==='oneoff')detail=`One-off: ${new Date(b.block_date+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}`;
+                else if(b.block_type==='range')detail=`Range: ${new Date(b.date_from+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})} – ${new Date(b.date_to+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}`;
+                return `<div class="bd-item"><div class="bd-item-info"><div class="bd-item-label">${b.label||'Closed'}</div><div class="bd-item-detail">${detail}</div></div><button class="bd-item-del" onclick="deleteBlockedDate(${b.id})" title="Remove"><i class="fa-solid fa-trash-can"></i></button></div>`;
+            }).join('');
+        }
+
+        async function addBlockedDate(){
+            const type=document.getElementById('bd-type').value;
+            const label=document.getElementById('bd-label').value.trim();
+            const btn=document.getElementById('bd-save-btn');
+            const payload={block_type:type,label:label||'Closed',created_by:'staff'};
+            if(type==='recurring'){payload.day_of_week=parseInt(document.getElementById('bd-dow').value);}
+            else if(type==='oneoff'){const d=document.getElementById('bd-date').value;if(!d){alert('Please select a date');return;}payload.block_date=d;}
+            else if(type==='range'){const f=document.getElementById('bd-from').value,t=document.getElementById('bd-to').value;if(!f||!t){alert('Please select both dates');return;}if(f>t){alert('From date must be before To date');return;}payload.date_from=f;payload.date_to=t;}
+            btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
+            try{
+                const res=await fetch(BLOCKED_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+                const json=await res.json();
+                if(json.success){
+                    allBlockedRules.push(json.data);blockedBgEvents=generateBlockedBgEvents(allBlockedRules);
+                    if(calendarInstance){calendarInstance.removeAllEvents();calendarInstance.addEventSource([...allEvents,...blockedBgEvents]);}
+                    renderBlockedList();document.getElementById('bd-label').value='';
+                }
+            }catch(e){alert('Failed to save. Please try again.');}
+            btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-plus"></i> Add Blocked Date';
+        }
+
+        async function deleteBlockedDate(id){
+            if(!confirm('Remove this block?'))return;
+            try{
+                const res=await fetch(BLOCKED_API,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
+                const json=await res.json();
+                if(json.success){
+                    allBlockedRules=allBlockedRules.filter(b=>b.id!==id);blockedBgEvents=generateBlockedBgEvents(allBlockedRules);
+                    if(calendarInstance){calendarInstance.removeAllEvents();calendarInstance.addEventSource([...allEvents,...blockedBgEvents]);}
+                    renderBlockedList();
+                }
+            }catch(e){alert('Failed to delete. Please try again.');}
+        }
         function toggleMenu() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
@@ -388,11 +558,12 @@
                 if(statusVal==='past')return isPast;
                 return true;
             });
-            if(calendarInstance){calendarInstance.removeAllEvents();calendarInstance.addEventSource(filtered);}
+            if(calendarInstance){calendarInstance.removeAllEvents();calendarInstance.addEventSource([...filtered,...blockedBgEvents]);}}
         }
         document.addEventListener('DOMContentLoaded',async function(){
             const calEl=document.getElementById('calendar');
             try{
+                await loadBlockedDates();
                 const res=await fetch(API_URL,{headers:getAuthHeaders()});
                 const json=await res.json();
                 const raw=json.data||(Array.isArray(json)?json:[]);
@@ -419,7 +590,7 @@
                 calendarInstance=new FullCalendar.Calendar(calEl,{
                     initialView:'dayGridMonth',
                     headerToolbar:{left:'prev,next today',center:'title',right:'dayGridMonth,timeGridWeek,timeGridDay,listWeek'},
-                    events:allEvents,height:'auto',
+                    events:[...allEvents,...blockedBgEvents],height:'auto',
                     eventContent:function(arg){
                         const p=arg.event.extendedProps;
                         const room=p.room_name?`<span style="opacity:0.75;font-size:0.74rem"> \u00b7 ${p.room_name}</span>`:'';

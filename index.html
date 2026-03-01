@@ -1837,6 +1837,30 @@
         // ══════════════════════════════════════════════════════════════════
         const BOOKINGS_API_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/all-bookings';
         const CUST_INTERACTIONS_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/customer-interactions';
+        const CAL_BLOCKED_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/blocked-dates';
+        const CAL_DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        let calBlockedRules = [], calBlockedBgEvents = [];
+
+        function generateCalBlockedBgEvents(rules) {
+            const events = [];
+            const rs = new Date(); rs.setMonth(rs.getMonth()-1);
+            const re = new Date(); re.setFullYear(re.getFullYear()+2);
+            for (const b of rules) {
+                const label = b.label || 'Closed';
+                if (b.block_type==='recurring' && b.day_of_week !== null && b.day_of_week !== undefined) {
+                    const d = new Date(rs);
+                    while (d.getDay() !== parseInt(b.day_of_week)) d.setDate(d.getDate()+1);
+                    while (d <= re) { events.push({title:label,start:d.toISOString().split('T')[0],display:'background',backgroundColor:'#ef4444',extendedProps:{blockId:b.id}}); d.setDate(d.getDate()+7); }
+                } else if (b.block_type==='oneoff' && b.block_date) {
+                    events.push({title:label,start:b.block_date.split('T')[0],display:'background',backgroundColor:'#ef4444',extendedProps:{blockId:b.id}});
+                } else if (b.block_type==='range' && b.date_from && b.date_to) {
+                    const d = new Date(b.date_from.split('T')[0]+'T00:00:00');
+                    const to = new Date(b.date_to.split('T')[0]+'T00:00:00');
+                    while (d <= to) { events.push({title:label,start:d.toISOString().split('T')[0],display:'background',backgroundColor:'#ef4444',extendedProps:{blockId:b.id}}); d.setDate(d.getDate()+1); }
+                }
+            }
+            return events;
+        }
         const fmtCur = n => new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP'}).format(parseFloat(n)||0);
 
         async function loadBookingHistoryForModal(email) {
@@ -2131,9 +2155,13 @@
             const container = document.getElementById('cal-container');
             container.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted);"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading calendar...</div>';
             try {
-                const res = await fetch('https://n8n.srv1090894.hstgr.cloud/webhook/all-bookings', { headers: getAuthHeaders() });
+                const [res, blockedRes] = await Promise.all([
+                    fetch('https://n8n.srv1090894.hstgr.cloud/webhook/all-bookings', { headers: getAuthHeaders() }),
+                    fetch(CAL_BLOCKED_API).catch(()=>null)
+                ]);
                 const json = await res.json();
                 const raw = json.data || (Array.isArray(json) ? json : []);
+                if (blockedRes) { try { const bj = await blockedRes.json(); calBlockedRules = bj.data || []; calBlockedBgEvents = generateCalBlockedBgEvents(calBlockedRules); } catch(e){} }
                 const now = new Date(); now.setHours(0,0,0,0);
                 const rooms = [...new Set(raw.map(e => e.room_name).filter(Boolean))].sort();
                 const roomSel = document.getElementById('cal-room-filter');
@@ -2159,7 +2187,7 @@
                 calInstance = new FullCalendar.Calendar(container, {
                     initialView: 'dayGridMonth',
                     headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,listWeek' },
-                    events: calAllEvents,
+                    events: [...calAllEvents, ...calBlockedBgEvents],
                     height: 'auto',
                     eventContent: function(arg) {
                         const p = arg.event.extendedProps;
@@ -2210,7 +2238,7 @@
                 return true;
             });
             calInstance.removeAllEvents();
-            calInstance.addEventSource(filtered);
+            calInstance.addEventSource([...filtered, ...calBlockedBgEvents]);
         }
 
         // ── THEME PERSISTENCE ──

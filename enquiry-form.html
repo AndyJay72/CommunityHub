@@ -327,19 +327,36 @@
         const CHECK_API  = 'https://n8n.srv1090894.hstgr.cloud/webhook/check-availability';
         const SUBMIT_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/d057a40e-fb3e-402a-8ed7-fe16bce70feb';
         const BASE_API   = 'https://n8n.srv1090894.hstgr.cloud/webhook';
+        const BLOCKED_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/blocked-dates';
 
         let isAvailable  = false;
         let isSubmitting = false;
+        let enquiryBlockedRules = [];
+
+        function isDateBlocked(dateStr) {
+            const d = new Date(dateStr + 'T00:00:00');
+            const dow = d.getDay();
+            for (const b of enquiryBlockedRules) {
+                if (b.block_type === 'recurring' && parseInt(b.day_of_week) === dow) return b.label || 'Closed';
+                if (b.block_type === 'oneoff' && b.block_date && b.block_date.split('T')[0] === dateStr) return b.label || 'Closed';
+                if (b.block_type === 'range' && b.date_from && b.date_to) {
+                    if (dateStr >= b.date_from.split('T')[0] && dateStr <= b.date_to.split('T')[0]) return b.label || 'Closed';
+                }
+            }
+            return null;
+        }
 
         // === LOAD ROOMS & EVENT TYPES DYNAMICALLY ===
         async function loadRoomsAndTypes() {
             try {
-                const [rRes, eRes] = await Promise.all([
+                const [rRes, eRes, bRes] = await Promise.all([
                     fetch(BASE_API + '/get-rooms'),
-                    fetch(BASE_API + '/get-event-types')
+                    fetch(BASE_API + '/get-event-types'),
+                    fetch(BLOCKED_API).catch(()=>null)
                 ]);
                 const rJson = await rRes.json();
                 const eJson = await eRes.json();
+                if (bRes) { try { const bJson = await bRes.json(); enquiryBlockedRules = bJson.data || []; } catch(e){} }
                 const rooms = (rJson.data || rJson).filter(r => r.is_active);
                 const types = (eJson.data || eJson).filter(e => e.is_active);
 
@@ -399,6 +416,13 @@
             box.className = 'status-box';
 
             if (!room || !date || !start || !end) return;
+
+            // Blocked date check
+            const blockLabel = isDateBlocked(date);
+            if (blockLabel) {
+                showStatus('error', `Sorry, the venue is closed on this date (${blockLabel}).`);
+                return;
+            }
 
             // Logic Check
             if (start >= end) {
