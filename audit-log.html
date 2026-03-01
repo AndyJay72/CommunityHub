@@ -255,23 +255,43 @@
             }
         }
 
+        
+        /* ── SIDEBAR COLLAPSE (desktop/tablet) ── */
+        aside { transition: width 0.3s ease, padding 0.3s ease, transform 0.3s ease !important; overflow: hidden; }
+        main  { transition: margin-left 0.3s ease !important; }
+        .brand-text { transition: opacity 0.15s ease; white-space: nowrap; overflow: hidden; display: inline; }
+        .nav-label  { transition: opacity 0.15s ease; white-space: nowrap; overflow: hidden; display: inline; }
+        .sidebar-collapse-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.85rem; padding: 4px 7px; border-radius: 6px; line-height: 1; min-height: unset; flex-shrink: 0; }
+        .sidebar-collapse-btn i { display: inline-block; transition: transform 0.3s ease; }
+        .sidebar-collapse-btn:hover { color: var(--primary); }
+        body.sidebar-collapsed .sidebar-collapse-btn i { transform: rotate(180deg); }
+        body.sidebar-collapsed aside { width: 68px; padding: 1.25rem 0.6rem; }
+        body.sidebar-collapsed main  { margin-left: 68px; }
+        body.sidebar-collapsed .brand-text { opacity: 0; width: 0; display: inline-block; }
+        body.sidebar-collapsed .nav-label  { opacity: 0; width: 0; display: inline-block; }
+        body.sidebar-collapsed .nav-link   { justify-content: center; gap: 0; padding: 12px 8px; font-size: 1.05rem; }
+        body.sidebar-collapsed .close-sidebar { display: none !important; }
+        body.sidebar-collapsed .nav-link { position: relative; }
+        body.sidebar-collapsed .nav-link:hover::after { content: attr(data-label); position: absolute; left: calc(100% + 12px); top: 50%; transform: translateY(-50%); background: rgba(15,23,42,0.97); color: var(--text-main); padding: 5px 12px; border-radius: 7px; font-size: 0.82rem; white-space: nowrap; pointer-events: none; border: 1px solid var(--border); z-index: 300; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+        body.light-mode.sidebar-collapsed .nav-link:hover::after { background: #fff; color: #1e293b; border-color: rgba(0,0,0,0.1); }
+        @media (max-width: 768px) { body.sidebar-collapsed aside { width: var(--sidebar-width); padding: 2rem; } body.sidebar-collapsed main { margin-left: 0; } body.sidebar-collapsed .brand-text { opacity: 1; width: auto; } body.sidebar-collapsed .nav-label { opacity: 1; width: auto; } body.sidebar-collapsed .nav-link { justify-content: flex-start; gap: 12px; padding: 12px 16px; font-size: inherit; } }
         </style>
 </head>
 <body>
     <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
     <aside id="sidebar">
-        <div class="brand"><span><i class="fa-solid fa-layer-group"></i> VenuePro</span><button class="close-sidebar" onclick="toggleMenu()"><i class="fa-solid fa-xmark"></i></button></div>
+        <div class="brand"><span><i class="fa-solid fa-layer-group"></i><span class="brand-text">VenuePro</span></span><div style="display:flex;align-items:center;gap:2px;"><button class="sidebar-collapse-btn" onclick="toggleSidebarCollapse()" title="Collapse sidebar"><i class="fa-solid fa-chevron-left"></i></button><button class="close-sidebar" onclick="toggleMenu()"><i class="fa-solid fa-xmark"></i></button></div></div>
         <nav>
-            <a href="index.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
-            <a href="bookings.html" class="nav-link"><i class="fa-solid fa-calendar-days"></i> Bookings</a>
-            <a href="calendar.html" class="nav-link"><i class="fa-solid fa-calendar-alt"></i> Calendar</a>
-            <a href="customers.html" class="nav-link"><i class="fa-solid fa-users"></i> Customers</a>
-            <a href="accounts.html" class="nav-link"><i class="fa-solid fa-file-invoice-dollar"></i> Accounts</a>
-            <a href="audit-log.html" class="nav-link active"><i class="fa-solid fa-clock-rotate-left"></i> Audit Log</a>
-            <a href="enquiry-form.html" class="nav-link" target="_blank"><i class="fa-solid fa-file-pen"></i> New Booking</a>
-            <a href="manual-booking.html" class="nav-link"><i class="fa-solid fa-person-walking-arrow-right"></i> Walk-In Booking</a>
-            <a href="users.html" class="nav-link"><i class="fa-solid fa-user-shield"></i> Users</a>
-            <a href="#" onclick="logout()" class="nav-link" style="margin-top:auto;color:#ef4444;border-top:1px solid rgba(255,255,255,0.05)"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            <a href="index.html" class="nav-link" data-label="Dashboard"><i class="fa-solid fa-chart-pie"></i><span class="nav-label"> Dashboard</span></a>
+            <a href="bookings.html" class="nav-link" data-label="Bookings"><i class="fa-solid fa-calendar-days"></i><span class="nav-label"> Bookings</span></a>
+            <a href="calendar.html" class="nav-link" data-label="Calendar"><i class="fa-solid fa-calendar-alt"></i><span class="nav-label"> Calendar</span></a>
+            <a href="customers.html" class="nav-link" data-label="Customers"><i class="fa-solid fa-users"></i><span class="nav-label"> Customers</span></a>
+            <a href="accounts.html" class="nav-link" data-label="Accounts"><i class="fa-solid fa-file-invoice-dollar"></i><span class="nav-label"> Accounts</span></a>
+            <a href="audit-log.html" class="nav-link active" data-label="Audit Log"><i class="fa-solid fa-clock-rotate-left"></i><span class="nav-label"> Audit Log</span></a>
+            <a href="enquiry-form.html" class="nav-link" target="_blank" data-label="New Booking"><i class="fa-solid fa-file-pen"></i><span class="nav-label"> New Booking</span></a>
+            <a href="manual-booking.html" class="nav-link" data-label="Walk-In Booking"><i class="fa-solid fa-person-walking-arrow-right"></i><span class="nav-label"> Walk-In Booking</span></a>
+            <a href="users.html" class="nav-link" data-label="Users"><i class="fa-solid fa-user-shield"></i><span class="nav-label"> Users</span></a>
+            <a href="#" onclick="logout()" class="nav-link" style="margin-top:auto;color:#ef4444;border-top:1px solid rgba(255,255,255,0.05)" data-label="Logout"><i class="fa-solid fa-right-from-bracket"></i><span class="nav-label"> Logout</span></a>
         </nav>
     </aside>
     <main>
@@ -453,6 +473,12 @@
         }
         loadData();
     
+
+        function toggleSidebarCollapse(){
+            const col=document.body.classList.toggle('sidebar-collapsed');
+            localStorage.setItem('vp_sidebar_col',col?'1':'0');
+        }
+        (function(){if(localStorage.getItem('vp_sidebar_col')==='1')document.body.classList.add('sidebar-collapsed');})();
         // ── THEME PERSISTENCE ──
         (function(){ var t=localStorage.getItem('vp_theme'); if(t==='light') document.body.classList.add('light-mode'); })();
         function toggleTheme(){
