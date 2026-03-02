@@ -962,6 +962,7 @@
                 notes:          document.getElementById('notes').value || '',
                 total_amount:   total,
                 payment_amount: payAmount,
+                balance_due:    parseFloat((total - payAmount).toFixed(2)),
                 payment_type:   type === 'full' ? 'full' : 'deposit',
                 payment_method: document.getElementById('payMethodSelect').value,
                 booking_source: 'walk_in'

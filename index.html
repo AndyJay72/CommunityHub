@@ -1198,7 +1198,7 @@
             } else {
                 statusHtml = `<span class="status-pill status-upcoming">Confirmed</span>`;
                 actionHtml = `<button class="view-btn" onclick="event.stopPropagation();viewBookingDetails('${item.booking_id || item.id}')"><i class="fa-solid fa-eye"></i> View</button>`;
-                metaHtml = `<span><i class="fa-solid fa-door-open"></i> ${room}</span><span><i class="fa-solid fa-sterling-sign"></i> ${formatCurrency(balance)}</span>`;
+                metaHtml = `<span><i class="fa-solid fa-door-open"></i> ${room}</span><span><i class="fa-solid fa-circle-check" style="color:var(--success)"></i> ${formatCurrency(item.total_amount || 0)} Paid</span>`;
                 const upDataStr = encodeURIComponent(JSON.stringify(item));
                 cardOnclick = `openBookingModal('${upDataStr}')`;
             }
@@ -1726,10 +1726,10 @@
         function filterUpcoming() {
             const term = document.getElementById('search-upcoming').value.toLowerCase().trim();
             const filtered = term
-                ? allUpcomingBookings.filter(b =>
+                ? allUpcomingEvents.filter(b =>
                     (b.customer_name||'').toLowerCase().includes(term) ||
                     (b.customer_email||'').toLowerCase().includes(term))
-                : allUpcomingBookings;
+                : allUpcomingEvents;
             upcomingPage = 1;
             renderUpcomingRows(filtered);
         }
@@ -1737,10 +1737,10 @@
         function filterPreBooked() {
             const term = document.getElementById('search-prebooked').value.toLowerCase().trim();
             const filtered = term
-                ? allPreBookedBookings.filter(b =>
+                ? allOutstandingPayments.filter(b =>
                     (b.customer_name||'').toLowerCase().includes(term) ||
                     (b.customer_email||'').toLowerCase().includes(term))
-                : allPreBookedBookings;
+                : allOutstandingPayments;
             renderPreBookedCards(filtered);
         }
 
