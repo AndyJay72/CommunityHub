@@ -503,7 +503,7 @@
                 const now = new Date(); now.setHours(0,0,0,0); 
 
                 allBookings = rawData.map(b => {
-                    const bDate = new Date(b.booking_date);
+                    const bDate = new Date(b.date_to || b.booking_date); // use date_to so multi-day bookings stay active until last day
                     const balance = parseFloat(b.balance_due || 0);
                     let category = 'pre';
                     
