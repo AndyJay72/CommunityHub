@@ -1484,7 +1484,7 @@
                 // --- OUTSTANDING PAYMENTS: future + balance outstanding ---
                 allOutstandingPayments = raw.filter(b => {
                     if (b.status === 'cancelled') return false;
-                    const bDate   = new Date(b.booking_date);
+                    const bDate   = new Date(b.date_to || b.booking_date); // use date_to so multi-day events stay visible until last day
                     const balance = parseFloat(b.balance_due || 0);
                     return bDate >= now && balance > 0;
                 }).sort((a, b) => new Date(a.booking_date) - new Date(b.booking_date));
@@ -1493,7 +1493,7 @@
                 const seenKeys = new Set();
                 const upcoming = raw.filter(b => {
                     if (b.status === 'cancelled') return false;
-                    const bDate = new Date(b.booking_date);
+                    const bDate = new Date(b.date_to || b.booking_date); // use date_to so multi-day events stay visible until last day
                     const balance = parseFloat(b.balance_due || 0);
                     return bDate >= now && balance === 0;
                 }).sort((a, b) => new Date(a.booking_date) - new Date(b.booking_date));
