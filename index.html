@@ -1287,7 +1287,7 @@
             }
             // Hide history/interactions — not needed for New Request view
             document.getElementById('bh-section').style.display = 'none';
-            document.getElementById('modal-int-section').style.display = 'none';
+            const _mis1 = document.getElementById('modal-int-section'); if (_mis1) _mis1.style.display = 'none';
             document.getElementById('custModal').classList.add('open');
         }
         function closeModal(e) { if(!e || e.target.id === 'custModal' || e.target.classList.contains('modal-close') || e.target.innerText === 'Close') document.getElementById('custModal').classList.remove('open'); }
@@ -1938,6 +1938,7 @@
             const loadingEl  = document.getElementById('modal-int-loading');
             const listEl     = document.getElementById('modal-int-list');
             const noneEl     = document.getElementById('modal-int-none');
+            if (!loadingEl || !listEl || !noneEl) return;
             loadingEl.style.display = 'block'; listEl.innerHTML = ''; noneEl.style.display = 'none';
             try {
                 const res  = await fetch(`${CUST_INTERACTIONS_API}?email=${encodeURIComponent(email)}`, { headers: getAuthHeaders() });
@@ -2176,10 +2177,9 @@
             btnContainer.innerHTML = `<button class="btn-modal btn-close" onclick="closeModal()">Close</button>`;
             // Show history/interactions for Customers tab
             document.getElementById('bh-section').style.display = '';
-            document.getElementById('modal-int-section').style.display = '';
+            const _mis2 = document.getElementById('modal-int-section'); if (_mis2) _mis2.style.display = '';
             document.getElementById('custModal').classList.add('open');
             loadBookingHistoryForModal(c.email);
-            loadCustInteractions(c.email);
         }
 
         // ══════════════════════════════════════════════════════════════════
