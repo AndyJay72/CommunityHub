@@ -679,7 +679,11 @@
                 requestsData.forEach((req, index) => {
                     const opt = document.createElement('option');
                     opt.value = index;
-                    const dateStr = req.requested_date ? new Date(req.requested_date).toLocaleDateString() : '';
+                    const _df = req.date_from || req.requested_date || '';
+                    const _dt = req.date_to || req.date_from || req.requested_date || '';
+                    const dateStr = _df ? (_df.slice(0,10) !== _dt.slice(0,10)
+                        ? `${new Date(_df+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'})} – ${new Date(_dt+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'})}`
+                        : new Date(_df+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'})) : '';
                     opt.text = `${req.full_name} | ${req.room_name} | ${dateStr}`;
                     select.add(opt);
                 });
