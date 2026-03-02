@@ -549,7 +549,11 @@
                     if(st === 'cancelled') pill += `background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.3);">${st}</span>`;
                     else if(bal <= 0) pill += `background:rgba(16,185,129,0.15);color:#10b981;border:1px solid rgba(16,185,129,0.3);">Paid</span>`;
                     else pill += `background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);">Balance Due</span>`;
-                    const dateStr = b.booking_date ? new Date(b.booking_date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
+                    const fmtD = d => { try { return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}); } catch(e){return d;} };
+                    const dateStr = (b.date_from && b.date_to && b.date_to.slice(0,10) !== b.date_from.slice(0,10))
+                        ? `${fmtD(b.date_from)} – ${fmtD(b.date_to)}`
+                        : b.date_from ? fmtD(b.date_from)
+                        : b.booking_date ? fmtD(b.booking_date) : '—';
                     const bookingData = encodeURIComponent(JSON.stringify(b));
                     return `<tr onclick="openInteractionModal('${bookingData}')"><td>${dateStr}</td><td>${b.room_name||'—'}</td><td>${fmtCur(b.total_amount)}</td><td style="color:${bal>0?'#f59e0b':'#10b981'}">${fmtCur(bal)}</td><td>${pill}</td></tr>`;
                 }).join('');
@@ -568,7 +572,12 @@
             document.getElementById('m-email').innerText = data.email || 'N/A';
             document.getElementById('m-phone').innerText = data.phone || 'N/A';
             document.getElementById('m-event').innerText = data.event_type || 'N/A';
-            document.getElementById('m-date').innerText = data.event_date ? new Date(data.event_date).toLocaleDateString() : 'N/A';
+            const fmtMD = d => { try { return new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); } catch(e){return d;} };
+            document.getElementById('m-date').innerText =
+                (data.date_from && data.date_to && data.date_to.slice(0,10) !== data.date_from.slice(0,10))
+                    ? `${fmtMD(data.date_from)} – ${fmtMD(data.date_to)}`
+                    : data.date_from ? fmtMD(data.date_from)
+                    : data.event_date ? fmtMD(data.event_date) : 'N/A';
             document.getElementById('m-status').innerText = data.status || 'N/A';
             document.getElementById('m-guests').innerText = data.guests_count || '0';
 
@@ -610,7 +619,7 @@
                         <td><div style="font-weight:600; color:white;">${c.full_name}</div></td>
                         <td><div>${c.email}</div><div style="font-size:0.8rem; color:var(--text-muted)">${c.phone || ''}</div></td>
                         <td>${c.event_type || 'General'}</td>
-                        <td>${c.event_date ? new Date(c.event_date).toLocaleDateString() : 'N/A'}</td>
+                        <td>${(c.date_from && c.date_to && c.date_to.slice(0,10) !== c.date_from.slice(0,10)) ? `${new Date(c.date_from).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'})} – ${new Date(c.date_to).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'})}` : c.date_from ? new Date(c.date_from).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}) : c.event_date ? new Date(c.event_date).toLocaleDateString() : 'N/A'}</td>
                         <td><span class="status-badge ${badgeClass}">${statusLabel}</span></td>
                     </tr>`;
                 }).join('');
@@ -652,7 +661,12 @@
             currentCustomerData = { customer, booking };
             
             const infoGrid = document.getElementById('interaction-info');
-            const dateStr = booking.booking_date ? new Date(booking.booking_date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : 'N/A';
+            const fmtID = d => { try { return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); } catch(e){return d;} };
+            const dateStr = (booking.date_from && booking.date_to && booking.date_to.slice(0,10) !== booking.date_from.slice(0,10))
+                ? `${fmtID(booking.date_from)} – ${fmtID(booking.date_to)}`
+                : booking.date_from ? fmtID(booking.date_from)
+                : booking.booking_date ? fmtID(booking.booking_date) : 'N/A';
+            const dateLabelStr = (booking.date_from && booking.date_to && booking.date_to.slice(0,10) !== booking.date_from.slice(0,10)) ? 'Booking Dates' : 'Booking Date';
             infoGrid.innerHTML = `
                 <div class="interaction-info-item">
                     <div class="interaction-info-label">Customer</div>
@@ -663,7 +677,7 @@
                     <div class="interaction-info-value">${customer.email}</div>
                 </div>
                 <div class="interaction-info-item">
-                    <div class="interaction-info-label">Booking Date</div>
+                    <div class="interaction-info-label">${dateLabelStr}</div>
                     <div class="interaction-info-value">${dateStr}</div>
                 </div>
                 <div class="interaction-info-item">

@@ -312,6 +312,15 @@
                     </div>
                 </div>
 
+                <!-- NOTES -->
+                <div class="input-group" style="grid-column: span 2;">
+                    <label>Notes <span style="font-weight:400; text-transform:none; color:var(--text-muted);">(Optional)</span></label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-note-sticky icon" style="top:16px; transform:none;"></i>
+                        <textarea id="notes" placeholder="Any special requirements, accessibility needs or additional information..." rows="3" style="padding-top:12px; padding-bottom:12px; height:auto; resize:vertical;"></textarea>
+                    </div>
+                </div>
+
                 <!-- FEEDBACK -->
                 <div id="statusBox" class="status-box"></div>
 
@@ -512,7 +521,8 @@
                 eventDate: document.getElementById('dateFrom').value,
                 timeFrom: document.getElementById('timeFrom').value,
                 timeTo: document.getElementById('timeTo').value,
-                numPeople: document.getElementById('numPeople').value
+                numPeople: document.getElementById('numPeople').value,
+                notes: document.getElementById('notes').value || ''
             };
 
             try {
