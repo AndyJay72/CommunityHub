@@ -114,6 +114,9 @@
         .price-input.unsaved { border-color: var(--warning); }
         .save-cell-btn { position: absolute; right: 2px; top: 50%; transform: translateY(-50%); background: var(--success); color: white; border: none; border-radius: 4px; padding: 3px 7px; font-size: 0.7rem; cursor: pointer; display: none; }
         .pricing-cell:hover .save-cell-btn { display: block; }
+        .del-price-btn { position: absolute; top: 3px; right: 3px; background: rgba(239,68,68,0.15); color: var(--danger); border: none; border-radius: 4px; width: 18px; height: 18px; font-size: 0.65rem; cursor: pointer; display: none; align-items: center; justify-content: center; line-height: 1; transition: background 0.15s; padding: 0; }
+        .del-price-btn:hover { background: var(--danger); color: white; }
+        .pricing-cell:hover .del-price-btn { display: flex; }
         .room-label { font-weight: 600; text-align: left !important; color: var(--text-main); }
         .rate-default { font-size: 0.7rem; color: var(--text-muted); display: block; margin-top: 2px; }
 
@@ -552,6 +555,7 @@ const API = {
     deleteEventType:BASE + '/delete-event-type',
     getPricing:     BASE + '/get-pricing',
     setPricing:     BASE + '/set-pricing',
+    deletePricing:  BASE + '/delete-pricing',
     getSettings:    BASE + '/get-settings',
     updateSetting:  BASE + '/update-setting',
 };
@@ -889,6 +893,7 @@ function renderPricingGrid() {
         activeTypes.forEach(et => {
             const key = `${r.id}-${et.id}`;
             const val = priceMap[key] != null ? parseFloat(priceMap[key]) : '';
+            const hasOverride = val !== '';
             html += `<td class="pricing-cell">
                 <input class="price-input" type="number" min="0" step="0.01"
                     placeholder="${parseFloat(r.day_rate).toFixed(0)}"
@@ -896,6 +901,7 @@ function renderPricingGrid() {
                     data-room="${r.id}" data-type="${et.id}"
                     oninput="this.classList.add('unsaved')"
                     onblur="savePricingCell(this)">
+                ${hasOverride ? `<button class="del-price-btn" title="Remove rate override" onclick="deletePricingCell('${r.id}','${et.id}',this)"><i class="fa-solid fa-xmark"></i></button>` : ''}
             </td>`;
         });
         html += `</tr>`;
@@ -915,8 +921,12 @@ async function savePricingCell(input) {
     const event_type_id = input.dataset.type;
     const val = input.value.trim();
 
-    // Blank = remove override (use room default) — not implemented in this version
-    if (val === '') { input.classList.remove('unsaved'); return; }
+    // Blank = remove override — call delete endpoint
+    if (val === '') {
+        input.classList.remove('unsaved');
+        await deletePricingCell(room_id, event_type_id, null, input);
+        return;
+    }
 
     const day_rate = parseFloat(val);
     if (isNaN(day_rate) || day_rate < 0) { showToast('Invalid price', 'error'); return; }
@@ -931,6 +941,28 @@ async function savePricingCell(input) {
         // Refresh local pricing cache silently
         await loadPricing();
     } catch(e) { showToast('Failed to save price', 'error'); }
+}
+
+async function deletePricingCell(room_id, event_type_id, btn, inputEl) {
+    // btn = the × button element (may be null if called from blank-save)
+    // inputEl = the price input (may be null if called from × button click)
+    const cell = btn ? btn.closest('td') : (inputEl ? inputEl.closest('td') : null);
+    try {
+        const res = await fetch(API.deletePricing, {
+            method: 'POST', headers: getAuthHeaders(),
+            body: JSON.stringify(withRole({ room_id, event_type_id }))
+        });
+        if (!res.ok) throw new Error('Failed');
+        // Clear input value and remove the × button
+        if (cell) {
+            const inp = cell.querySelector('.price-input');
+            if (inp) { inp.value = ''; inp.classList.remove('unsaved'); }
+            const delBtn = cell.querySelector('.del-price-btn');
+            if (delBtn) delBtn.remove();
+        }
+        await loadPricing();
+        showToast('Rate override removed', 'success');
+    } catch(e) { showToast('Failed to remove rate', 'error'); }
 }
 
 // ─────────────────────────────────────────────
