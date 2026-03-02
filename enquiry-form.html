@@ -109,6 +109,15 @@
         }
         .submit-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px -5px rgba(99,102,241,0.5); }
         .submit-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+        .multi-day-btn {
+            width: 100%; padding: 0.6rem 1rem; border-radius: 8px;
+            font-size: 0.85rem; font-weight: 600; font-family: inherit;
+            cursor: pointer; transition: all 0.2s;
+            border: 1.5px solid var(--primary); background: transparent;
+            color: var(--primary); display: flex; align-items: center;
+            justify-content: center; gap: 0.45rem;
+        }
+        .multi-day-btn.active { background: var(--primary); color: #fff; }
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
         .toast {
             background: #1e293b; color: white; padding: 1rem 1.5rem;
@@ -197,10 +206,9 @@
                     </div>
                 </div>
                 <div class="input-group" style="align-self:flex-end;">
-                    <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-weight:500;color:var(--text-main);">
-                        <input type="checkbox" id="multiDayToggle" onchange="toggleMultiDay()" style="width:1.1rem;height:1.1rem;accent-color:var(--primary);cursor:pointer;">
-                        Requires multiple days
-                    </label>
+                    <button type="button" id="multiDayToggle" onclick="toggleMultiDay()" class="multi-day-btn">
+                        <i class="fa-solid fa-calendar-week"></i> Requires multiple days
+                    </button>
                 </div>
                 <div id="multiDayFields" style="display:none;grid-column:span 2;">
                     <div class="form-grid" style="margin:0;">
@@ -334,7 +342,10 @@
         }
 
         function toggleMultiDay() {
-            const isMulti = document.getElementById('multiDayToggle').checked;
+            const btn = document.getElementById('multiDayToggle');
+            const isMulti = btn.dataset.active !== 'true';
+            btn.dataset.active = isMulti;
+            btn.classList.toggle('active', isMulti);
             document.getElementById('singleDateGroup').style.display = isMulti ? 'none' : '';
             document.getElementById('multiDayFields').style.display  = isMulti ? '' : 'none';
             const ev = document.getElementById('eventDate');
@@ -351,7 +362,7 @@
         async function checkAvailability() {
             if (isSubmitting) return;
             const room     = document.getElementById('roomName').value;
-            const isMulti  = document.getElementById('multiDayToggle').checked;
+            const isMulti  = document.getElementById('multiDayToggle').dataset.active === 'true';
             const dateFrom = isMulti ? document.getElementById('dateFrom').value : document.getElementById('eventDate').value;
             const dateTo   = isMulti ? document.getElementById('dateTo').value   : document.getElementById('eventDate').value;
             const start    = document.getElementById('timeFrom').value;
@@ -400,9 +411,9 @@
             const payload = {
                 name:g('name'), email:g('email'), contact:g('phone'),
                 roomName:g('roomName'), eventType:g('eventType'),
-                dateFrom:document.getElementById('multiDayToggle').checked ? g('dateFrom') : g('eventDate'),
-                dateTo:document.getElementById('multiDayToggle').checked   ? g('dateTo')   : g('eventDate'),
-                eventDate:document.getElementById('multiDayToggle').checked ? g('dateFrom') : g('eventDate'),
+                dateFrom:document.getElementById('multiDayToggle').dataset.active === 'true' ? g('dateFrom') : g('eventDate'),
+                dateTo:document.getElementById('multiDayToggle').dataset.active === 'true'   ? g('dateTo')   : g('eventDate'),
+                eventDate:document.getElementById('multiDayToggle').dataset.active === 'true' ? g('dateFrom') : g('eventDate'),
                 timeFrom:g('timeFrom'), timeTo:g('timeTo'),
                 numPeople:g('numPeople'), notes:g('notes')||''
             };
