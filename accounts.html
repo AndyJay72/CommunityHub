@@ -350,7 +350,7 @@
                 <div class="invoice-section">
                     <div class="invoice-section-title">Booking Details</div>
                     <div class="invoice-row"><span class="ilabel">Room</span><span class="ivalue" id="invRoom">—</span></div>
-                    <div class="invoice-row"><span class="ilabel">Booking Date</span><span class="ivalue" id="invBookingDate">—</span></div>
+                    <div class="invoice-row"><span class="ilabel">Event Date(s)</span><span class="ivalue" id="invBookingDate">—</span></div>
                     <div class="invoice-row"><span class="ilabel">Time</span><span class="ivalue" id="invTime">—</span></div>
                     <div class="invoice-row"><span class="ilabel">Total Booking Value</span><span class="ivalue" id="invTotal">—</span></div>
                 </div>
@@ -525,6 +525,15 @@
             if (overlay) overlay.classList.remove('active');
         }
 
+        function fmtTxDate(t) {
+            const f = t.date_from, e = t.date_to;
+            const fmtD = s => new Date(s.split('T')[0]+'T00:00:00').toLocaleDateString('en-GB');
+            if (f && e && e.slice(0,10) !== f.slice(0,10)) return fmtD(f) + ' – ' + fmtD(e);
+            if (f) return fmtD(f);
+            if (t.booking_date) return new Date(t.booking_date).toLocaleDateString('en-GB');
+            return '—';
+        }
+
         function typeClass(t, bDue) {
             if (!t) return '';
             t = t.toLowerCase();
@@ -603,7 +612,7 @@
                 const amt    = parseFloat(t.amount);
                 const color  = amt < 0 ? 'var(--danger)' : 'var(--success)';
                 const pDate  = t.payment_date ? new Date(t.payment_date).toLocaleDateString('en-GB') : '—';
-                const bDate  = t.booking_date  ? new Date(t.booking_date).toLocaleDateString('en-GB')  : '—';
+                const bDate  = fmtTxDate(t);
                 const time   = (t.start_time && t.end_time) ? t.start_time + ' \u2013 ' + t.end_time : '';
                 const isLink = t.payment_type && t.payment_type.toLowerCase() !== 'deposit' && t.deposit_reference;
                 return '<tr class="clickable" onclick="showInvoice(' + i + ')">' +
@@ -622,11 +631,11 @@
 
         function exportTransactionsCSV() {
             if (!allTransactions.length) { alert('No transactions to export.'); return; }
-            const cols = ['Payment Date','Reference','Linked To (Deposit Ref)','Customer Name','Customer Email','Room','Booking Date','Start Time','End Time','Payment Type','Payment Method','Amount (GBP)','Total Booking Value (GBP)','Status'];
+            const cols = ['Payment Date','Reference','Linked To (Deposit Ref)','Customer Name','Customer Email','Room','Event Date(s)','Start Time','End Time','Payment Type','Payment Method','Amount (GBP)','Total Booking Value (GBP)','Status'];
             const escape = v => { const s = String(v == null ? '' : v).replace(/"/g, '""'); return /[",\n\r]/.test(s) ? `"${s}"` : s; };
             const rows = allTransactions.map(t => {
                 const pDate = t.payment_date ? new Date(t.payment_date).toLocaleDateString('en-GB') : '';
-                const bDate = t.booking_date  ? new Date(t.booking_date).toLocaleDateString('en-GB')  : '';
+                const bDate = fmtTxDate(t);
                 return [
                     pDate,
                     t.reference_number || '',
@@ -660,7 +669,7 @@
             if (!t) return;
 
             const pDateFull = t.payment_date ? new Date(t.payment_date).toLocaleString('en-GB') : '—';
-            const bDate     = t.booking_date  ? new Date(t.booking_date).toLocaleDateString('en-GB')  : '—';
+            const bDate     = fmtTxDate(t);
             const time      = (t.start_time && t.end_time) ? t.start_time + ' \u2013 ' + t.end_time : '—';
             const amt       = parseFloat(t.amount);
             const isDeposit = (t.payment_type || '').toLowerCase() === 'deposit';
