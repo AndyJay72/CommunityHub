@@ -1164,7 +1164,7 @@
             const isOutstanding = item.balance_due && parseFloat(item.balance_due) > 0 && item.booking_date;
             const isUpcoming = item.booking_date && !isOutstanding && !isRequest;
             
-            const date = new Date(item.event_date || item.booking_date);
+            const date = new Date(item.date_from || item.requested_date || item.event_date || item.booking_date);
             const dayNum = date.getDate();
             const monthName = MONTHS[date.getMonth()];
             
