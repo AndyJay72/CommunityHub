@@ -1170,7 +1170,7 @@
             
             const name = item.full_name || item.customer_name || 'N/A';
             const room = item.room_name || 'N/A';
-            const guests = item.guest_count || item.guests_count || item.num_people || 0;
+            const guests = item.guest_count || item.guests_count || item.num_people || item.numPeople || 0;
             const balance = parseFloat(item.balance_due || 0);
             
             let statusHtml = '';
@@ -1261,7 +1261,7 @@
                     : (ev ? fmtD(ev) : 'N/A');
             })();
             document.getElementById('m-status').innerText = data.status || 'N/A';
-            document.getElementById('m-guests').innerText = data.guest_count || data.guests_count || data.num_people || '0';
+            document.getElementById('m-guests').innerText = data.guest_count || data.guests_count || data.num_people || data.numPeople || '0';
             document.getElementById('m-notes').innerText  = data.notes || '—';
 
             const btnContainer = document.getElementById('modal-buttons');
@@ -1750,7 +1750,7 @@
             document.getElementById('bm-name').innerText  = b.customer_name || 'N/A';
             document.getElementById('bm-email').innerText = b.customer_email || 'N/A';
             document.getElementById('bm-phone').innerText = b.customer_phone || b.phone || 'N/A';
-            document.getElementById('bm-guests').innerText = (b.guest_count || b.guests_count || b.num_people) || '—';
+            document.getElementById('bm-guests').innerText = (b.guest_count || b.guests_count || b.num_people || b.numPeople) || '—';
             document.getElementById('bm-room').innerText  = b.room_name || 'N/A';
             document.getElementById('bm-date').innerText  = fmtBookingDate(b, {weekday:'short', day:'numeric', month:'long', year:'numeric'});
             const st = (b.start_time||'').slice(0,5);
@@ -2179,7 +2179,7 @@
                     ? fmtD(df) + ' – ' + fmtD(dt)
                     : (ev ? fmtD(ev) : '—');
             })();
-            document.getElementById('m-guests').innerText = c.guest_count || c.guests_count || c.num_people || '—';
+            document.getElementById('m-guests').innerText = c.guest_count || c.guests_count || c.num_people || c.numPeople || '—';
             document.getElementById('m-notes').innerText = c.notes || '—';
             const isBooked = ['booked','fully_paid','deposit_paid'].includes(c.status);
             document.getElementById('m-status').innerText = isBooked ? 'Booked' : (c.status || '—');
@@ -2253,7 +2253,7 @@
                         document.getElementById('bm-date').innerText    = p.booking_date ? new Date(p.booking_date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '—';
                         document.getElementById('bm-time').innerText    = p.time;
                         document.getElementById('bm-phone').innerText   = p.customer_phone || '—';
-                        document.getElementById('bm-guests').innerText  = (p.guest_count || p.guests_count || p.num_people) || '—';
+                        document.getElementById('bm-guests').innerText  = (p.guest_count || p.guests_count || p.num_people || p.numPeople) || '—';
                         document.getElementById('bm-total').innerText   = fmt(p.total_amount);
                         document.getElementById('bm-balance').innerText = fmt(balance);
                         document.getElementById('bm-status').innerHTML  = p.isPast ? '<span class="status-badge paid">Completed</span>' : balance > 0 ? `<span class="status-badge balance">${fmt(balance)} Due</span>` : '<span class="status-badge booked">Fully Paid</span>';
