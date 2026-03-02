@@ -410,10 +410,17 @@
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Event Date <span style="color:var(--danger)">*</span></label>
+                    <label>Date From <span style="color:var(--danger)">*</span></label>
                     <div class="input-wrapper">
                         <i class="fa-solid fa-calendar icon-left"></i>
-                        <input type="date" id="bookingDate" required onchange="calculateCost(); checkAvailability();">
+                        <input type="date" id="dateFrom" required onchange="calculateCost(); checkAvailability();">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Date To <span style="color:var(--danger)">*</span></label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-calendar icon-left"></i>
+                        <input type="date" id="dateTo" required onchange="calculateCost(); checkAvailability();">
                     </div>
                 </div>
                 <div class="input-group">
@@ -528,7 +535,7 @@
             <div class="modal-title">Room Not Available</div>
             <div class="modal-body" id="conflictModalBody">This room is already booked for the selected date and time.</div>
             <div class="modal-actions">
-                <button class="modal-btn modal-btn-primary" onclick="closeConflictModalAndFocus('bookingDate')">
+                <button class="modal-btn modal-btn-primary" onclick="closeConflictModalAndFocus('dateFrom')">
                     <i class="fa-solid fa-calendar-days"></i> Change Date / Time
                 </button>
                 <button class="modal-btn modal-btn-secondary" onclick="closeConflictModalAndFocus('roomSelect')">
@@ -594,7 +601,9 @@
         let _availTimeout = null;
 
         async function init() {
-            document.getElementById('bookingDate').min = new Date().toISOString().split('T')[0];
+            const todayStr = new Date().toISOString().split('T')[0];
+            document.getElementById('dateFrom').min = todayStr;
+            document.getElementById('dateTo').min  = todayStr;
 
             const startSel = document.getElementById('startTime');
             const endSel   = document.getElementById('endTime');
@@ -616,7 +625,7 @@
                     fetch(BLOCKED_API).catch(() => null)
                 ]);
                 const rJson = await rRes.json();
-                const pJson = await pRes.json();
+                let pJson = {}; try { pJson = await pRes.json(); } catch(e) {}
                 const tJson = await tRes.json();
                 if (bRes) { try { const bJson = await bRes.json(); manualBlockedRules = bJson.data || []; } catch(e){} }
 
@@ -660,6 +669,8 @@
             const roomId   = document.getElementById('roomId').value;
             const start    = document.getElementById('startTime').value;
             const end      = document.getElementById('endTime').value;
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo   = document.getElementById('dateTo').value;
             const typeName = document.getElementById('eventType').value;
             const breakdown = document.getElementById('costBreakdown');
 
@@ -670,20 +681,30 @@
 
             if (dur <= 0) { breakdown.innerText = 'End time must be after start time'; return; }
 
-            const room     = roomsData.find(r => String(r.id) === String(roomId));
+            const room = roomsData.find(r => String(r.id) === String(roomId));
             if (!room) { breakdown.innerText = 'Room data not loaded — try refreshing'; return; }
 
             const baseRate = parseFloat(room.day_rate) || 0;
             const halfRate = room.half_rate ? parseFloat(room.half_rate) : null;
 
-            let cost = 0, rateLabel = '';
-            if (dur >= 6) {
-                cost = baseRate; rateLabel = 'Full Day';
-            } else if (halfRate && dur >= 3) {
-                cost = halfRate; rateLabel = 'Half-Day Rate';
-            } else {
-                cost = (dur / 8) * baseRate; rateLabel = `Pro-rated ${dur.toFixed(1)}hrs`;
+            // Number of days (inclusive)
+            const msPerDay = 86400000;
+            let numDays = 1;
+            if (dateFrom && dateTo && dateTo >= dateFrom) {
+                numDays = Math.round((new Date(dateTo) - new Date(dateFrom)) / msPerDay) + 1;
             }
+
+            let perDayCost = 0, rateLabel = '';
+            if (dur >= 6) {
+                perDayCost = baseRate; rateLabel = 'Full Day';
+            } else if (halfRate && dur >= 3) {
+                perDayCost = halfRate; rateLabel = 'Half-Day Rate';
+            } else {
+                perDayCost = (dur / 8) * baseRate; rateLabel = `Pro-rated ${dur.toFixed(1)}hrs`;
+            }
+
+            let cost = perDayCost * numDays;
+            if (numDays > 1) rateLabel += ` × ${numDays} days`;
 
             if (typeName) {
                 const sur = pricingData.find(p =>
@@ -692,7 +713,7 @@
                     p.event_type_name.toLowerCase() === typeName.toLowerCase()
                 );
                 if (sur && parseFloat(sur.day_rate) > 0) {
-                    const s = parseFloat(sur.day_rate);
+                    const s = parseFloat(sur.day_rate) * numDays;
                     cost += s;
                     rateLabel += ` + ${formatGBP(s)} surcharge`;
                 }
@@ -708,54 +729,62 @@
                 document.getElementById('btnDeposit').innerHTML   =
                     `<i class="fa-solid fa-coins"></i> Pay Deposit (${formatGBP(deposit)})`;
             }
-            breakdown.innerText = `${rateLabel} · ${dur.toFixed(1)} hrs · Suggested deposit ${DEPOSIT_PCT}% = ${formatGBP(deposit)}`;
+            breakdown.innerText = `${rateLabel} · ${dur.toFixed(1)} hrs/day · ${numDays} day${numDays > 1 ? 's' : ''} · Suggested deposit ${DEPOSIT_PCT}% = ${formatGBP(deposit)}`;
         }
 
         async function checkAvailability() {
             const roomName = document.getElementById('roomName').value;
-            const date     = document.getElementById('bookingDate').value;
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo   = document.getElementById('dateTo').value;
             const start    = document.getElementById('startTime').value;
             const end      = document.getElementById('endTime').value;
             const el       = document.getElementById('availStatus');
             const txt      = document.getElementById('availText');
 
-            if (!roomName || !date || !start || !end) {
+            if (!roomName || !dateFrom || !start || !end) {
                 el.className = 'avail-status idle';
                 el.querySelector('i').className = 'fa-solid fa-circle-info';
-                txt.textContent = 'Select a room, date and times to check availability';
+                txt.textContent = 'Select a room, dates and times to check availability';
                 setButtons(false);
                 return;
             }
 
-            // Blocked date check
-            const blockLabel = isManualDateBlocked(date);
-            if (blockLabel) {
-                el.className = 'avail-status unavailable';
-                el.querySelector('i').className = 'fa-solid fa-circle-xmark';
-                txt.textContent = `Venue closed on this date (${blockLabel}) — choose a different date`;
-                setButtons(false);
-                return;
+            // Blocked date check — scan every date in the selected range
+            const msPerDay = 86400000;
+            const toDate   = dateTo && dateTo >= dateFrom ? dateTo : dateFrom;
+            const numDays  = Math.round((new Date(toDate) - new Date(dateFrom)) / msPerDay) + 1;
+            for (let i = 0; i < numDays; i++) {
+                const d  = new Date(new Date(dateFrom).getTime() + i * msPerDay);
+                const ds = d.toISOString().split('T')[0];
+                const blockLabel = isManualDateBlocked(ds);
+                if (blockLabel) {
+                    el.className = 'avail-status unavailable';
+                    el.querySelector('i').className = 'fa-solid fa-circle-xmark';
+                    txt.textContent = `Venue closed on ${ds} (${blockLabel}) — choose different dates`;
+                    setButtons(false);
+                    return;
+                }
             }
 
             clearTimeout(_availTimeout);
             _availTimeout = setTimeout(async () => {
                 el.className = 'avail-status checking';
                 el.querySelector('i').className = 'fa-solid fa-circle-notch fa-spin';
-                txt.textContent = 'Checking availability...';
+                txt.textContent = `Checking availability${numDays > 1 ? ` for ${numDays}-day booking` : ''}...`;
                 setButtons(false);
 
                 try {
                     const res = await fetch(CHECK_API, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-                        body: JSON.stringify({ roomName, eventDate: date, timeFrom: start, timeTo: end })
+                        body: JSON.stringify({ roomName, eventDate: dateFrom, timeFrom: start, timeTo: end })
                     });
                     const d = await res.json();
                     if (d.available === true || d.available === 'true') {
                         el.className = 'avail-status available';
                         el.querySelector('i').className = 'fa-solid fa-circle-check';
                         const buf = parseInt(d.buffer_minutes) || 0;
-                        txt.textContent = `Available${buf > 0 ? ` — ${buf}-min turnaround buffer applied` : ''}`;
+                        txt.textContent = `Available${numDays > 1 ? ` for ${numDays}-day booking` : ''}${buf > 0 ? ` — ${buf}-min turnaround buffer applied` : ''}`;
                         setButtons(true);
                     } else {
                         el.className = 'avail-status unavailable';
@@ -807,26 +836,36 @@
         }
 
         async function submitBooking(type) {
-            const _sbDate = document.getElementById('bookingDate').value;
-            if (_sbDate) {
-                const _sbBlock = isManualDateBlocked(_sbDate);
-                if (_sbBlock) { showToast(`Cannot book — venue is closed on this date (${_sbBlock})`, 'error'); return; }
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo   = document.getElementById('dateTo').value;
+            // Blocked date range check
+            if (dateFrom) {
+                const msPerDay = 86400000;
+                const toDate   = dateTo && dateTo >= dateFrom ? dateTo : dateFrom;
+                const numDays  = Math.round((new Date(toDate) - new Date(dateFrom)) / msPerDay) + 1;
+                for (let i = 0; i < numDays; i++) {
+                    const d  = new Date(new Date(dateFrom).getTime() + i * msPerDay);
+                    const ds = d.toISOString().split('T')[0];
+                    const bl = isManualDateBlocked(ds);
+                    if (bl) { showToast(`Cannot book — venue is closed on ${ds} (${bl})`, 'error'); return; }
+                }
             }
             const name     = document.getElementById('customerName').value.trim();
             const phone    = document.getElementById('customerPhone').value.trim();
             const email    = document.getElementById('customerEmail').value.trim();
             const roomId   = document.getElementById('roomId').value;
             const roomName = document.getElementById('roomName').value;
-            const date     = document.getElementById('bookingDate').value;
             const start    = document.getElementById('startTime').value;
             const end      = document.getElementById('endTime').value;
             const total    = parseFloat(document.getElementById('totalAmount').value);
             let payAmount  = parseFloat(document.getElementById('payAmount').value);
 
-            if (!name)    { showToast('Please enter the customer name', 'error'); document.getElementById('customerName').focus(); return; }
-            if (!phone)   { showToast('Please enter a phone number', 'error');    document.getElementById('customerPhone').focus(); return; }
-            if (!roomId)  { showToast('Please select a room', 'error');           return; }
-            if (!date)    { showToast('Please select a date', 'error');           return; }
+            if (!name)     { showToast('Please enter the customer name', 'error'); document.getElementById('customerName').focus(); return; }
+            if (!phone)    { showToast('Please enter a phone number', 'error');    document.getElementById('customerPhone').focus(); return; }
+            if (!roomId)   { showToast('Please select a room', 'error');           return; }
+            if (!dateFrom) { showToast('Please select a start date', 'error');    document.getElementById('dateFrom').focus(); return; }
+            if (!dateTo)   { showToast('Please select an end date', 'error');     document.getElementById('dateTo').focus(); return; }
+            if (dateTo < dateFrom) { showToast('End date must be on or after start date', 'error'); document.getElementById('dateTo').focus(); return; }
             if (!start || !end) { showToast('Please select start and end times', 'error'); return; }
             if (!total || isNaN(total) || total <= 0) { showToast('Total cost has not been calculated yet', 'error'); return; }
             if (isNaN(payAmount) || payAmount < 0)    { showToast('Please enter a valid payment amount', 'error'); return; }
@@ -841,13 +880,13 @@
                 const avRes  = await fetch(CHECK_API, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-                    body: JSON.stringify({ roomName, eventDate: date, timeFrom: start, timeTo: end })
+                    body: JSON.stringify({ roomName, eventDate: dateFrom, timeFrom: start, timeTo: end })
                 });
                 const avData = await avRes.json();
                 if (!avData.available) {
                     btns.forEach(b => { b.disabled = false; });
                     calculateCost();
-                    showConflictModal(roomName, date, start, end);
+                    showConflictModal(roomName, dateFrom, dateTo, start, end);
                     return;
                 }
             } catch(e) {
@@ -862,7 +901,9 @@
                 request_id:     '',
                 room_id:        roomId,
                 room_name:      roomName,
-                booking_date:   date,
+                booking_date:   dateFrom,
+                date_from:      dateFrom,
+                date_to:        dateTo,
                 start_time:     start,
                 end_time:       end,
                 guest_count:    document.getElementById('guestCount').value || '',
@@ -893,7 +934,7 @@
                     calculateCost();
                     const msg = (data.message || '').toLowerCase();
                     if (msg.includes('conflict') || msg.includes('time slot') || msg.includes('buffer')) {
-                        showConflictModal(roomName, date, start, end);
+                        showConflictModal(roomName, dateFrom, dateTo, start, end);
                     } else {
                         showToast(data.message || 'Failed to create booking — please try again', 'error');
                     }
@@ -905,10 +946,11 @@
             }
         }
 
-        function showConflictModal(room, date, start, end) {
+        function showConflictModal(room, dateFrom, dateTo, start, end) {
             const fmt = d => { try { return new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short', year:'numeric' }); } catch(e) { return d; } };
+            const dateRange = (dateTo && dateTo !== dateFrom) ? `${fmt(dateFrom)} – ${fmt(dateTo)}` : fmt(dateFrom);
             document.getElementById('conflictModalBody').innerHTML =
-                `<strong>${room}</strong> is already booked on <strong>${fmt(date)}</strong> from <strong>${start}</strong> to <strong>${end}</strong>.<br><br>Please choose a different room, date or time.`;
+                `<strong>${room}</strong> is already booked for <strong>${dateRange}</strong> from <strong>${start}</strong> to <strong>${end}</strong>.<br><br>Please choose a different room, date or time.`;
             document.getElementById('conflictModal').classList.add('open');
         }
 

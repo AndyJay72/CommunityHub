@@ -271,12 +271,21 @@
                     </div>
                 </div>
 
-                <!-- TIME SECTION -->
-                <div class="input-group">
-                    <label>Event Date</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-calendar-day icon"></i>
-                        <input type="date" id="eventDate" onchange="checkAvailability()" required>
+                <!-- DATE SECTION -->
+                <div class="form-row">
+                    <div class="input-group">
+                        <label>Date From</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-calendar-day icon"></i>
+                            <input type="date" id="dateFrom" onchange="checkAvailability()" required>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Date To</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-calendar-day icon"></i>
+                            <input type="date" id="dateTo" onchange="checkAvailability()" required>
+                        </div>
                     </div>
                 </div>
 
@@ -382,7 +391,9 @@
         loadRoomsAndTypes();
 
         // Init: Min Date & Times
-        document.getElementById('eventDate').min = new Date().toISOString().split('T')[0];
+        const todayStr = new Date().toISOString().split('T')[0];
+        document.getElementById('dateFrom').min = todayStr;
+        document.getElementById('dateTo').min   = todayStr;
         const startSelect = document.getElementById('timeFrom');
         const endSelect = document.getElementById('timeTo');
         
@@ -400,11 +411,12 @@
         async function checkAvailability() {
             if (isSubmitting) return; // don't interfere during form submission
 
-            const room = document.getElementById('roomName').value;
-            const date = document.getElementById('eventDate').value;
-            const start = document.getElementById('timeFrom').value;
-            const end = document.getElementById('timeTo').value;
-            
+            const room     = document.getElementById('roomName').value;
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo   = document.getElementById('dateTo').value;
+            const start    = document.getElementById('timeFrom').value;
+            const end      = document.getElementById('timeTo').value;
+
             const btn = document.getElementById('submitBtn');
             const box = document.getElementById('statusBox');
 
@@ -415,13 +427,24 @@
             box.style.display = 'none';
             box.className = 'status-box';
 
-            if (!room || !date || !start || !end) return;
+            if (!room || !dateFrom || !start || !end) return;
 
-            // Blocked date check
-            const blockLabel = isDateBlocked(date);
-            if (blockLabel) {
-                showStatus('error', `Sorry, the venue is closed on this date (${blockLabel}).`);
+            if (!dateTo || dateTo < dateFrom) {
+                showStatus('error', 'Please select a valid end date (on or after start date).');
                 return;
+            }
+
+            // Blocked date check — scan every date in the range
+            const msPerDay = 86400000;
+            const numDays  = Math.round((new Date(dateTo) - new Date(dateFrom)) / msPerDay) + 1;
+            for (let i = 0; i < numDays; i++) {
+                const d  = new Date(new Date(dateFrom).getTime() + i * msPerDay);
+                const ds = d.toISOString().split('T')[0];
+                const bl = isDateBlocked(ds);
+                if (bl) {
+                    showStatus('error', `Sorry, the venue is closed on ${ds} (${bl}).`);
+                    return;
+                }
             }
 
             // Logic Check
@@ -431,19 +454,20 @@
             }
 
             // Loading State
-            showStatus('loading', 'Checking our calendar...');
+            const daysLabel = numDays > 1 ? `${numDays}-day booking` : dateFrom;
+            showStatus('loading', `Checking availability for ${daysLabel}...`);
 
             try {
                 const res = await fetch(CHECK_API, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ roomName: room, eventDate: date, timeFrom: start, timeTo: end })
+                    body: JSON.stringify({ roomName: room, eventDate: dateFrom, timeFrom: start, timeTo: end })
                 });
-                
+
                 const data = await res.json();
 
                 if (data.available) {
-                    showStatus('success', 'Date is Available! You can submit.');
+                    showStatus('success', numDays > 1 ? `Available for your ${numDays}-day booking! You can submit.` : 'Date is Available! You can submit.');
                     btn.disabled = false;
                     btn.innerHTML = '<span>Submit Enquiry</span> <i class="fas fa-arrow-right"></i>';
                     isAvailable = true;
@@ -483,7 +507,9 @@
                 contact: document.getElementById('phone').value,
                 roomName: document.getElementById('roomName').value,
                 eventType: document.getElementById('eventType').value,
-                eventDate: document.getElementById('eventDate').value,
+                dateFrom: document.getElementById('dateFrom').value,
+                dateTo: document.getElementById('dateTo').value,
+                eventDate: document.getElementById('dateFrom').value,
                 timeFrom: document.getElementById('timeFrom').value,
                 timeTo: document.getElementById('timeTo').value,
                 numPeople: document.getElementById('numPeople').value
