@@ -575,9 +575,14 @@
             const balance = parseFloat(b.balance_due || b.balanceNum || 0);
             document.getElementById('pm-customer').innerText = b.customer_name || '—';
             document.getElementById('pm-room').innerText     = b.room_name     || '—';
-            document.getElementById('pm-date').innerText     = b.booking_date
-                ? new Date(b.booking_date).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'})
-                : '—';
+            document.getElementById('pm-date').innerText =
+                (b.date_from && b.date_to && b.date_to.slice(0,10) !== b.date_from.slice(0,10))
+                    ? `${new Date(b.date_from).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})} – ${new Date(b.date_to).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})}`
+                    : b.date_from
+                        ? new Date(b.date_from).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'})
+                        : b.booking_date
+                            ? new Date(b.booking_date).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'})
+                            : '—';
             document.getElementById('pm-balance').innerText = formatCurrency(balance);
             const slider = document.getElementById('pm-slider');
             const amtIn  = document.getElementById('pm-amount');

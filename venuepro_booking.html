@@ -445,10 +445,17 @@
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Date</label>
+                    <label>Date From</label>
                     <div class="input-wrapper">
                         <i class="fa-solid fa-calendar icon-left"></i>
-                        <input type="date" id="bookingDate" required onchange="checkAvailability()">
+                        <input type="date" id="dateFrom" required onchange="calculateCost(); checkAvailability();">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Date To</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-calendar icon-left"></i>
+                        <input type="date" id="dateTo" required onchange="calculateCost(); checkAvailability();">
                     </div>
                 </div>
                 <div class="input-group">
@@ -566,7 +573,7 @@
                     fetch(PRICING_API, { headers: getAuthHeaders() })
                 ]);
                 const rJson = await rRes.json();
-                const pJson = await pRes.json();
+                let pJson = {}; try { pJson = await pRes.json(); } catch(e) {}
                 roomsData   = rJson.data || (Array.isArray(rJson) ? rJson : []);
                 pricingData = pJson.data || (Array.isArray(pJson) ? pJson : []);
             } catch(e) {
@@ -662,10 +669,14 @@
             
             document.getElementById('roomName').value = req.room_name || '';
             document.getElementById('roomId').value = req.room_id || '';
-            currentEventTypeId = req.event_type || null; // match by name e.g. "Wedding"
+            currentEventTypeId = req.event_type || null;
 
-            if (req.requested_date) document.getElementById('bookingDate').value = req.requested_date.split('T')[0];
-            
+            // Support both single-date (requested_date) and multi-day (date_from / date_to)
+            const df = (req.date_from || req.requested_date || '').split('T')[0];
+            const dt = (req.date_to   || req.date_from || req.requested_date || '').split('T')[0];
+            if (df) document.getElementById('dateFrom').value = df;
+            if (dt) document.getElementById('dateTo').value   = dt;
+
             if (req.start_time) {
                 let t = req.start_time.split(':').slice(0,2).join(':');
                 if(t.length === 4) t = "0"+t; // Pad "9:00" -> "09:00"
@@ -684,9 +695,11 @@
         const DEPOSIT_PCT = 30; // Default deposit: 30% of total
 
         function calculateCost() {
-            const roomId = document.getElementById('roomId').value;
-            const start  = document.getElementById('startTime').value;
-            const end    = document.getElementById('endTime').value;
+            const roomId   = document.getElementById('roomId').value;
+            const start    = document.getElementById('startTime').value;
+            const end      = document.getElementById('endTime').value;
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo   = document.getElementById('dateTo').value;
 
             if (!roomId || !start || !end) return;
 
@@ -698,32 +711,37 @@
                 return;
             }
 
-            // Find room data from API
             const room = roomsData.find(r => String(r.id) === String(roomId));
             if (!room) {
                 document.getElementById('costBreakdown').innerText = 'Room data not loaded — refresh and try again';
                 return;
             }
 
-            // Step 1: Calculate base cost from room rates + duration tiers
             const baseRate = parseFloat(room.day_rate) || 0;
             const halfRate = room.half_rate ? parseFloat(room.half_rate) : null;
 
-            let cost = 0;
-            let rateType = '';
-
+            let perDayCost = 0, rateType = '';
             if (duration >= 6) {
-                cost = baseRate;
+                perDayCost = baseRate;
                 rateType = 'Full Day';
             } else if (halfRate && duration >= 3) {
-                cost = halfRate;
+                perDayCost = halfRate;
                 rateType = 'Half-Day Rate';
             } else {
-                cost = (duration / 8) * baseRate;
-                rateType = `Pro-rated ${duration.toFixed(1)}hrs of 8hr day`;
+                perDayCost = (duration / 8) * baseRate;
+                rateType = `Pro-rated ${duration.toFixed(1)}hrs`;
             }
 
-            // Step 2: Add event-type surcharge on top (if configured in Pricing Grid)
+            // Multi-day multiplier
+            const msPerDay = 86400000;
+            let numDays = 1;
+            if (dateFrom && dateTo && dateTo >= dateFrom) {
+                numDays = Math.round((new Date(dateTo) - new Date(dateFrom)) / msPerDay) + 1;
+            }
+            let cost = perDayCost * numDays;
+            if (numDays > 1) rateType += ` × ${numDays} days`;
+
+            // Event-type surcharge (per day)
             if (currentEventTypeId) {
                 const sur = pricingData.find(
                     p => String(p.room_id) === String(roomId) &&
@@ -731,15 +749,14 @@
                          p.event_type_name.toLowerCase() === currentEventTypeId.toLowerCase()
                 );
                 if (sur && sur.day_rate != null && parseFloat(sur.day_rate) > 0) {
-                    const surcharge = parseFloat(sur.day_rate);
+                    const surcharge = parseFloat(sur.day_rate) * numDays;
                     cost += surcharge;
-                    rateType += ` + ${formatGBP(surcharge)} event surcharge`;
+                    rateType += ` + ${formatGBP(surcharge)} surcharge`;
                 }
             }
 
             const deposit = cost * (DEPOSIT_PCT / 100);
 
-            // Only update price display if override is NOT active
             if (!document.getElementById('overrideToggle').checked) {
                 document.getElementById('totalDisplay').innerText = formatGBP(cost);
                 document.getElementById('totalAmount').value      = cost.toFixed(2);
@@ -749,50 +766,54 @@
                     `<i class="fa-solid fa-coins"></i> Pay Deposit (${formatGBP(deposit)})`;
             }
             document.getElementById('costBreakdown').innerText =
-                `${rateType} | ${duration.toFixed(1)} hrs | Suggested deposit ${DEPOSIT_PCT}% = ${formatGBP(deposit)}`;
+                `${rateType} | ${duration.toFixed(1)} hrs/day | ${numDays} day${numDays > 1 ? 's' : ''} | Suggested deposit ${DEPOSIT_PCT}% = ${formatGBP(deposit)}`;
         }
 
         async function checkAvailability() {
-            const room  = document.getElementById('roomName').value;
-            const date  = document.getElementById('bookingDate').value;
-            const start = document.getElementById('startTime').value;
-            const end   = document.getElementById('endTime').value;
+            const room     = document.getElementById('roomName').value;
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo   = document.getElementById('dateTo').value;
+            const start    = document.getElementById('startTime').value;
+            const end      = document.getElementById('endTime').value;
 
-            const el   = document.getElementById('availStatus');
-            const txt  = document.getElementById('availText');
+            const el  = document.getElementById('availStatus');
+            const txt = document.getElementById('availText');
 
-            if (!room || !date || !start || !end) {
+            if (!room || !dateFrom || !start || !end) {
                 el.className = 'avail-status idle';
                 el.querySelector('i').className = 'fa-solid fa-circle-info';
-                txt.textContent = 'Select a room, date and times to check availability';
+                txt.textContent = 'Select a room, dates and times to check availability';
                 return;
             }
 
-            // Debounce — don't fire on every keystroke
+            const msPerDay = 86400000;
+            const toDate   = dateTo && dateTo >= dateFrom ? dateTo : dateFrom;
+            const numDays  = Math.round((new Date(toDate) - new Date(dateFrom)) / msPerDay) + 1;
+
             clearTimeout(_availCheckTimeout);
             _availCheckTimeout = setTimeout(async () => {
                 el.className = 'avail-status checking';
                 el.querySelector('i').className = 'fa-solid fa-circle-notch fa-spin';
-                txt.textContent = 'Checking availability...';
+                txt.textContent = `Checking availability${numDays > 1 ? ` for ${numDays}-day booking` : ''}...`;
 
                 try {
                     const res = await fetch(CHECK_API, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-                        body: JSON.stringify({ roomName: room, eventDate: date, timeFrom: start, timeTo: end })
+                        body: JSON.stringify({ roomName: room, eventDate: dateFrom, timeFrom: start, timeTo: end })
                     });
                     const d = await res.json();
                     if (d.available === true || d.available === 'true') {
                         el.className = 'avail-status available';
                         el.querySelector('i').className = 'fa-solid fa-circle-check';
                         const bufMin = parseInt(d.buffer_minutes) || 0;
-                        txt.textContent = `Slot available${bufMin > 0 ? ' \u2014 ' + bufMin + '-min turnaround buffer applied' : ''}`;
+                        txt.textContent = `Available${numDays > 1 ? ` for ${numDays}-day booking` : ''}${bufMin > 0 ? ` \u2014 ${bufMin}-min buffer applied` : ''}`;
                         document.querySelectorAll('.btn').forEach(b => b.disabled = false);
                     } else {
                         el.className = 'avail-status unavailable';
                         el.querySelector('i').className = 'fa-solid fa-circle-xmark';
                         const bufMin = parseInt(d.buffer_minutes) || 0;
-                        txt.textContent = `Conflict detected${bufMin > 0 ? ' (includes ' + bufMin + '-min buffer)' : ''} \u2014 please choose a different time`;
+                        txt.textContent = `Conflict detected${bufMin > 0 ? ` (includes ${bufMin}-min buffer)` : ''} \u2014 please choose a different time`;
                         document.querySelectorAll('.btn').forEach(b => b.disabled = true);
                     }
                 } catch(e) {
@@ -833,7 +854,7 @@
                     headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
                     body: JSON.stringify({
                         roomName: document.getElementById('roomName').value,
-                        eventDate: document.getElementById('bookingDate').value,
+                        eventDate: document.getElementById('dateFrom').value,
                         timeFrom: document.getElementById('startTime').value,
                         timeTo: document.getElementById('endTime').value
                     })
@@ -857,7 +878,9 @@
                 request_id:     document.getElementById('requestId').value,
                 room_id:        document.getElementById('roomId').value,
                 room_name:      document.getElementById('roomName').value,
-                booking_date:   document.getElementById('bookingDate').value,
+                booking_date:   document.getElementById('dateFrom').value,
+                date_from:      document.getElementById('dateFrom').value,
+                date_to:        document.getElementById('dateTo').value,
                 start_time:     document.getElementById('startTime').value,
                 end_time:       document.getElementById('endTime').value,
                 total_amount:   total,           // number, not string
