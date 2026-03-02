@@ -785,6 +785,7 @@
                 <div class="detail-group"><label>Event Type</label><div class="detail-value" id="m-event">--</div></div>
                 <div class="detail-group"><label>Date</label><div class="detail-value" id="m-date">--</div></div>
                 <div class="detail-group"><label>Guests</label><div class="detail-value" id="m-guests">--</div></div>
+                <div class="detail-group" style="grid-column:span 2;"><label>Notes</label><div class="detail-value" id="m-notes" style="white-space:pre-wrap;line-height:1.6;">--</div></div>
             </div>
 
             <!-- BOOKING HISTORY -->
@@ -1250,9 +1251,18 @@
             document.getElementById('m-email').innerText = data.email || 'N/A';
             document.getElementById('m-phone').innerText = data.phone || 'N/A';
             document.getElementById('m-event').innerText = data.event_type || 'N/A';
-            document.getElementById('m-date').innerText = data.event_date ? new Date(data.event_date).toLocaleDateString() : 'N/A';
+            (function(){
+                const fmtD = d => { try { return new Date(d+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); } catch(e){ return d; } };
+                const df = data.date_from ? data.date_from.split('T')[0] : null;
+                const dt = data.date_to   ? data.date_to.split('T')[0]   : null;
+                const ev = data.event_date ? data.event_date.split('T')[0] : null;
+                document.getElementById('m-date').innerText = (df && dt && df !== dt)
+                    ? fmtD(df) + ' – ' + fmtD(dt)
+                    : (ev ? fmtD(ev) : 'N/A');
+            })();
             document.getElementById('m-status').innerText = data.status || 'N/A';
             document.getElementById('m-guests').innerText = data.guests_count || '0';
+            document.getElementById('m-notes').innerText  = data.notes || '—';
 
             const btnContainer = document.getElementById('modal-buttons');
             const isPendingOrContacted = data.status === 'pending' || data.status === 'contacted';
@@ -2151,8 +2161,17 @@
             document.getElementById('m-email').innerText = c.email || '—';
             document.getElementById('m-phone').innerText = c.phone || '—';
             document.getElementById('m-event').innerText = c.event_type || '—';
-            document.getElementById('m-date').innerText  = c.event_date ? new Date(c.event_date).toLocaleDateString('en-GB') : '—';
+            (function(){
+                const fmtD = d => { try { return new Date(d+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); } catch(e){ return d; } };
+                const df = c.date_from ? c.date_from.split('T')[0] : null;
+                const dt = c.date_to   ? c.date_to.split('T')[0]   : null;
+                const ev = c.event_date ? c.event_date.split('T')[0] : null;
+                document.getElementById('m-date').innerText = (df && dt && df !== dt)
+                    ? fmtD(df) + ' – ' + fmtD(dt)
+                    : (ev ? fmtD(ev) : '—');
+            })();
             document.getElementById('m-guests').innerText= c.guest_count || '—';
+            document.getElementById('m-notes').innerText = c.notes || '—';
             const isBooked = ['booked','fully_paid','deposit_paid'].includes(c.status);
             document.getElementById('m-status').innerText = isBooked ? 'Booked' : (c.status || '—');
             const btnContainer = document.getElementById('modal-buttons');

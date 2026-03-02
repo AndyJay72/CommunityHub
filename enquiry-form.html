@@ -189,18 +189,35 @@
                         <i class="fa-solid fa-chevron-down icon-right"></i>
                     </div>
                 </div>
-                <div class="input-group">
-                    <label>Date From <span style="color:var(--danger)">*</span></label>
+                <div class="input-group" id="singleDateGroup">
+                    <label>Event Date <span style="color:var(--danger)">*</span></label>
                     <div class="input-wrapper">
                         <i class="fa-solid fa-calendar icon-left"></i>
-                        <input type="date" id="dateFrom" onchange="checkAvailability()" required>
+                        <input type="date" id="eventDate" onchange="checkAvailability()" required>
                     </div>
                 </div>
-                <div class="input-group">
-                    <label>Date To <span style="color:var(--danger)">*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-calendar icon-left"></i>
-                        <input type="date" id="dateTo" onchange="checkAvailability()" required>
+                <div class="input-group" style="align-self:flex-end;">
+                    <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-weight:500;color:var(--text-main);">
+                        <input type="checkbox" id="multiDayToggle" onchange="toggleMultiDay()" style="width:1.1rem;height:1.1rem;accent-color:var(--primary);cursor:pointer;">
+                        Requires multiple days
+                    </label>
+                </div>
+                <div id="multiDayFields" style="display:none;grid-column:span 2;">
+                    <div class="form-grid" style="margin:0;">
+                        <div class="input-group">
+                            <label>Date From <span style="color:var(--danger)">*</span></label>
+                            <div class="input-wrapper">
+                                <i class="fa-solid fa-calendar icon-left"></i>
+                                <input type="date" id="dateFrom" onchange="checkAvailability()">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Date To <span style="color:var(--danger)">*</span></label>
+                            <div class="input-wrapper">
+                                <i class="fa-solid fa-calendar icon-left"></i>
+                                <input type="date" id="dateTo" onchange="checkAvailability()">
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="input-group">
@@ -296,8 +313,9 @@
         loadRoomsAndTypes();
 
         const todayStr = new Date().toISOString().split('T')[0];
-        document.getElementById('dateFrom').min = todayStr;
-        document.getElementById('dateTo').min   = todayStr;
+        document.getElementById('eventDate').min = todayStr;
+        document.getElementById('dateFrom').min   = todayStr;
+        document.getElementById('dateTo').min     = todayStr;
         ['timeFrom','timeTo'].forEach(id => {
             const sel = document.getElementById(id);
             for (let i = 8; i <= 23; i++) {
@@ -315,12 +333,27 @@
             document.getElementById('availText').textContent = text;
         }
 
+        function toggleMultiDay() {
+            const isMulti = document.getElementById('multiDayToggle').checked;
+            document.getElementById('singleDateGroup').style.display = isMulti ? 'none' : '';
+            document.getElementById('multiDayFields').style.display  = isMulti ? '' : 'none';
+            const ev = document.getElementById('eventDate');
+            const df = document.getElementById('dateFrom');
+            const dt = document.getElementById('dateTo');
+            ev.required = !isMulti;
+            df.required =  isMulti;
+            dt.required =  isMulti;
+            if (!isMulti) { df.value = ''; dt.value = ''; }
+            checkAvailability();
+        }
+
         let _availTimeout = null;
         async function checkAvailability() {
             if (isSubmitting) return;
             const room     = document.getElementById('roomName').value;
-            const dateFrom = document.getElementById('dateFrom').value;
-            const dateTo   = document.getElementById('dateTo').value;
+            const isMulti  = document.getElementById('multiDayToggle').checked;
+            const dateFrom = isMulti ? document.getElementById('dateFrom').value : document.getElementById('eventDate').value;
+            const dateTo   = isMulti ? document.getElementById('dateTo').value   : document.getElementById('eventDate').value;
             const start    = document.getElementById('timeFrom').value;
             const end      = document.getElementById('timeTo').value;
             const btn      = document.getElementById('submitBtn');
@@ -367,7 +400,9 @@
             const payload = {
                 name:g('name'), email:g('email'), contact:g('phone'),
                 roomName:g('roomName'), eventType:g('eventType'),
-                dateFrom:g('dateFrom'), dateTo:g('dateTo'), eventDate:g('dateFrom'),
+                dateFrom:document.getElementById('multiDayToggle').checked ? g('dateFrom') : g('eventDate'),
+                dateTo:document.getElementById('multiDayToggle').checked   ? g('dateTo')   : g('eventDate'),
+                eventDate:document.getElementById('multiDayToggle').checked ? g('dateFrom') : g('eventDate'),
                 timeFrom:g('timeFrom'), timeTo:g('timeTo'),
                 numPeople:g('numPeople'), notes:g('notes')||''
             };
