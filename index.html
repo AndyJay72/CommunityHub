@@ -2206,21 +2206,27 @@
                 const roomSel = document.getElementById('cal-room-filter');
                 roomSel.innerHTML = '<option value="">All Rooms</option>';
                 rooms.forEach(r => { const o = document.createElement('option'); o.value = r; o.textContent = r; roomSel.appendChild(o); });
-                calAllEvents = raw.filter(e => e.status !== 'cancelled' && e.booking_date).map(e => {
-                    const bDate = new Date(e.booking_date.split('T')[0]);
+                calAllEvents = raw.filter(e => e.status !== 'cancelled' && (e.date_from || e.booking_date)).map(e => {
+                    const startDateStr = (e.date_from || e.booking_date).split('T')[0];
+                    const endDateStr   = (e.date_to || e.booking_date || e.date_from).split('T')[0];
+                    const bDate = new Date(startDateStr+'T00:00:00');
                     const balance = parseFloat(e.balance_due || 0);
                     const isPast = bDate < now;
                     const startT = (e.start_time || '09:00').slice(0, 5);
                     const endT   = (e.end_time   || '10:00').slice(0, 5);
-                    const dateStr = e.booking_date.split('T')[0];
                     const color = isPast ? '#475569' : balance > 0 ? '#f59e0b' : '#10b981';
-                    return {
+                    const isMultiDay = startDateStr !== endDateStr;
+                    const fmtD = s => new Date(s+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+                    const dateLabel = isMultiDay ? `${fmtD(startDateStr)} \u2013 ${fmtD(endDateStr)}` : fmtD(startDateStr);
+                    const endExcl = isMultiDay ? (() => { const d = new Date(endDateStr+'T00:00:00'); d.setDate(d.getDate()+1); return d.toISOString().split('T')[0]; })() : null;
+                    const eventObj = {
                         title: e.customer_name || 'Guest',
-                        start: `${dateStr}T${startT}:00`,
-                        end:   `${dateStr}T${endT}:00`,
                         backgroundColor: color, borderColor: color,
-                        extendedProps: { customer_name: e.customer_name||'Guest', customer_email: e.customer_email||'', room_name: e.room_name||'Unknown', booking_date: e.booking_date, time: `${startT} – ${endT}`, total_amount: e.total_amount, balance_due: e.balance_due, isPast }
+                        extendedProps: { customer_name: e.customer_name||'Guest', customer_email: e.customer_email||'', customer_phone: e.customer_phone||e.phone||'', room_name: e.room_name||'Unknown', booking_date: e.booking_date, date_from: e.date_from, date_to: e.date_to, dateLabel, time: `${startT} \u2013 ${endT}`, total_amount: e.total_amount, balance_due: e.balance_due, guest_count: e.guest_count, isPast }
                     };
+                    if (isMultiDay) { eventObj.start = startDateStr; eventObj.end = endExcl; eventObj.allDay = true; }
+                    else { eventObj.start = `${startDateStr}T${startT}:00`; eventObj.end = `${startDateStr}T${endT}:00`; }
+                    return eventObj;
                 });
                 container.innerHTML = '';
                 calInstance = new FullCalendar.Calendar(container, {
@@ -2239,7 +2245,7 @@
                         document.getElementById('bm-name').innerText    = p.customer_name;
                         document.getElementById('bm-email').innerText   = p.customer_email;
                         document.getElementById('bm-room').innerText    = p.room_name;
-                        document.getElementById('bm-date').innerText    = p.booking_date ? new Date(p.booking_date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '—';
+                        document.getElementById('bm-date').innerText    = p.dateLabel || (p.booking_date ? new Date(p.booking_date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '—');
                         document.getElementById('bm-time').innerText    = p.time;
                         document.getElementById('bm-phone').innerText   = p.customer_phone || '—';
                         document.getElementById('bm-guests').innerText  = (p.guest_count || p.guests_count || p.num_people || p.numPeople) || '—';
@@ -2270,7 +2276,7 @@
             let filtered = calAllEvents;
             if (roomVal)   filtered = filtered.filter(e => e.extendedProps.room_name === roomVal);
             if (statusVal) filtered = filtered.filter(e => {
-                const isPast = new Date(e.extendedProps.booking_date) < now;
+                const isPast = e.extendedProps.isPast;
                 const hasBal = parseFloat(e.extendedProps.balance_due || 0) > 0;
                 if (statusVal === 'paid')    return !hasBal && !isPast;
                 if (statusVal === 'balance') return hasBal && !isPast;
