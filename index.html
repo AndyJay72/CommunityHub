@@ -139,8 +139,8 @@
         .filter-bar { display: flex; gap: 10px; margin-bottom: 1.5rem; overflow-x: auto; padding-bottom: 5px; }
         .filter-btn { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; font-weight: 600; white-space: nowrap; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
         .filter-btn:hover, .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-        .filter-requests { border-color: rgba(245, 158, 11, 0.3); }
-        .filter-requests:hover, .filter-requests.active { background: var(--warning); color: #0f172a; border-color: var(--warning); }
+        .filter-requests { border-color: rgba(255, 127, 100, 0.45); }
+        .filter-requests:hover, .filter-requests.active { background: #ff6b6b; color: white; border-color: #ff6b6b; }
         .filter-outstanding { border-color: rgba(245, 158, 11, 0.3); }
         .filter-outstanding:hover, .filter-outstanding.active { background: var(--warning); color: #0f172a; border-color: var(--warning); }
         .filter-upcoming { border-color: rgba(16, 185, 129, 0.3); }
@@ -635,8 +635,7 @@
 
         <!-- FILTER TABS -->
         <div class="filter-bar">
-            <button class="filter-btn active" onclick="filterListView('all', this)">All</button>
-            <button class="filter-btn filter-requests" onclick="filterListView('requests', this)"><i class="fa-solid fa-inbox"></i> New Requests</button>
+            <button class="filter-btn filter-requests active" onclick="filterListView('requests', this)"><i class="fa-solid fa-inbox"></i> New Requests</button>
             <button class="filter-btn filter-outstanding" onclick="filterListView('outstanding', this)"><i class="fa-solid fa-coins"></i> Outstanding Payments</button>
             <button class="filter-btn filter-upcoming" onclick="filterListView('upcoming', this)"><i class="fa-solid fa-calendar-check"></i> Upcoming Events</button>
             <button class="filter-btn filter-interactions" onclick="filterListView('interactions', this)"><i class="fa-solid fa-comments"></i> Customer Interactions</button>
@@ -647,7 +646,7 @@
         <!-- MAIN CONTENT AREA -->
         <div class="table-container" id="cards-section" style="margin-bottom: 2rem;">
             <div class="table-header">
-                <h3 id="section-title"><i class="fa-solid fa-list"></i> All Items</h3>
+                <h3 id="section-title"><i class="fa-solid fa-inbox"></i> New Requests</h3>
                 <div class="search-wrapper">
                     <i class="fa-solid fa-magnifying-glass"></i>
                     <input id="main-search" class="search-input" type="text" placeholder="Search..." oninput="applyMainSearch()">
@@ -1008,7 +1007,7 @@
         let allUpcomingEvents = [];
         let allInteractions = [];
         let lastRenderedInteractions = [];
-        let currentView = 'all';
+        let currentView = 'requests';
         let currentPage = 1;
         const PAGE_SIZE = 10;
         let searchTerm = '';
