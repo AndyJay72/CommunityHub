@@ -579,7 +579,7 @@
                     : data.date_from ? fmtMD(data.date_from)
                     : data.event_date ? fmtMD(data.event_date) : 'N/A';
             document.getElementById('m-status').innerText = data.status || 'N/A';
-            document.getElementById('m-guests').innerText = data.guests_count || '0';
+            document.getElementById('m-guests').innerText = data.guest_count || data.guests_count || data.num_people || '0';
 
             const btnContainer = document.getElementById('modal-buttons');
             let actionBtn = '';

@@ -440,6 +440,7 @@
                     </div>
                 </div>
                 <input type="hidden" id="requestId">
+        <input type="hidden" id="vpGuestCount">
                 <input type="hidden" id="roomId">
             </div>
 
@@ -720,6 +721,7 @@
             document.getElementById('roomName').value = req.room_name || '';
             document.getElementById('roomId').value = req.room_id || '';
             currentEventTypeId = req.event_type || null;
+            document.getElementById('vpGuestCount').value = req.guest_count || req.guests_count || req.num_people || '';
 
             // Support both single-date (requested_date) and multi-day (date_from / date_to)
             const df = (req.date_from || req.requested_date || '').split('T')[0];
@@ -952,7 +954,8 @@
                 total_amount:   total,           // number, not string
                 payment_amount: payAmount,       // number, not string
                 balance_due:    parseFloat((total - payAmount).toFixed(2)),
-                payment_type:   type === 'full' ? 'full' : 'deposit'
+                payment_type:   type === 'full' ? 'full' : 'deposit',
+                guest_count:    document.getElementById('vpGuestCount').value || ''
             };
 
             try {

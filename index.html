@@ -1170,7 +1170,7 @@
             
             const name = item.full_name || item.customer_name || 'N/A';
             const room = item.room_name || 'N/A';
-            const guests = item.guests_count || 0;
+            const guests = item.guest_count || item.guests_count || item.num_people || 0;
             const balance = parseFloat(item.balance_due || 0);
             
             let statusHtml = '';
@@ -1261,7 +1261,7 @@
                     : (ev ? fmtD(ev) : 'N/A');
             })();
             document.getElementById('m-status').innerText = data.status || 'N/A';
-            document.getElementById('m-guests').innerText = data.guests_count || '0';
+            document.getElementById('m-guests').innerText = data.guest_count || data.guests_count || data.num_people || '0';
             document.getElementById('m-notes').innerText  = data.notes || '—';
 
             const btnContainer = document.getElementById('modal-buttons');
@@ -2178,7 +2178,7 @@
                     ? fmtD(df) + ' – ' + fmtD(dt)
                     : (ev ? fmtD(ev) : '—');
             })();
-            document.getElementById('m-guests').innerText= c.guest_count || '—';
+            document.getElementById('m-guests').innerText = c.guest_count || c.guests_count || c.num_people || '—';
             document.getElementById('m-notes').innerText = c.notes || '—';
             const isBooked = ['booked','fully_paid','deposit_paid'].includes(c.status);
             document.getElementById('m-status').innerText = isBooked ? 'Booked' : (c.status || '—');

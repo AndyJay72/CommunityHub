@@ -415,7 +415,7 @@
                 dateTo:document.getElementById('multiDayToggle').dataset.active === 'true'   ? g('dateTo')   : g('eventDate'),
                 eventDate:document.getElementById('multiDayToggle').dataset.active === 'true' ? g('dateFrom') : g('eventDate'),
                 timeFrom:g('timeFrom'), timeTo:g('timeTo'),
-                numPeople:g('numPeople'), notes:g('notes')||''
+                numPeople:g('numPeople'), guest_count:g('numPeople'), notes:g('notes')||''
             };
             try {
                 const res = await fetch(SUBMIT_API, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
