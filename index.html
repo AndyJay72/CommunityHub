@@ -1183,8 +1183,9 @@
             const isUpcoming = item.booking_date && !isOutstanding && !isRequest;
             
             const date = new Date(item.date_from || item.requested_date || item.event_date || item.booking_date);
-            const dayNum = date.getDate();
-            const monthName = MONTHS[date.getMonth()];
+            const isValidDate = !isNaN(date.getTime());
+            const dayNum = isValidDate ? date.getDate() : '—';
+            const monthName = isValidDate ? MONTHS[date.getMonth()] : 'TBC';
             
             const name = item.full_name || item.customer_name || 'N/A';
             const room = item.room_name || 'N/A';
@@ -1274,9 +1275,13 @@
                 const df = data.date_from ? data.date_from.split('T')[0] : null;
                 const dt = data.date_to   ? data.date_to.split('T')[0]   : null;
                 const ev = data.event_date ? data.event_date.split('T')[0] : null;
+                const rd = data.requested_date ? data.requested_date.split('T')[0] : null;
                 document.getElementById('m-date').innerText = (df && dt && df !== dt)
                     ? fmtD(df) + ' – ' + fmtD(dt)
-                    : (ev ? fmtD(ev) : 'N/A');
+                    : df ? fmtD(df)
+                    : rd ? fmtD(rd)
+                    : ev ? fmtD(ev)
+                    : 'N/A';
             })();
             document.getElementById('m-status').innerText = data.status || 'N/A';
             document.getElementById('m-guests').innerText = data.guest_count || data.guests_count || data.num_people || data.numPeople || '0';
