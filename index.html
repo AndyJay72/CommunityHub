@@ -2227,7 +2227,7 @@
                     const isMultiDay = startDateStr !== endDateStr;
                     const fmtD = s => new Date(s+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
                     const dateLabel = isMultiDay ? `${fmtD(startDateStr)} \u2013 ${fmtD(endDateStr)}` : fmtD(startDateStr);
-                    const endExcl = isMultiDay ? (() => { const d = new Date(endDateStr+'T00:00:00'); d.setDate(d.getDate()+1); return d.toISOString().split('T')[0]; })() : null;
+                    const endExcl = isMultiDay ? (() => { const [_y,_m,_d] = endDateStr.split('-').map(Number); return new Date(Date.UTC(_y, _m-1, _d+1)).toISOString().split('T')[0]; })() : null;
                     const eventObj = {
                         title: e.customer_name || 'Guest',
                         backgroundColor: color, borderColor: color,
