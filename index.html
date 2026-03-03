@@ -2197,7 +2197,9 @@
         let calLoaded = false;
 
         async function initCalendarTab() {
-            if (calLoaded && calInstance) { setTimeout(() => calInstance.render(), 50); return; }
+            // Always refetch data so newly blocked/booked dates are shown correctly.
+            // Destroy old instance if present so fresh events are loaded.
+            if (calInstance) { try { calInstance.destroy(); } catch(e){} calInstance = null; }
             const container = document.getElementById('cal-container');
             container.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted);"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading calendar...</div>';
             try {

@@ -872,7 +872,7 @@
                     const res = await fetch(CHECK_API, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-                        body: JSON.stringify({ roomName: room, eventDate: dateFrom, timeFrom: start, timeTo: end })
+                        body: JSON.stringify({ roomName: room, eventDate: dateFrom, dateTo: toDate, timeFrom: start, timeTo: end })
                     });
                     const d = await res.json();
                     if (d.available === true || d.available === 'true') {
