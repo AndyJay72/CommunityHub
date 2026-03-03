@@ -542,6 +542,20 @@
                 
                 <div id="costBreakdown" style="font-size:0.9rem; color:var(--text-muted); margin-bottom:1.5rem; font-style:italic;">Select a request to calculate</div>
 
+                <div style="text-align: left; margin-bottom: 1.25rem;">
+                    <label style="color:var(--text-muted); font-size:0.9rem; font-weight:600; margin-bottom:5px; display:block; text-transform:uppercase;"><i class="fa-solid fa-wallet" style="margin-right:5px;"></i>Payment Method</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-credit-card icon-left"></i>
+                        <select id="paymentMethod" required style="padding-left:2.2rem;">
+                            <option value="" disabled selected>Select method...</option>
+                            <option value="card">Card</option>
+                            <option value="cash">Cash</option>
+                            <option value="bank_transfer">Bank Transfer</option>
+                            <option value="cheque">Cheque</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div style="text-align: left;">
                     <label style="color:var(--text-muted); font-size:0.9rem; font-weight:600; margin-bottom:5px; display:block;">PAYING NOW (£)</label>
                     <div class="input-wrapper">
@@ -914,6 +928,14 @@
                 return;
             }
 
+            // SAFETY CHECK — payment method not selected
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            if (!paymentMethod) {
+                alert('Please select a payment method.');
+                document.getElementById('paymentMethod').focus();
+                return;
+            }
+
             if (type === 'full') payAmount = total;
 
             const btns = document.querySelectorAll('.btn');
@@ -959,6 +981,7 @@
                 payment_amount: payAmount,       // number, not string
                 balance_due:    parseFloat((total - payAmount).toFixed(2)),
                 payment_type:   type === 'full' ? 'full' : 'deposit',
+                payment_method: paymentMethod,
                 guest_count:    document.getElementById('vpGuestCount').value || ''
             };
 
