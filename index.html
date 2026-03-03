@@ -229,6 +229,11 @@
         #custModal { align-items: flex-start; overflow-y: auto; padding: 2rem 1rem; }
         .btn-log-row { background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.3); color: #6366f1; border-radius: 6px; padding: 3px 8px; cursor: pointer; font-size: 0.78rem; transition: all 0.15s; white-space: nowrap; }
         .btn-log-row:hover { background: rgba(99,102,241,0.28); transform: none; }
+        .modal-edit-input { width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(99,102,241,0.4); border-radius: 6px; color: var(--text-main); font-size: 0.95rem; padding: 6px 10px; font-family: inherit; outline: none; box-sizing: border-box; transition: border-color 0.2s; }
+        .modal-edit-input:focus { border-color: var(--primary); background: rgba(255,255,255,0.09); }
+        body.light-mode .modal-edit-input { background: rgba(0,0,0,0.04); color: #0f172a; }
+        body.light-mode .modal-edit-input:focus { background: #fff; }
+        .modal-edit-textarea { min-height: 72px; resize: vertical; }
         @media (max-width: 768px) { aside { transform: translateX(-100%); } aside.active { transform: translateX(0); } main { margin-left: 0; padding: 1.5rem 1rem; } .menu-toggle { display: flex; } .close-sidebar { display: block; } .header-left { width: 100%; } .header-right { width: 100%; justify-content: space-between; margin-top: 10px; } .live-clock { flex: 1; justify-content: center; } }
 
         /* ── PAYMENT MODAL ── */
@@ -2220,13 +2225,98 @@
             const isBooked = ['booked','fully_paid','deposit_paid'].includes(c.status);
             document.getElementById('m-status').innerText = isBooked ? 'Booked' : (c.status || '—');
             const btnContainer = document.getElementById('modal-buttons');
-            btnContainer.innerHTML = `<button class="btn-modal btn-close" onclick="closeModal()">Close</button>`;
+            btnContainer.innerHTML = `
+                <button class="btn-modal" onclick="editCustomerDetails()" style="background:rgba(99,102,241,0.15);color:var(--primary);border:1px solid rgba(99,102,241,0.3);"><i class="fa-solid fa-pen"></i> Edit Details</button>
+                <button class="btn-modal btn-close" onclick="closeModal()">Close</button>
+            `;
             // Show history/interactions for Customers tab
             document.getElementById('bh-section').style.display = '';
             const _mis2 = document.getElementById('modal-int-section'); if (_mis2) _mis2.style.display = '';
             document.getElementById('custModal').classList.add('open');
             loadBookingHistoryForModal(c.id, c.email);
             loadCustInteractions(c.id, c.email);
+        }
+
+        function editCustomerDetails() {
+            const fields = [
+                { id: 'm-name',  type: 'input',    placeholder: 'Full name'   },
+                { id: 'm-email', type: 'input',    placeholder: 'Email'       },
+                { id: 'm-phone', type: 'input',    placeholder: 'Phone'       },
+                { id: 'm-event', type: 'input',    placeholder: 'Event type'  },
+                { id: 'm-notes', type: 'textarea', placeholder: 'Notes'       },
+            ];
+            fields.forEach(f => {
+                const el  = document.getElementById(f.id);
+                const val = (el.innerText === '—' || el.innerText === '--') ? '' : el.innerText;
+                el.dataset.orig = el.innerText;
+                if (f.type === 'textarea') {
+                    el.innerHTML = `<textarea id="${f.id}-inp" class="modal-edit-input modal-edit-textarea" placeholder="${f.placeholder}">${val}</textarea>`;
+                } else {
+                    el.innerHTML = `<input type="text" id="${f.id}-inp" class="modal-edit-input" value="${val.replace(/"/g,'&quot;')}" placeholder="${f.placeholder}">`;
+                }
+            });
+            const btnContainer = document.getElementById('modal-buttons');
+            btnContainer.innerHTML = `
+                <button class="btn-modal" onclick="saveCustomerDetails()" style="background:var(--primary);color:#fff;"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+                <button class="btn-modal btn-close" onclick="cancelEditCustomer()">Cancel</button>
+            `;
+        }
+
+        function cancelEditCustomer() {
+            ['m-name','m-email','m-phone','m-event','m-notes'].forEach(id => {
+                const el = document.getElementById(id);
+                el.innerHTML = el.dataset.orig || '—';
+            });
+            const btnContainer = document.getElementById('modal-buttons');
+            btnContainer.innerHTML = `
+                <button class="btn-modal" onclick="editCustomerDetails()" style="background:rgba(99,102,241,0.15);color:var(--primary);border:1px solid rgba(99,102,241,0.3);"><i class="fa-solid fa-pen"></i> Edit Details</button>
+                <button class="btn-modal btn-close" onclick="closeModal()">Close</button>
+            `;
+        }
+
+        async function saveCustomerDetails() {
+            const customerId = document.getElementById('m-id').innerText;
+            const getVal = id => {
+                const inp = document.getElementById(id + '-inp');
+                return inp ? inp.value.trim() : document.getElementById(id).innerText.trim();
+            };
+            const payload = {
+                customer_id: customerId,
+                full_name:   getVal('m-name'),
+                email:       getVal('m-email'),
+                phone:       getVal('m-phone'),
+                event_type:  getVal('m-event'),
+                notes:       getVal('m-notes'),
+            };
+            const btnContainer = document.getElementById('modal-buttons');
+            btnContainer.innerHTML = '<span style="color:var(--text-muted);font-size:0.9rem;"><i class="fa-solid fa-circle-notch fa-spin"></i> Saving...</span>';
+            try {
+                const res = await fetch('https://n8n.srv1090894.hstgr.cloud/webhook/update-customer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                // Update display
+                document.getElementById('m-name').innerText  = payload.full_name  || '—';
+                document.getElementById('m-email').innerText = payload.email      || '—';
+                document.getElementById('m-phone').innerText = payload.phone      || '—';
+                document.getElementById('m-event').innerText = payload.event_type || '—';
+                document.getElementById('m-notes').innerText = payload.notes      || '—';
+                // Invalidate customer cache so table reloads fresh
+                custLoaded = false;
+                btnContainer.innerHTML = `
+                    <span style="color:#22c55e;font-size:0.85rem;margin-right:auto;"><i class="fa-solid fa-circle-check"></i> Saved successfully</span>
+                    <button class="btn-modal" onclick="editCustomerDetails()" style="background:rgba(99,102,241,0.15);color:var(--primary);border:1px solid rgba(99,102,241,0.3);"><i class="fa-solid fa-pen"></i> Edit Details</button>
+                    <button class="btn-modal btn-close" onclick="closeModal()">Close</button>
+                `;
+            } catch (err) {
+                btnContainer.innerHTML = `
+                    <span style="color:var(--danger);font-size:0.85rem;margin-right:auto;"><i class="fa-solid fa-circle-exclamation"></i> Save failed: ${err.message}</span>
+                    <button class="btn-modal" onclick="editCustomerDetails()"><i class="fa-solid fa-pen"></i> Edit Details</button>
+                    <button class="btn-modal btn-close" onclick="closeModal()">Close</button>
+                `;
+            }
         }
 
         // ══════════════════════════════════════════════════════════════════
