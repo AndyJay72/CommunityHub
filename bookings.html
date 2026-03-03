@@ -578,11 +578,11 @@
             document.getElementById('pm-room').innerText     = b.room_name     || '—';
             document.getElementById('pm-date').innerText =
                 (b.date_from && b.date_to && b.date_to.slice(0,10) !== b.date_from.slice(0,10))
-                    ? `${new Date(b.date_from).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})} – ${new Date(b.date_to).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})}`
+                    ? `${new Date(b.date_from.split('T')[0]+'T00:00:00').toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})} – ${new Date(b.date_to.split('T')[0]+'T00:00:00').toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})}`
                     : b.date_from
-                        ? new Date(b.date_from).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'})
+                        ? new Date(b.date_from.split('T')[0]+'T00:00:00').toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'})
                         : b.booking_date
-                            ? new Date(b.booking_date).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'})
+                            ? new Date(b.booking_date.split('T')[0]+'T00:00:00').toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'})
                             : '—';
             document.getElementById('pm-balance').innerText = formatCurrency(balance);
             const slider = document.getElementById('pm-slider');
@@ -737,7 +737,7 @@
                             <div class="b-meta">
                                 <span><i class="fa-solid fa-layer-group"></i> ${b.room_name}</span>
                                 <span><i class="fa-solid fa-clock"></i> ${b.start_time?.slice(0,5)} - ${b.end_time?.slice(0,5)}</span>
-                                ${b.date_from && b.date_to && b.date_from.slice(0,10) !== b.date_to.slice(0,10) ? `<span><i class="fa-solid fa-calendar-days"></i> ${new Date(b.date_from+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'})} – ${new Date(b.date_to+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</span>` : ''}
+                                ${b.date_from && b.date_to && b.date_from.slice(0,10) !== b.date_to.slice(0,10) ? `<span><i class="fa-solid fa-calendar-days"></i> ${new Date(b.date_from.split('T')[0]+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'})} – ${new Date(b.date_to.split('T')[0]+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</span>` : ''}
                                 <span><i class="fa-solid fa-sterling-sign"></i> Total: ${formatCurrency(b.total_amount)}</span>
                                 ${b.category === 'pre' ? `<span style="color:var(--warning); font-weight:600;"><i class="fa-solid fa-coins"></i> Balance Due: ${formatCurrency(b.balanceNum)}</span>` : ''}
                             </div>

@@ -1103,10 +1103,18 @@
                     title = 'Upcoming Events';
                     icon = 'fa-calendar-check';
                     break;
-                default:
-                    items = [...allRequests, ...allOutstandingPayments, ...allUpcomingEvents];
+                default: {
+                    // Deduplicate: a booking may appear in both outstanding and upcoming
+                    const seenIds = new Set();
+                    items = [...allRequests, ...allOutstandingPayments, ...allUpcomingEvents].filter(item => {
+                        const key = item.id || item.booking_id || (item.customer_name + item.booking_date);
+                        if (key && seenIds.has(key)) return false;
+                        if (key) seenIds.add(key);
+                        return true;
+                    });
                     title = 'All Items';
                     icon = 'fa-list';
+                }
             }
             
             // Apply search filter
@@ -1478,14 +1486,13 @@
                     return bDate >= now && balance > 0;
                 }).sort((a, b) => new Date(a.booking_date) - new Date(b.booking_date));
 
-                // --- UPCOMING EVENTS: all future, not cancelled, deduplicated, no balance ---
+                // --- UPCOMING EVENTS: all future confirmed bookings (any payment status) ---
                 const seenKeys = new Set();
                 const upcoming = raw.filter(b => {
                     if (b.status === 'cancelled') return false;
-                    const bDate = new Date(b.date_to || b.booking_date); // use date_to so multi-day events stay visible until last day
-                    const balance = parseFloat(b.balance_due || 0);
-                    return bDate >= now && balance === 0;
-                }).sort((a, b) => new Date(a.booking_date) - new Date(b.booking_date));
+                    const bDate = new Date((b.date_to || b.booking_date).split('T')[0]+'T00:00:00'); // use date_to so multi-day events stay visible until last day
+                    return bDate >= now;
+                }).sort((a, b) => new Date(a.date_from || a.booking_date) - new Date(b.date_from || b.booking_date));
 
                 allUpcomingEvents = [];
                 upcoming.forEach(b => {
@@ -2134,7 +2141,7 @@
                     <td style="padding:12px;"><span style="font-weight:600;color:var(--text-main);">${c.full_name||'Unknown'}</span></td>
                     <td style="padding:12px;"><div>${c.email||'—'}</div><div style="font-size:0.8rem;color:var(--text-muted);">${c.phone||''}</div></td>
                     <td style="padding:12px;color:var(--text-muted);">${c.event_type||'General'}</td>
-                    <td style="padding:12px;color:var(--text-muted);">${c.event_date ? new Date(c.event_date).toLocaleDateString('en-GB') : 'N/A'}</td>
+                    <td style="padding:12px;color:var(--text-muted);">${(() => { const df=c.date_from?c.date_from.split('T')[0]:null; const dt=c.date_to?c.date_to.split('T')[0]:null; const ev=c.event_date?c.event_date.split('T')[0]:null; if(df&&dt&&df!==dt) return new Date(df+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' – '+new Date(dt+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); const d=df||ev; return d?new Date(d+'T00:00:00').toLocaleDateString('en-GB'):'N/A'; })()}</td>
                     <td style="padding:12px;"><span class="status-badge ${badgeCls}">${badgeLabel}</span></td>
                 </tr>`;
             }).join('');
