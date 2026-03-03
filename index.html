@@ -1963,14 +1963,18 @@
             }
         }
 
-        async function loadCustInteractions(email) {
+        async function loadCustInteractions(customerId, email) {
             const loadingEl  = document.getElementById('modal-int-loading');
             const listEl     = document.getElementById('modal-int-list');
             const noneEl     = document.getElementById('modal-int-none');
             if (!loadingEl || !listEl || !noneEl) return;
             loadingEl.style.display = 'block'; listEl.innerHTML = ''; noneEl.style.display = 'none';
             try {
-                const res  = await fetch(`${CUST_INTERACTIONS_API}?email=${encodeURIComponent(email)}`, { headers: getAuthHeaders() });
+                // Always prefer customer_id (stable UUID); fall back to email for legacy records
+                const param = customerId && customerId !== '—'
+                    ? `customer_id=${encodeURIComponent(customerId)}`
+                    : `email=${encodeURIComponent(email || '')}`;
+                const res  = await fetch(`${CUST_INTERACTIONS_API}?${param}`, { headers: getAuthHeaders() });
                 const json = await res.json();
                 const items = json.data || (Array.isArray(json) ? json : []);
                 loadingEl.style.display = 'none';
@@ -2078,7 +2082,7 @@
                     document.getElementById('logIntModal').classList.remove('open');
                     _logIntBooking = null;
                     // Reload interactions panel so new entry shows immediately
-                    loadCustInteractions(customer.email);
+                    loadCustInteractions(customer.id, customer.email);
                 }, 800);
             } catch(err) {
                 alert('Failed to save interaction. Please try again.');
@@ -2088,9 +2092,13 @@
         }
 
         function exportCustInteractions() {
+            const customerId = document.getElementById('m-id').innerText;
             const email = document.getElementById('m-email').innerText;
             const name  = document.getElementById('m-name').innerText;
-            fetch(`${CUST_INTERACTIONS_API}?email=${encodeURIComponent(email)}`, { headers: getAuthHeaders() })
+            const param = customerId && customerId !== '—'
+                ? `customer_id=${encodeURIComponent(customerId)}`
+                : `email=${encodeURIComponent(email)}`;
+            fetch(`${CUST_INTERACTIONS_API}?${param}`, { headers: getAuthHeaders() })
                 .then(r => r.json())
                 .then(json => {
                     const items = json.data || (Array.isArray(json) ? json : []);
@@ -2218,7 +2226,7 @@
             const _mis2 = document.getElementById('modal-int-section'); if (_mis2) _mis2.style.display = '';
             document.getElementById('custModal').classList.add('open');
             loadBookingHistoryForModal(c.id, c.email);
-            loadCustInteractions(c.email);
+            loadCustInteractions(c.id, c.email);
         }
 
         // ══════════════════════════════════════════════════════════════════
