@@ -1761,6 +1761,8 @@
             document.getElementById('bm-balance').innerHTML = isPaid
                 ? `<span style="color:var(--success);">None — fully paid</span>`
                 : `<span style="color:var(--warning); font-weight:700;">${formatCurrency(balance)}</span>`;
+            const fmtMethod = m => m ? m.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) : '—';
+            document.getElementById('bm-method').innerText = fmtMethod(b.payment_method);
             const btnContainer = document.getElementById('bm-buttons');
             let btns = `<button class="btn-modal btn-close" onclick="closeBookingModal()">Close</button>`;
             if (!isPaid) {
@@ -2231,7 +2233,7 @@
                     const eventObj = {
                         title: e.customer_name || 'Guest',
                         backgroundColor: color, borderColor: color,
-                        extendedProps: { customer_name: e.customer_name||'Guest', customer_email: e.customer_email||'', customer_phone: e.customer_phone||e.phone||'', room_name: e.room_name||'Unknown', booking_date: e.booking_date, date_from: e.date_from, date_to: e.date_to, dateLabel, time: `${startT} \u2013 ${endT}`, total_amount: e.total_amount, balance_due: e.balance_due, guest_count: e.guest_count, isPast }
+                        extendedProps: { customer_name: e.customer_name||'Guest', customer_email: e.customer_email||'', customer_phone: e.customer_phone||e.phone||'', room_name: e.room_name||'Unknown', booking_date: e.booking_date, date_from: e.date_from, date_to: e.date_to, dateLabel, time: `${startT} \u2013 ${endT}`, total_amount: e.total_amount, balance_due: e.balance_due, guest_count: e.guest_count, payment_method: e.payment_method||null, isPast }
                     };
                     if (isMultiDay) { eventObj.start = startDateStr; eventObj.end = endExcl; eventObj.allDay = true; }
                     else { eventObj.start = `${startDateStr}T${startT}:00`; eventObj.end = `${startDateStr}T${endT}:00`; }
@@ -2260,6 +2262,7 @@
                         document.getElementById('bm-guests').innerText  = (p.guest_count || p.guests_count || p.num_people || p.numPeople) || '—';
                         document.getElementById('bm-total').innerText   = fmt(p.total_amount);
                         document.getElementById('bm-balance').innerText = fmt(balance);
+                        document.getElementById('bm-method').innerText  = p.payment_method ? p.payment_method.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) : '—';
                         document.getElementById('bm-status').innerHTML  = p.isPast ? '<span class="status-badge paid">Completed</span>' : balance > 0 ? `<span class="status-badge balance">${fmt(balance)} Due</span>` : '<span class="status-badge booked">Fully Paid</span>';
                         document.getElementById('bookMod').classList.add('open');
                     }
