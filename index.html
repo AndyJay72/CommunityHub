@@ -225,6 +225,10 @@
 
         @media (max-width: 1200px) { .grid-split { grid-template-columns: 1fr; } }
         @media (max-width: 900px) { .stats-grid { grid-template-columns: 1fr; } .modal-grid { grid-template-columns: 1fr; } }
+        /* custModal scrolls the overlay so all content (history + interactions) is reachable */
+        #custModal { align-items: flex-start; overflow-y: auto; padding: 2rem 1rem; }
+        .btn-log-row { background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.3); color: #6366f1; border-radius: 6px; padding: 3px 8px; cursor: pointer; font-size: 0.78rem; transition: all 0.15s; white-space: nowrap; }
+        .btn-log-row:hover { background: rgba(99,102,241,0.28); transform: none; }
         @media (max-width: 768px) { aside { transform: translateX(-100%); } aside.active { transform: translateX(0); } main { margin-left: 0; padding: 1.5rem 1rem; } .menu-toggle { display: flex; } .close-sidebar { display: block; } .header-left { width: 100%; } .header-right { width: 100%; justify-content: space-between; margin-top: 10px; } .live-clock { flex: 1; justify-content: center; } }
 
         /* ── PAYMENT MODAL ── */
@@ -770,7 +774,7 @@
 
     <!-- MODAL -->
     <div id="custModal" class="modal-overlay" onclick="closeModal(event)">
-        <div class="modal-card" onclick="event.stopPropagation()" style="max-width:660px;max-height:90vh;overflow-y:auto;">
+        <div class="modal-card" onclick="event.stopPropagation()" style="max-width:660px;">
             <div class="modal-header">
                 <div class="modal-title"><i class="fa-solid fa-id-card" style="color:var(--primary)"></i> Customer Details</div>
                 <button class="modal-close" onclick="closeModal()">&times;</button>
@@ -798,11 +802,22 @@
                 </div>
                 <div id="modal-bh-table-wrap" style="display:none; overflow-x:auto;">
                     <table class="bh-table">
-                        <thead><tr><th>Date</th><th>Room</th><th>Total</th><th>Balance</th><th>Status</th></tr></thead>
+                        <thead><tr><th>Date</th><th>Room</th><th>Total</th><th>Balance</th><th>Status</th><th style="width:40px;"></th></tr></thead>
                         <tbody id="modal-bh-tbody"></tbody>
                     </table>
                 </div>
-                <div id="modal-bh-empty" style="display:none; text-align:center; padding:1rem; color:var(--text-muted); font-size:0.85rem;">No bookings found</div>
+                <div id="modal-bh-empty" style="display:none; text-align:center; padding:1rem; color:var(--text-muted); font-size:0.85rem;">No bookings found — click a booking row above to log an interaction</div>
+            </div>
+
+            <!-- CUSTOMER INTERACTIONS -->
+            <div class="modal-int-section" id="modal-int-section">
+                <div class="modal-int-title" style="justify-content:space-between;">
+                    <span><i class="fa-solid fa-comments" style="color:#8b5cf6;"></i> Customer Interactions</span>
+                    <button class="btn-modal" style="font-size:0.78rem;padding:5px 12px;" onclick="exportCustInteractions()"><i class="fa-solid fa-download"></i> Export</button>
+                </div>
+                <div id="modal-int-loading" class="bh-loading"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</div>
+                <div id="modal-int-list"></div>
+                <div id="modal-int-none" class="no-interactions" style="display:none;">No interactions logged yet — click a booking row above to log one</div>
             </div>
 
             <div class="modal-actions" id="modal-buttons">
@@ -1903,7 +1918,7 @@
         }
         const fmtCur = n => new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP'}).format(parseFloat(n)||0);
 
-        async function loadBookingHistoryForModal(email) {
+        async function loadBookingHistoryForModal(customerId, email) {
             const loading = document.getElementById('modal-bh-loading');
             const stats   = document.getElementById('modal-bh-stats');
             const tableW  = document.getElementById('modal-bh-table-wrap');
@@ -1914,7 +1929,11 @@
                 const res  = await fetch(BOOKINGS_API_URL, { headers: getAuthHeaders() });
                 const json = await res.json();
                 const all  = json.data || (Array.isArray(json) ? json : []);
-                const mine = all.filter(b => (b.customer_email || b.email || '').toLowerCase() === (email || '').toLowerCase());
+                // Filter by customer_id (precise) with email as fallback for older data
+                const mine = all.filter(b => customerId
+                    ? (b.customer_id === customerId)
+                    : (b.customer_email || b.email || '').toLowerCase() === (email || '').toLowerCase()
+                );
                 loading.style.display = 'none';
                 if (mine.length === 0) { empty.style.display = 'block'; return; }
                 const totalSpend  = mine.reduce((s,b) => s + parseFloat(b.total_amount||0), 0);
@@ -1934,7 +1953,7 @@
                     else                      pill = `<span style="padding:3px 8px;border-radius:10px;font-size:0.7rem;font-weight:700;text-transform:uppercase;background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);">Balance Due</span>`;
                     const dateStr = fmtBookingDate(b, {day:'2-digit',month:'short',year:'2-digit'});
                     const bookingData = encodeURIComponent(JSON.stringify(b));
-                    return `<tr style="cursor:pointer;" onclick="openLogIntModal('${bookingData}')" onmouseover="this.style.background='rgba(99,102,241,0.1)'" onmouseout="this.style.background=''"><td>${dateStr}</td><td>${b.room_name||'—'}</td><td>${fmtCur(b.total_amount)}</td><td style="color:${bal>0?'#f59e0b':'#10b981'}">${fmtCur(bal)}</td><td>${pill}</td></tr>`;
+                    return `<tr style="cursor:pointer;" onmouseover="this.style.background='rgba(99,102,241,0.1)'" onmouseout="this.style.background=''"><td onclick="openLogIntModal('${bookingData}')">${dateStr}</td><td onclick="openLogIntModal('${bookingData}')">${b.room_name||'—'}</td><td onclick="openLogIntModal('${bookingData}')">${fmtCur(b.total_amount)}</td><td onclick="openLogIntModal('${bookingData}')" style="color:${bal>0?'#f59e0b':'#10b981'}">${fmtCur(bal)}</td><td onclick="openLogIntModal('${bookingData}')">${pill}</td><td><button class="btn-log-row" onclick="event.stopPropagation();openLogIntModal('${bookingData}')" title="Log Interaction"><i class="fa-solid fa-message"></i></button></td></tr>`;
                 }).join('');
                 tableW.style.display = 'block';
             } catch(err) {
@@ -1997,14 +2016,23 @@
                 phone: document.getElementById('m-phone').innerText,
                 id:    document.getElementById('m-id').innerText
             };
-            const dateStr = b.booking_date ? new Date(b.booking_date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : 'N/A';
+            const _fmtD = d => { try { return new Date(d.split('T')[0]+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); } catch(e){ return d||'N/A'; } };
+            const _df = b.date_from ? b.date_from.split('T')[0] : null;
+            const _dt = b.date_to   ? b.date_to.split('T')[0]   : null;
+            const _bd = b.booking_date ? b.booking_date.split('T')[0] : null;
+            const dateStr = (_df && _dt && _df !== _dt) ? _fmtD(_df) + ' – ' + _fmtD(_dt) : (_df || _bd ? _fmtD(_df || _bd) : 'N/A');
+            const _fmtC = n => new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP'}).format(parseFloat(n)||0);
+            const _timeStr = (b.start_time && b.end_time) ? `${(b.start_time||'').slice(0,5)} – ${(b.end_time||'').slice(0,5)}` : 'N/A';
+            const _bal = parseFloat(b.balance_due||0);
             document.getElementById('log-int-info').innerHTML = `
                 <div class="log-int-info-item"><div class="log-int-info-label">Customer</div><div class="log-int-info-value">${customer.name}</div></div>
                 <div class="log-int-info-item"><div class="log-int-info-label">Email</div><div class="log-int-info-value">${customer.email}</div></div>
                 <div class="log-int-info-item"><div class="log-int-info-label">Booking Date</div><div class="log-int-info-value">${dateStr}</div></div>
                 <div class="log-int-info-item"><div class="log-int-info-label">Room / Venue</div><div class="log-int-info-value">${b.room_name||'N/A'}</div></div>
-                <div class="log-int-info-item"><div class="log-int-info-label">Booking ID</div><div class="log-int-info-value" style="font-family:monospace;font-size:0.8rem;">${b.id||'N/A'}</div></div>
-                <div class="log-int-info-item"><div class="log-int-info-label">Status</div><div class="log-int-info-value" style="text-transform:capitalize;">${b.status||'N/A'}</div></div>`;
+                <div class="log-int-info-item"><div class="log-int-info-label">Time Slot</div><div class="log-int-info-value">${_timeStr}</div></div>
+                <div class="log-int-info-item"><div class="log-int-info-label">Status</div><div class="log-int-info-value" style="text-transform:capitalize;">${b.status||'N/A'}</div></div>
+                <div class="log-int-info-item"><div class="log-int-info-label">Total Amount</div><div class="log-int-info-value">${_fmtC(b.total_amount)}</div></div>
+                <div class="log-int-info-item"><div class="log-int-info-label">Balance Due</div><div class="log-int-info-value" style="color:${_bal>0?'#f59e0b':'#10b981'}">${_fmtC(_bal)}</div></div>`;
             document.getElementById('logIntForm').reset();
             _logIntBooking = { booking: b, customer };
             document.getElementById('logIntModal').classList.add('open');
@@ -2189,7 +2217,8 @@
             document.getElementById('bh-section').style.display = '';
             const _mis2 = document.getElementById('modal-int-section'); if (_mis2) _mis2.style.display = '';
             document.getElementById('custModal').classList.add('open');
-            loadBookingHistoryForModal(c.email);
+            loadBookingHistoryForModal(c.id, c.email);
+            loadCustInteractions(c.email);
         }
 
         // ══════════════════════════════════════════════════════════════════
