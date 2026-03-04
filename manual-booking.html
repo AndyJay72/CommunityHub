@@ -345,9 +345,13 @@
         <div class="brand"><span><i class="fa-solid fa-layer-group"></i><span class="brand-text">VenuePro</span></span><div style="display:flex;align-items:center;gap:2px;"><button class="sidebar-collapse-btn" onclick="toggleSidebarCollapse()" title="Collapse sidebar"><i class="fa-solid fa-chevron-left"></i></button><button class="close-sidebar" onclick="toggleMenu()"><i class="fa-solid fa-xmark"></i></button></div></div>
         <nav>
             <a href="index.html" class="nav-link" data-label="Dashboard"><i class="fa-solid fa-chart-pie"></i><span class="nav-label"> Dashboard</span></a>
+            <a href="bookings.html" class="nav-link" data-label="Bookings"><i class="fa-solid fa-calendar-days"></i><span class="nav-label"> Bookings</span></a>
+            <a href="customers.html" class="nav-link" data-label="Customers"><i class="fa-solid fa-users"></i><span class="nav-label"> Customers</span></a>
+            <a href="accounts.html" class="nav-link" data-label="Accounts"><i class="fa-solid fa-file-invoice-dollar"></i><span class="nav-label"> Accounts</span></a>
+            <a href="enquiry-form.html" class="nav-link" target="_blank" data-label="New Booking"><i class="fa-solid fa-file-pen"></i><span class="nav-label"> New Booking</span></a>
             <a href="manual-booking.html" class="nav-link active" data-label="Walk-In Booking"><i class="fa-solid fa-person-walking-arrow-right"></i><span class="nav-label"> Walk-In Booking</span></a>
-            <a href="bookings.html" class="nav-link" data-label="Bookings"><i class="fa-solid fa-calendar-days"></i><span class="nav-label"> Bookings</span></a>            
             <a href="calendar.html" class="nav-link" target="_blank" rel="noopener"><i class="fa-solid fa-calendar-alt"></i> Calendar <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.6rem;margin-left:auto;opacity:0.5"></i></a>
+            <a href="users.html" class="nav-link" data-label="Users"><i class="fa-solid fa-user-shield"></i><span class="nav-label"> Users</span></a>
             <a href="admin-config.html" class="nav-link" data-label="Config"><i class="fa-solid fa-sliders"></i><span class="nav-label"> Config</span></a>
             <a href="#" onclick="logout()" class="nav-link" style="margin-top: auto; color: #ef4444; border-top: 1px solid rgba(255,255,255,0.05);" data-label="Logout"><i class="fa-solid fa-right-from-bracket"></i><span class="nav-label"> Logout</span></a>
         </nav>
@@ -445,11 +449,12 @@
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Number of Guests</label>
+                    <label>Number of Guests <span style="color:var(--danger)">*</span></label>
                     <div class="input-wrapper">
                         <i class="fa-solid fa-users icon-left"></i>
-                        <input type="number" id="guestCount" placeholder="e.g. 50" min="1">
+                        <input type="number" id="guestCount" placeholder="e.g. 50" min="1" oninput="checkGuestCapacity()" required>
                     </div>
+                    <span id="guestCapWarning" style="display:none;color:var(--danger);font-size:0.8rem;margin-top:4px;"><i class="fa-solid fa-triangle-exclamation"></i> <span id="guestCapMsg"></span></span>
                 </div>
                 <div class="input-group">
                     <label>Start Time <span style="color:var(--danger)">*</span></label>
@@ -710,6 +715,21 @@
             document.getElementById('roomName').value = opt ? opt.text.replace(/\s*\(Cap:.*\)$/, '').trim() : '';
             calculateCost();
             checkAvailability();
+            checkGuestCapacity();
+        }
+
+        function checkGuestCapacity() {
+            const roomId = document.getElementById('roomId').value;
+            const room = roomsData.find(r => String(r.id) === String(roomId));
+            const guests = parseInt(document.getElementById('guestCount').value, 10);
+            const warning = document.getElementById('guestCapWarning');
+            const msg = document.getElementById('guestCapMsg');
+            if (room && room.capacity && !isNaN(guests) && guests > parseInt(room.capacity, 10)) {
+                msg.textContent = `Exceeds room capacity of ${room.capacity} guests`;
+                warning.style.display = 'inline';
+            } else {
+                warning.style.display = 'none';
+            }
         }
 
         function calculateCost() {
@@ -917,6 +937,20 @@
             if (!total || isNaN(total) || total <= 0) { showToast('Total cost has not been calculated yet', 'error'); return; }
             if (isNaN(payAmount) || payAmount < 0)    { showToast('Please enter a valid payment amount', 'error'); return; }
             if (payAmount > total + 0.01) { showToast(`Payment cannot exceed total of ${formatGBP(total)}`, 'error'); return; }
+
+            // CAPACITY CHECK — prevent guest count exceeding room cap
+            const bookingRoom = roomsData.find(r => String(r.id) === String(roomId));
+            const bookingGuests = parseInt(document.getElementById('guestCount').value, 10);
+            if (isNaN(bookingGuests) || bookingGuests < 1) {
+                showToast('Please enter the number of guests', 'error');
+                document.getElementById('guestCount').focus();
+                return;
+            }
+            if (bookingRoom && bookingRoom.capacity && bookingGuests > parseInt(bookingRoom.capacity, 10)) {
+                showToast(`⚠️ ${bookingRoom.name} capacity is ${bookingRoom.capacity} — you entered ${bookingGuests} guests`, 'error');
+                document.getElementById('guestCount').focus();
+                return;
+            }
 
             if (type === 'full') payAmount = total;
 
