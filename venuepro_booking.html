@@ -440,7 +440,6 @@
                     </div>
                 </div>
                 <input type="hidden" id="requestId">
-        <input type="hidden" id="vpGuestCount">
                 <input type="hidden" id="roomId">
             </div>
 
@@ -453,6 +452,14 @@
                         <i class="fa-solid fa-door-open icon-left"></i>
                         <input type="text" id="roomName" readonly>
                     </div>
+                </div>
+                <div class="input-group">
+                    <label>Number of Guests <span style="color:var(--danger)">*</span></label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-users icon-left"></i>
+                        <input type="number" id="vpGuestCount" min="1" placeholder="e.g. 50" oninput="checkGuestCapacity()" required>
+                    </div>
+                    <span id="guestCapWarning" style="display:none;color:var(--danger);font-size:0.8rem;margin-top:4px;"><i class="fa-solid fa-triangle-exclamation"></i> <span id="guestCapMsg"></span></span>
                 </div>
                 <div class="input-group" id="singleDateGroup">
                     <label>Event Date <span style="color:var(--danger)">*</span></label>
@@ -739,7 +746,9 @@
             document.getElementById('roomName').value = req.room_name || '';
             document.getElementById('roomId').value = req.room_id || '';
             currentEventTypeId = req.event_type || null;
-            document.getElementById('vpGuestCount').value = req.guest_count || req.guests_count || req.num_people || req.numPeople || '';
+            const gv = req.guest_count || req.guests_count || req.num_people || req.numPeople || '';
+            document.getElementById('vpGuestCount').value = gv;
+            setTimeout(checkGuestCapacity, 100);
 
             // Support both single-date (requested_date) and multi-day (date_from / date_to)
             const df = (req.date_from || req.requested_date || '').split('T')[0];
@@ -776,6 +785,20 @@
 
             calculateCost();
             checkAvailability();
+        }
+
+        function checkGuestCapacity() {
+            const roomId = document.getElementById('roomId').value;
+            const room = roomsData.find(r => String(r.id) === String(roomId));
+            const guests = parseInt(document.getElementById('vpGuestCount').value, 10);
+            const warning = document.getElementById('guestCapWarning');
+            const msg = document.getElementById('guestCapMsg');
+            if (room && room.capacity && !isNaN(guests) && guests > parseInt(room.capacity, 10)) {
+                msg.textContent = `Exceeds room capacity of ${room.capacity} guests`;
+                warning.style.display = 'inline';
+            } else {
+                warning.style.display = 'none';
+            }
         }
 
         const DEPOSIT_PCT = 30; // Default deposit: 30% of total
@@ -940,8 +963,14 @@
             const bookingRoomId = document.getElementById('roomId').value;
             const bookingRoom = roomsData.find(r => String(r.id) === String(bookingRoomId));
             const bookingGuests = parseInt(document.getElementById('vpGuestCount').value, 10);
-            if (bookingRoom && bookingRoom.capacity && !isNaN(bookingGuests) && bookingGuests > parseInt(bookingRoom.capacity, 10)) {
-                alert(`The ${bookingRoom.name} has a maximum capacity of ${bookingRoom.capacity} guests. The request has ${bookingGuests} guests — please update the guest count or choose a different room before proceeding.`);
+            if (isNaN(bookingGuests) || bookingGuests < 1) {
+                alert('Please enter the number of guests before confirming the booking.');
+                document.getElementById('vpGuestCount').focus();
+                return;
+            }
+            if (bookingRoom && bookingRoom.capacity && bookingGuests > parseInt(bookingRoom.capacity, 10)) {
+                alert(`⚠️ Capacity exceeded!\n\nThe ${bookingRoom.name} has a maximum capacity of ${bookingRoom.capacity} guests.\nThis booking has ${bookingGuests} guests.\n\nPlease reduce the guest count or choose a different room.`);
+                document.getElementById('vpGuestCount').focus();
                 return;
             }
 
