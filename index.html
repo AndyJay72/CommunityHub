@@ -374,9 +374,9 @@
         .bh-stat { flex: 1; min-width: 100px; background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; text-align: center; }
         .bh-stat-val { font-size: 1.1rem; font-weight: 700; color: white; }
         .bh-stat-lbl { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
-        .bh-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-        .bh-table th { color: var(--text-muted); font-size: 0.72rem; text-transform: uppercase; padding: 6px 8px; border-bottom: 1px solid var(--border); text-align: left; font-weight: 600; }
-        .bh-table td { padding: 8px; border-bottom: 1px solid rgba(148,163,184,0.06); color: var(--text-main); vertical-align: middle; }
+        .bh-table { width: 100%; min-width: 520px; border-collapse: collapse; font-size: 0.82rem; }
+        .bh-table th { color: var(--text-muted); font-size: 0.72rem; text-transform: uppercase; padding: 6px 8px; border-bottom: 1px solid var(--border); text-align: left; font-weight: 600; white-space: nowrap; }
+        .bh-table td { padding: 8px; border-bottom: 1px solid rgba(148,163,184,0.06); color: var(--text-main); vertical-align: middle; white-space: nowrap; }
         .bh-table tr:last-child td { border-bottom: none; }
         .bh-loading { text-align: center; padding: 1.5rem; color: var(--text-muted); font-size: 0.9rem; }
 
@@ -781,7 +781,7 @@
 
     <!-- MODAL -->
     <div id="custModal" class="modal-overlay" onclick="closeModal(event)">
-        <div class="modal-card" onclick="event.stopPropagation()" style="max-width:660px;">
+        <div class="modal-card" onclick="event.stopPropagation()" style="max-width:780px;">
             <div class="modal-header">
                 <div class="modal-title"><i class="fa-solid fa-id-card" style="color:var(--primary)"></i> Customer Details</div>
                 <button class="modal-close" onclick="closeModal()">&times;</button>
