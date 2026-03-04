@@ -646,7 +646,7 @@
 
         <!-- FILTER TABS -->
         <div class="filter-bar">
-            <button class="filter-btn filter-requests active" onclick="filterListView('requests', this)"><i class="fa-solid fa-inbox"></i> New Requests</button>
+            <button class="filter-btn filter-requests active" onclick="filterListView('requests', this)"><i class="fa-solid fa-inbox"></i> Pending Requests</button>
             <button class="filter-btn filter-outstanding" onclick="filterListView('outstanding', this)"><i class="fa-solid fa-coins"></i> Outstanding Payments</button>
             <button class="filter-btn filter-upcoming" onclick="filterListView('upcoming', this)"><i class="fa-solid fa-calendar-check"></i> Upcoming Events</button>
             <button class="filter-btn filter-interactions" onclick="filterListView('interactions', this)"><i class="fa-solid fa-comments"></i> Customer Interactions</button>
@@ -657,7 +657,7 @@
         <!-- MAIN CONTENT AREA -->
         <div class="table-container" id="cards-section" style="margin-bottom: 2rem;">
             <div class="table-header">
-                <h3 id="section-title"><i class="fa-solid fa-inbox"></i> New Requests</h3>
+                <h3 id="section-title"><i class="fa-solid fa-inbox"></i> Pending Requests</h3>
                 <div class="search-wrapper">
                     <i class="fa-solid fa-magnifying-glass"></i>
                     <input id="main-search" class="search-input" type="text" placeholder="Search..." oninput="applyMainSearch()">
@@ -1113,7 +1113,7 @@
             switch(currentView) {
                 case 'requests':
                     items = allRequests;
-                    title = 'New Requests';
+                    title = 'Pending Requests';
                     icon = 'fa-inbox';
                     break;
                 case 'outstanding':
@@ -1204,9 +1204,7 @@
                 const daysPassed = item.created_at ? Math.floor((Date.now() - new Date(item.created_at).getTime()) / 86400000) : 0;
                 const daysLeft = Math.max(0, 7 - daysPassed);
                 statusHtml = `<span class="status-pill status-pending">${item.status}</span><br><small style="color:var(--text-muted)">${daysLeft}d left</small>`;
-                const canAccept = item.has_booking === true || item.has_booking === 'true';
-                const disabledAttr = canAccept ? '' : 'disabled title="Make a booking request first"';
-                actionHtml = `<button class="pay-btn" ${disabledAttr} onclick="event.stopPropagation();markContacted('${item.id}', '${(name || '').replace(/'/g, "\\'")}')"><i class="fa-solid fa-check"></i> Accept</button>`;
+                actionHtml = '';
                 metaHtml = `<span><i class="fa-solid fa-user"></i> ${item.event_type || 'Event'}</span><span><i class="fa-solid fa-user-group"></i> ${guests > 0 ? guests + ' guests' : '—'}</span>`;
                 const reqDataStr = encodeURIComponent(JSON.stringify(item));
                 cardOnclick = `openModal('${reqDataStr}')`;
@@ -1310,18 +1308,16 @@
                 const hasBooking = data.has_booking === true || data.has_booking === 'true';
                 const bookBtn    = `<a href="venuepro_booking.html?cid=${data.id}" class="btn-modal btn-book"><i class="fa-solid fa-calendar-check"></i> Book Now</a>`;
                 const cancelBtn  = `<button class="btn-modal btn-cancel" onclick="cancelRequest('${data.id}','${(data.full_name||'').replace(/'/g,"\\'")}')"><i class="fa-solid fa-ban"></i> Cancel</button>`;
-                const acceptDisabled = hasBooking ? '' : 'disabled title="A booking request must be made before accepting"';
-                const acceptBtn  = `<button class="btn-modal btn-book" style="${hasBooking ? '' : 'opacity:0.45;cursor:not-allowed;'}" ${acceptDisabled} onclick="markContacted('${data.id}','${(data.full_name||'').replace(/'/g,"\\'")}')"><i class="fa-solid fa-check"></i> Accept</button>`;
                 btnContainer.innerHTML = countdownHtml
                     + `<div style="display:flex;gap:10px;justify-content:flex-end;align-items:center;flex-wrap:wrap;margin-top:1rem">`
-                    + bookBtn + acceptBtn + cancelBtn
+                    + bookBtn + cancelBtn
                     + `<button class="btn-modal btn-close" onclick="closeModal()">Close</button></div>`;
             } else if (data.status === 'deposit_paid') {
                 btnContainer.innerHTML = `<a href="final-payment.html" class="btn-modal btn-pay"><i class="fa-solid fa-credit-card"></i> Pay Balance</a><button class="btn-modal btn-close" onclick="closeModal()">Close</button>`;
             } else {
                 btnContainer.innerHTML = `<button class="btn-modal btn-close" onclick="closeModal()">Close</button>`;
             }
-            // Hide history/interactions — not needed for New Request view
+            // Hide history/interactions — not needed for Pending Request view
             document.getElementById('bh-section').style.display = 'none';
             const _mis1 = document.getElementById('modal-int-section'); if (_mis1) _mis1.style.display = 'none';
             document.getElementById('custModal').classList.add('open');
