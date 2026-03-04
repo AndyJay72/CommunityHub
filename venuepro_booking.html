@@ -936,6 +936,15 @@
                 return;
             }
 
+            // CAPACITY CHECK — prevent guest count exceeding room cap
+            const bookingRoomId = document.getElementById('roomId').value;
+            const bookingRoom = roomsData.find(r => String(r.id) === String(bookingRoomId));
+            const bookingGuests = parseInt(document.getElementById('vpGuestCount').value, 10);
+            if (bookingRoom && bookingRoom.capacity && !isNaN(bookingGuests) && bookingGuests > parseInt(bookingRoom.capacity, 10)) {
+                alert(`The ${bookingRoom.name} has a maximum capacity of ${bookingRoom.capacity} guests. The request has ${bookingGuests} guests — please update the guest count or choose a different room before proceeding.`);
+                return;
+            }
+
             if (type === 'full') payAmount = total;
 
             const btns = document.querySelectorAll('.btn');
