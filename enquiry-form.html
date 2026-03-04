@@ -80,23 +80,16 @@
         select option { background: #1e293b; color: white; }
         input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.2); background: rgba(0,0,0,0.5); }
         input::placeholder { color: var(--text-muted); }
-        /* Chrome date picker: restore native appearance so the full field is clickable,
-           tint the icon white to match the dark theme, and apply dark colour-scheme
-           so the popup calendar also renders in dark mode */
+        /* Chrome date picker: restore native appearance so the calendar popup works,
+           force the indicator icon to white via brightness(0)+invert(1),
+           and apply dark colour-scheme so the popup renders in dark mode */
         input[type="date"] {
             appearance: auto; -webkit-appearance: auto;
             color-scheme: dark;
         }
         input[type="date"]::-webkit-calendar-picker-indicator {
-            filter: invert(1) brightness(1.5);
+            filter: brightness(0) invert(1);
             cursor: pointer;
-            padding: 4px;
-            border-radius: 4px;
-            opacity: 0.75;
-        }
-        input[type="date"]::-webkit-calendar-picker-indicator:hover {
-            opacity: 1;
-            background: rgba(99,102,241,0.25);
         }
         textarea {
             width: 100%; padding: 13px 15px 13px 45px;
