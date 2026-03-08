@@ -46,7 +46,7 @@ n8n Webhook APIs ─────────────────────
   POST /webhook/leads-send-email    ← trigger AI email to a lead
         │
         ▼
-Postgres Database (bookings schema)
+Postgres Database (myadmin_db)
   ├── leads             ← all lead records
   └── lead_activity     ← email sent / reply / converted log
         │
@@ -82,7 +82,7 @@ The following are **deployed and active** in your n8n instance at `https://n8n.s
 | VenueDesk — API: Send Email to Lead | **Live** | Manual send button |
 | VenueDesk — AI Lead Generator (Daily) | **Inactive ⏸** | Needs credentials — see below |
 
-The `leads` and `lead_activity` database tables are also already created in your `bookings` Postgres database.
+The `leads` and `lead_activity` database tables are already created in your `myadmin_db` Postgres database (separate from the VenuePro `bookings` database).
 
 ---
 

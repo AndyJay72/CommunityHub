@@ -8,7 +8,7 @@ import json, requests, sys, time
 
 N8N_BASE   = "https://n8n.srv1090894.hstgr.cloud"
 API_KEY    = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjQ4NTI3NC03MDk3LTRlYjUtODUwMi1lMzliMjMwODA5NmMiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiNGZmYmRmMzMtMjdmYi00M2EyLWI4ZjItMTI5YzA4YTcyYjJhIiwiaWF0IjoxNzcyMjc5NjY3LCJleHAiOjE3NzQ4NDMyMDB9.pxZSPNnmNHdZ3n-Oo4EfqR8YyLwDOMl0Apb0hbOVdeQ"
-PG_CRED_ID     = "XHopEzNBCVGCXpXV"   # Postgres account
+PG_CRED_ID     = "iEsRYyB7vjr5G7i8"   # Postgres account 3 (myadmin_db)
 OPENAI_CRED_ID = "sAiUxZnK5nm6DZfX"   # OpenAi account 2
 SMTP_CRED_ID   = "oWx6QKxXljDdeSDP"   # SMTP account
 
@@ -39,7 +39,7 @@ def create_workflow(wf):
     return None
 
 def pg_cred():
-    return {"postgres": {"id": PG_CRED_ID, "name": "Postgres account"}}
+    return {"postgres": {"id": PG_CRED_ID, "name": "Postgres account 3"}}
 
 def openai_cred():
     return {"openAiApi": {"id": OPENAI_CRED_ID, "name": "OpenAi account 2"}}
