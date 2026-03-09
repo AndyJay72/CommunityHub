@@ -75,6 +75,9 @@
         .tb-btn.warning { background: rgba(245,158,11,.12); color: #f59e0b; border-color: rgba(245,158,11,.3); }
         .tb-btn.warning:hover { background: rgba(245,158,11,.22); border-color: #f59e0b; }
         .tb-btn.warning:disabled { opacity: .5; cursor: not-allowed; pointer-events: none; }
+        .tb-btn.success { background: rgba(16,185,129,.12); color: #10b981; border-color: rgba(16,185,129,.3); }
+        .tb-btn.success:hover { background: rgba(16,185,129,.22); border-color: #10b981; }
+        .tb-btn.success:disabled { opacity: .5; cursor: not-allowed; pointer-events: none; }
         .live-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; box-shadow: 0 0 8px var(--success); animation: pulse 2s infinite; }
         @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
 
@@ -278,6 +281,7 @@
             <div class="live-dot" id="liveDot"></div>
             <button class="tb-btn" onclick="loadLeads()"><i class="fa-solid fa-rotate"></i> Refresh</button>
             <button class="tb-btn warning" id="runNowBtn" onclick="runLeadGen()"><i class="fa-solid fa-bolt"></i> Run Now</button>
+            <button class="tb-btn success" id="discoverBtn" onclick="discoverLeads()"><i class="fa-solid fa-magnifying-glass"></i> Find Leads</button>
             <button class="tb-btn primary" onclick="openAddModal()"><i class="fa-solid fa-plus"></i> Add Lead</button>
         </div>
     </div>
@@ -952,6 +956,30 @@
     // ─── Helpers ───────────────────────────────────────────────────
     function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
     function fmtDate(d) { try { return new Date(d).toLocaleDateString('en-GB', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}); } catch { return d || '—'; } }
+
+    async function discoverLeads() {
+        const btn = document.getElementById('discoverBtn');
+        const origHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Searching…';
+        try {
+            const res = await fetch(BASE_API + '/run-lead-discovery', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: '{}'
+            });
+            if (res.ok) {
+                showToast('🔍 Discovering leads across England… takes ~90s. Click ⚡ Run Now after 2 minutes to score new leads.', 'success');
+            } else {
+                const txt = await res.text().catch(() => String(res.status));
+                showToast('Discovery failed (HTTP ' + res.status + '): ' + txt.substring(0, 80), 'error');
+            }
+        } catch(e) {
+            showToast('Discovery failed: ' + e.message, 'error');
+        } finally {
+            setTimeout(() => { btn.disabled = false; btn.innerHTML = origHtml; }, 6000);
+        }
+    }
 
     async function runLeadGen() {
         const btn = document.getElementById('runNowBtn');
