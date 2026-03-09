@@ -477,6 +477,18 @@
     </div>
 </div>
 
+<!-- ── LEAD DETAIL MODAL ────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="detailModal" onclick="if(event.target===this)closeDetailModal()">
+    <div class="modal" style="max-width:640px;">
+        <div class="modal-head" id="detailHead">
+            <h3 id="detailTitle">Lead Details</h3>
+            <button class="modal-close" onclick="closeDetailModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body" id="detailBody" style="max-height:70vh;overflow-y:auto;"></div>
+        <div class="modal-foot" id="detailFoot"></div>
+    </div>
+</div>
+
 <!-- ── TOAST CONTAINER ────────────────────────────────────────────────── -->
 <div id="toast-container"></div>
 
@@ -687,7 +699,77 @@
         showToast('Lead removed', 'success');
     }
 
-    function openLeadDetail(id) { /* expand to detail modal if needed */ }
+    function openLeadDetail(id) {
+        const lead = allLeads.find(l => l.id === id);
+        if (!lead) return;
+
+        // Parse ai_analysis JSON
+        let analysis = null;
+        if (lead.ai_analysis) {
+            try { analysis = JSON.parse(lead.ai_analysis.replace(/^```json\n?|```$/g, '')); } catch(e) {}
+        }
+
+        const score = parseInt(lead.ai_score) || 0;
+        const scoreColor = score >= 8 ? '#10b981' : score >= 6 ? '#f59e0b' : '#ef4444';
+        const typeLabels = { village_hall:'Village Hall', sports_club:'Sports Club', event_venue:'Event Venue', hotel:'Hotel', community_centre:'Community Centre' };
+
+        document.getElementById('detailTitle').innerHTML =
+            `<span style="display:flex;align-items:center;gap:10px;">${esc(lead.venue_name)} ${statusBadge(lead.status)}</span>`;
+
+        // ── Contact / meta grid ──
+        let bodyHtml = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1.25rem;">`;
+        if (lead.contact_name) bodyHtml += `<div><div style="font-size:.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.25rem;">Contact</div><div style="font-size:.88rem;">${esc(lead.contact_name)}</div></div>`;
+        bodyHtml += `<div><div style="font-size:.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.25rem;">Email</div><div style="font-size:.88rem;color:var(--text-muted);">${esc(lead.email||'—')}</div></div>`;
+        if (lead.phone) bodyHtml += `<div><div style="font-size:.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.25rem;">Phone</div><div style="font-size:.88rem;">${esc(lead.phone)}</div></div>`;
+        if (lead.website_url) bodyHtml += `<div><div style="font-size:.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.25rem;">Website</div><div style="font-size:.88rem;"><a href="${esc(lead.website_url)}" target="_blank" style="color:var(--primary);">${esc(lead.website_url.replace(/^https?:\/\//,''))}</a></div></div>`;
+        bodyHtml += `<div><div style="font-size:.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.25rem;">AI Score</div><div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:1.1rem;color:${scoreColor};">${score}/10</div></div>`;
+        bodyHtml += `<div><div style="font-size:.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.25rem;">Type</div><div style="font-size:.88rem;">${typeLabels[lead.venue_type]||lead.venue_type||'—'}</div></div>`;
+        bodyHtml += `</div>`;
+
+        // ── AI Analysis ──
+        if (analysis) {
+            bodyHtml += `
+            <div style="background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);border-radius:12px;padding:1rem;margin-bottom:1rem;">
+                <div style="font-size:.75rem;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.75rem;display:flex;align-items:center;gap:6px;">
+                    <i class="fa-solid fa-robot"></i> AI Venue Analysis
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;">
+                    ${analysis.key_feature ? `<div style="grid-column:1/-1;"><span style="font-size:.72rem;color:var(--text-muted);font-weight:600;">Key Feature</span><p style="font-size:.84rem;margin-top:3px;">${esc(analysis.key_feature)}</p></div>` : ''}
+                    ${analysis.pain_point  ? `<div style="grid-column:1/-1;"><span style="font-size:.72rem;color:var(--text-muted);font-weight:600;">Pain Point</span><p style="font-size:.84rem;margin-top:3px;color:var(--warning);">${esc(analysis.pain_point)}</p></div>` : ''}
+                    ${analysis.tone        ? `<div><span style="font-size:.72rem;color:var(--text-muted);font-weight:600;">Recommended Tone</span><p style="font-size:.84rem;margin-top:3px;text-transform:capitalize;">${esc(analysis.tone)}</p></div>` : ''}
+                    ${analysis.venue_type  ? `<div><span style="font-size:.72rem;color:var(--text-muted);font-weight:600;">Venue Category</span><p style="font-size:.84rem;margin-top:3px;">${esc(analysis.venue_type)}</p></div>` : ''}
+                </div>
+            </div>`;
+        }
+
+        // ── Generated Email ──
+        if (lead.ai_email_body) {
+            const subject = lead.email_subject || '';
+            bodyHtml += `
+            <div style="background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+                <div style="padding:.6rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">
+                    <i class="fa-solid fa-envelope" style="color:var(--primary);font-size:.8rem;"></i>
+                    <span style="font-size:.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;">Generated Email</span>
+                    ${subject ? `<span style="margin-left:auto;font-size:.8rem;color:var(--text-main);font-weight:600;">${esc(subject)}</span>` : ''}
+                </div>
+                <div style="padding:.85rem 1rem;font-size:.82rem;line-height:1.7;color:var(--text-main);white-space:pre-wrap;max-height:200px;overflow-y:auto;">${esc(lead.ai_email_body)}</div>
+            </div>`;
+        } else {
+            bodyHtml += `<div style="text-align:center;padding:1.25rem;color:var(--text-muted);font-size:.82rem;border:1px dashed var(--border);border-radius:12px;"><i class="fa-solid fa-robot" style="display:block;font-size:1.5rem;margin-bottom:.5rem;opacity:.3;"></i>${lead.status==='new' ? 'AI email will be generated when the daily workflow runs' : 'No email data available'}</div>`;
+        }
+
+        document.getElementById('detailBody').innerHTML = bodyHtml;
+        document.getElementById('detailFoot').innerHTML = `
+            <button class="modal-btn cancel" onclick="closeDetailModal()">Close</button>
+            <button class="modal-btn submit" style="background:var(--info);border:none;" onclick="closeDetailModal();sendEmail('${lead.id}')"><i class="fa-solid fa-envelope"></i> Send Email</button>
+            <button class="modal-btn submit" onclick="closeDetailModal();updateStatus('${lead.id}','converted')"><i class="fa-solid fa-check"></i> Mark Converted</button>`;
+
+        document.getElementById('detailModal').classList.add('open');
+    }
+
+    function closeDetailModal() {
+        document.getElementById('detailModal').classList.remove('open');
+    }
 
     // ─── Workflow status animation (demo) ──────────────────────────
     function animateWorkflow() {
