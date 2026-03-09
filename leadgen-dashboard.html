@@ -485,6 +485,64 @@
     </div>
 </div>
 
+<!-- ── EDIT LEAD MODAL ──────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="editModal" onclick="if(event.target===this)closeEditModal()">
+    <div class="modal">
+        <div class="modal-head">
+            <h3><i class="fa-solid fa-pencil" style="color:var(--primary);margin-right:6px;"></i> Edit Lead</h3>
+            <button class="modal-close" onclick="closeEditModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="e_id">
+            <div class="field-row">
+                <div class="field-group">
+                    <label>Venue Name</label>
+                    <input type="text" id="e_name" placeholder="e.g. Thornfield Village Hall">
+                </div>
+                <div class="field-group">
+                    <label>Venue Type</label>
+                    <select id="e_type">
+                        <option value="">Select type</option>
+                        <option value="village_hall">Village Hall</option>
+                        <option value="sports_club">Sports Club</option>
+                        <option value="event_venue">Event Venue</option>
+                        <option value="hotel">Hotel</option>
+                        <option value="community_centre">Community Centre</option>
+                    </select>
+                </div>
+            </div>
+            <div class="field-row">
+                <div class="field-group">
+                    <label>Contact Name</label>
+                    <input type="text" id="e_contact" placeholder="e.g. Sandra Hughes">
+                </div>
+                <div class="field-group">
+                    <label>Email Address</label>
+                    <input type="email" id="e_email" placeholder="e.g. info@venue.co.uk">
+                </div>
+            </div>
+            <div class="field-row">
+                <div class="field-group">
+                    <label>Phone</label>
+                    <input type="tel" id="e_phone" placeholder="e.g. 01234 567890">
+                </div>
+                <div class="field-group">
+                    <label>Website URL</label>
+                    <input type="url" id="e_website" placeholder="https://...">
+                </div>
+            </div>
+            <div class="field-group">
+                <label>Notes</label>
+                <textarea id="e_notes" rows="2" placeholder="Any relevant notes..."></textarea>
+            </div>
+        </div>
+        <div class="modal-foot">
+            <button class="modal-btn cancel" onclick="closeEditModal()">Cancel</button>
+            <button class="modal-btn submit" id="editSubmitBtn" onclick="submitEditLead()"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+        </div>
+    </div>
+</div>
+
 <!-- ── LEAD DETAIL MODAL ────────────────────────────────────────────────── -->
 <div class="modal-overlay" id="detailModal" onclick="if(event.target===this)closeDetailModal()">
     <div class="modal" style="max-width:640px;">
@@ -579,6 +637,7 @@
                 <td style="color:var(--text-muted);font-size:.78rem;">${lastContact}</td>
                 <td>
                     <div class="td-actions">
+                        <button class="act-btn" title="Edit lead" onclick="event.stopPropagation();openEditModal('${lead.id}')"><i class="fa-solid fa-pencil"></i></button>
                         <button class="act-btn" title="Send email" onclick="event.stopPropagation();sendEmail('${lead.id}')"><i class="fa-solid fa-envelope"></i></button>
                         <button class="act-btn" title="Mark converted" onclick="event.stopPropagation();updateStatus('${lead.id}','converted')"><i class="fa-solid fa-check"></i></button>
                         <button class="act-btn" title="Remove" onclick="event.stopPropagation();confirmRemove('${lead.id}')"><i class="fa-solid fa-trash"></i></button>
@@ -797,6 +856,7 @@
         const sendBtnStyle = lead.status === 'scored' ? 'background:#f59e0b;border:none;' : 'background:var(--info);border:none;';
         document.getElementById('detailFoot').innerHTML = `
             <button class="modal-btn cancel" onclick="closeDetailModal()">Close</button>
+            <button class="modal-btn cancel" style="margin-right:auto;" onclick="closeDetailModal();openEditModal('${lead.id}')"><i class="fa-solid fa-pencil"></i> Edit</button>
             ${canSend ? `<button class="modal-btn submit" style="${sendBtnStyle}" onclick="closeDetailModal();sendEmail('${lead.id}')">${lead.status==='scored'?'<i class="fa-solid fa-bolt"></i> Send Email Now':'<i class="fa-solid fa-envelope"></i> Send Email'}</button>` : ''}
             <button class="modal-btn submit" onclick="closeDetailModal();updateStatus('${lead.id}','converted')"><i class="fa-solid fa-check"></i> Mark Converted</button>`;
 
@@ -805,6 +865,61 @@
 
     function closeDetailModal() {
         document.getElementById('detailModal').classList.remove('open');
+    }
+
+    // ─── Edit Lead ─────────────────────────────────────────────────
+    function openEditModal(id) {
+        const lead = allLeads.find(l => l.id === id);
+        if (!lead) return;
+        document.getElementById('e_id').value      = lead.id;
+        document.getElementById('e_name').value    = lead.venue_name    || '';
+        document.getElementById('e_type').value    = lead.venue_type    || '';
+        document.getElementById('e_contact').value = lead.contact_name  || '';
+        document.getElementById('e_email').value   = lead.email         || '';
+        document.getElementById('e_phone').value   = lead.phone         || '';
+        document.getElementById('e_website').value = lead.website_url   || '';
+        document.getElementById('e_notes').value   = lead.notes         || '';
+        document.getElementById('editModal').classList.add('open');
+    }
+    function closeEditModal() {
+        document.getElementById('editModal').classList.remove('open');
+    }
+    async function submitEditLead() {
+        const id = document.getElementById('e_id').value;
+        const payload = {
+            id,
+            venue_name:   document.getElementById('e_name').value.trim(),
+            venue_type:   document.getElementById('e_type').value,
+            contact_name: document.getElementById('e_contact').value.trim(),
+            email:        document.getElementById('e_email').value.trim(),
+            phone:        document.getElementById('e_phone').value.trim(),
+            website_url:  document.getElementById('e_website').value.trim(),
+            notes:        document.getElementById('e_notes').value.trim()
+        };
+        const btn = document.getElementById('editSubmitBtn');
+        btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+        try {
+            const r = await fetch('https://n8n.srv1090894.hstgr.cloud/webhook/edit-lead', {
+                method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+            });
+            const data = await r.json();
+            if (data.success !== false) {
+                const updated = data.lead || data;
+                const idx = allLeads.findIndex(l => l.id === id);
+                if (idx !== -1) allLeads[idx] = { ...allLeads[idx], ...updated, ...payload };
+                renderTable(applyFilters());
+                updateStats(allLeads);
+                updatePipeline(allLeads);
+                closeEditModal();
+                showToast('Lead updated successfully', 'success');
+            } else {
+                throw new Error('Update failed');
+            }
+        } catch(e) {
+            showToast('Error saving lead: ' + e.message, 'error');
+        } finally {
+            btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Changes';
+        }
     }
 
     // ─── Workflow status animation (demo) ──────────────────────────
