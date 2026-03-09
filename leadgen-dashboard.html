@@ -140,6 +140,7 @@
         .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
         .b-new       { background: rgba(148,163,184,.15); color: #94a3b8; }
         .b-contacted { background: rgba(99,102,241,.2);   color: #a5b4fc; }
+        .b-scored    { background: rgba(245,158,11,.2);   color: #fbbf24; }
         .b-replied   { background: rgba(59,130,246,.2);   color: #60a5fa; }
         .b-followup  { background: rgba(245,158,11,.2);   color: #fbbf24; }
         .b-converted { background: rgba(16,185,129,.2);   color: #34d399; }
@@ -171,7 +172,7 @@
 
         /* ── PIPELINE CHART ─────────────────────────────────────── */
         .pipeline { margin-bottom: 1.5rem; }
-        .pipeline-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--border); border-radius: var(--radius); overflow: hidden; }
+        .pipeline-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1px; background: var(--border); border-radius: var(--radius); overflow: hidden; }
         .pipe-stage { background: var(--bg-card); padding: 1rem; text-align: center; }
         .pipe-stage:first-child { border-radius: var(--radius) 0 0 var(--radius); }
         .pipe-stage:last-child  { border-radius: 0 var(--radius) var(--radius) 0; }
@@ -228,6 +229,7 @@
             .main { margin-left: 0; }
             .stats-grid { grid-template-columns: 1fr 1fr; }
             .pipeline-grid { grid-template-columns: 1fr 1fr 1fr; }
+            .pipe-stage .pipe-label { font-size:.65rem; }
         }
         @media (max-width: 560px) { .stats-grid { grid-template-columns: 1fr; } }
     </style>
@@ -332,6 +334,11 @@
                     <div class="pipe-bar" style="background:#94a3b8;"></div>
                 </div>
                 <div class="pipe-stage">
+                    <div class="pipe-num" id="pipeScored" style="color:#fbbf24;">0</div>
+                    <div class="pipe-label">Scored</div>
+                    <div class="pipe-bar" style="background:#f59e0b;"></div>
+                </div>
+                <div class="pipe-stage">
                     <div class="pipe-num" id="pipeContacted" style="color:#a5b4fc;">0</div>
                     <div class="pipe-label">Contacted</div>
                     <div class="pipe-bar" style="background:#6366f1;"></div>
@@ -369,6 +376,7 @@
                     <select class="filter-sel" id="statusFilter" onchange="filterLeads()">
                         <option value="">All statuses</option>
                         <option value="new">New</option>
+                        <option value="scored">Scored (ready to send)</option>
                         <option value="contacted">Contacted</option>
                         <option value="replied">Replied</option>
                         <option value="follow_up">Follow-up</option>
@@ -509,7 +517,7 @@
             updateStats(allLeads);
             updatePipeline(allLeads);
             document.getElementById('topbarSub').textContent = `${allLeads.length} leads · last updated ${new Date().toLocaleTimeString('en-GB')}`;
-            document.getElementById('newCount').textContent = allLeads.filter(l => l.status === 'new').length;
+            document.getElementById('newCount').textContent = allLeads.filter(l => l.status === 'new' || l.status === 'scored').length;
         } catch(e) {
             // Show demo data if backend not yet connected
             allLeads = getDemoLeads();
@@ -581,7 +589,7 @@
     }
 
     function statusBadge(status) {
-        const map = { new:'b-new New', contacted:'b-contacted Contacted', replied:'b-replied Replied', follow_up:'b-followup Follow-up', converted:'b-converted Converted', bounced:'b-bounced Bounced', unsubscribed:'b-unsub Unsubscribed' };
+        const map = { new:'b-new New', scored:'b-scored Scored', contacted:'b-contacted Contacted', replied:'b-replied Replied', follow_up:'b-followup Follow-up', converted:'b-converted Converted', bounced:'b-bounced Bounced', unsubscribed:'b-unsub Unsubscribed' };
         const [cls, label] = (map[status] || 'b-new Unknown').split(' ');
         return `<span class="badge ${cls}">${label || status}</span>`;
     }
@@ -605,9 +613,10 @@
     }
 
     function updatePipeline(leads) {
-        const counts = { new:0, contacted:0, replied:0, follow_up:0, converted:0 };
+        const counts = { new:0, scored:0, contacted:0, replied:0, follow_up:0, converted:0 };
         leads.forEach(l => { if (counts[l.status] !== undefined) counts[l.status]++; });
         document.getElementById('pipeNew').textContent       = counts.new;
+        document.getElementById('pipeScored').textContent    = counts.scored;
         document.getElementById('pipeContacted').textContent = counts.contacted;
         document.getElementById('pipeReplied').textContent   = counts.replied;
         document.getElementById('pipeFollowup').textContent  = counts.follow_up;
@@ -685,11 +694,31 @@
     }
 
     async function sendEmail(id) {
-        showToast('Queuing email via n8n workflow...', 'info');
+        const lead = allLeads.find(l => l.id === id);
+        if (!lead) return;
+        if (['contacted','replied','follow_up','converted'].includes(lead.status)) {
+            if (!confirm(`${lead.venue_name} has already been contacted. Send another email?`)) return;
+        }
+        showToast(`Generating email for ${lead.venue_name}…`, 'info');
+        // Disable all send buttons for this lead
+        document.querySelectorAll(`[onclick*="sendEmail('${id}')"]`).forEach(b => { b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; });
         try {
-            await fetch(BASE_API + '/leads-send-email', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id }) });
-            showToast('Email queued successfully', 'success');
-        } catch { showToast('Email queued (workflow will process next run)', 'info'); }
+            const res = await fetch('https://n8n.srv1090894.hstgr.cloud/webhook/send-lead-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ lead_id: id })
+            });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const data = await res.json();
+            // Update lead status in memory
+            if (lead) { lead.status = 'contacted'; lead.last_email_sent_at = new Date().toISOString(); }
+            renderLeads(allLeads); updateStats(allLeads); updatePipeline(allLeads);
+            document.getElementById('newCount').textContent = allLeads.filter(l => l.status === 'new' || l.status === 'scored').length;
+            showToast(`✅ Email sent to ${data.email || lead.email} — "${(data.subject||'').substring(0,40)}"`, 'success');
+        } catch(err) {
+            showToast(`Failed to send email: ${err.message}`, 'error');
+            document.querySelectorAll(`[onclick*="sendEmail('${id}')"]`).forEach(b => { b.disabled = false; b.innerHTML = '<i class="fa-solid fa-envelope"></i>'; });
+        }
     }
 
     function confirmRemove(id) {
@@ -755,13 +784,20 @@
                 <div style="padding:.85rem 1rem;font-size:.82rem;line-height:1.7;color:var(--text-main);white-space:pre-wrap;max-height:200px;overflow-y:auto;">${esc(lead.ai_email_body)}</div>
             </div>`;
         } else {
-            bodyHtml += `<div style="text-align:center;padding:1.25rem;color:var(--text-muted);font-size:.82rem;border:1px dashed var(--border);border-radius:12px;"><i class="fa-solid fa-robot" style="display:block;font-size:1.5rem;margin-bottom:.5rem;opacity:.3;"></i>${lead.status==='new' ? 'AI email will be generated when the daily workflow runs' : 'No email data available'}</div>`;
+            const emailMsg = lead.status === 'scored'
+                ? '<i class="fa-solid fa-bolt" style="color:#f59e0b;"></i> AI has scored this lead — click <strong>Send Email</strong> to generate a personalised email and send it now.'
+                : lead.status === 'new'
+                ? '<i class="fa-solid fa-clock" style="opacity:.4;"></i> Lead will be scored by the daily AI run, then you can send an email.'
+                : 'No email data available';
+            bodyHtml += `<div style="text-align:center;padding:1.25rem;color:var(--text-muted);font-size:.82rem;border:1px dashed var(--border);border-radius:12px;">${emailMsg}</div>`;
         }
 
         document.getElementById('detailBody').innerHTML = bodyHtml;
+        const canSend = ['new','scored'].includes(lead.status) || ['contacted','replied','follow_up'].includes(lead.status);
+        const sendBtnStyle = lead.status === 'scored' ? 'background:#f59e0b;border:none;' : 'background:var(--info);border:none;';
         document.getElementById('detailFoot').innerHTML = `
             <button class="modal-btn cancel" onclick="closeDetailModal()">Close</button>
-            <button class="modal-btn submit" style="background:var(--info);border:none;" onclick="closeDetailModal();sendEmail('${lead.id}')"><i class="fa-solid fa-envelope"></i> Send Email</button>
+            ${canSend ? `<button class="modal-btn submit" style="${sendBtnStyle}" onclick="closeDetailModal();sendEmail('${lead.id}')">${lead.status==='scored'?'<i class="fa-solid fa-bolt"></i> Send Email Now':'<i class="fa-solid fa-envelope"></i> Send Email'}</button>` : ''}
             <button class="modal-btn submit" onclick="closeDetailModal();updateStatus('${lead.id}','converted')"><i class="fa-solid fa-check"></i> Mark Converted</button>`;
 
         document.getElementById('detailModal').classList.add('open');
