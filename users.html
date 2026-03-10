@@ -406,7 +406,6 @@
                 if (!res.ok) throw new Error("Connection Error");
                 
                 const json = await res.json();
-                console.log('Users response:', json); // Debug log
                 
                 // ROBUST FIX: Handle both Array and Object formats
                 let users = [];

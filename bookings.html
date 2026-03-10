@@ -495,6 +495,7 @@
         function getAuthHeaders() {
             return { 'Authorization': 'Bearer ' + (localStorage.getItem('vp_token') || '') };
         }
+        function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
         
         let allBookings = [];
@@ -745,16 +746,16 @@
                 
                 // Add Cancel button if Pre or Booked (Active events)
                 if(b.category === 'pre' || b.category === 'booked') {
-                    actions += `<button class="cancel-btn" onclick="event.stopPropagation();cancelBooking('${b.id}', '${b.customer_name}')"><i class="fa-solid fa-trash"></i> Cancel</button>`;
+                    actions += `<button class="cancel-btn" onclick="event.stopPropagation();cancelBooking('${b.id}', decodeURIComponent('${encodeURIComponent(b.customer_name || '')}'  ))"><i class="fa-solid fa-trash"></i> Cancel</button>`;
                 }
 
                 return `<div class="booking-card" ${cardClick} style="border-left: 4px solid ${statusInfo.color}; cursor:${b.category === 'pre' ? 'pointer' : 'default'};">
                     <div class="b-left">
                         <div class="date-badge"><div class="db-day">${b.dateObj.getDate()}</div><div class="db-month">${b.dateObj.toLocaleString('default', { month: 'short' })}</div></div>
                         <div class="b-details">
-                            <h4>${b.customer_name || 'Guest'}</h4>
+                            <h4>${esc(b.customer_name) || 'Guest'}</h4>
                             <div class="b-meta">
-                                <span><i class="fa-solid fa-layer-group"></i> ${b.room_name}</span>
+                                <span><i class="fa-solid fa-layer-group"></i> ${esc(b.room_name)}</span>
                                 <span><i class="fa-solid fa-clock"></i> ${b.start_time?.slice(0,5)} - ${b.end_time?.slice(0,5)}</span>
                                 ${b.date_from && b.date_to && b.date_from.slice(0,10) !== b.date_to.slice(0,10) ? `<span><i class="fa-solid fa-calendar-days"></i> ${new Date(b.date_from.split('T')[0]+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'})} – ${new Date(b.date_to.split('T')[0]+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</span>` : ''}
                                 <span><i class="fa-solid fa-sterling-sign"></i> Total: ${formatCurrency(b.total_amount)}</span>

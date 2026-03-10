@@ -492,6 +492,7 @@
         function getAuthHeaders() {
             return { 'Authorization': 'Bearer ' + (localStorage.getItem('vp_token') || '') };
         }
+        function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 
         function toggleMenu() {
@@ -788,15 +789,15 @@
                     return `
                         <div class="interaction-item">
                             <div class="interaction-item-header">
-                                <div class="interaction-item-subject">${interaction.subject}</div>
+                                <div class="interaction-item-subject">${esc(interaction.subject)}</div>
                                 <div class="interaction-item-date">${dateStr} ${timeStr}</div>
                             </div>
                             <div class="interaction-item-meta">
-                                <span><i class="fa-solid fa-tag"></i> ${interaction.interaction_type}</span>
-                                <span><i class="fa-solid fa-user"></i> ${interaction.staff_member}</span>
+                                <span><i class="fa-solid fa-tag"></i> ${esc(interaction.interaction_type)}</span>
+                                <span><i class="fa-solid fa-user"></i> ${esc(interaction.staff_member)}</span>
                                 <span><i class="fa-solid fa-calendar"></i> Booking: ${new Date(interaction.booking_date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}</span>
                             </div>
-                            <div class="interaction-item-notes">${interaction.notes}</div>
+                            <div class="interaction-item-notes">${esc(interaction.notes)}</div>
                         </div>
                     `;
                 }).join('');
