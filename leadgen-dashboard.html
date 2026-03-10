@@ -864,6 +864,17 @@
         bodyHtml += `<div><div style="font-size:.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.25rem;">Type</div><div style="font-size:.88rem;">${typeLabels[lead.venue_type]||lead.venue_type||'—'}</div></div>`;
         bodyHtml += `</div>`;
 
+        // ── Notes ──
+        if (lead.notes) {
+            bodyHtml += `
+            <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:12px;padding:.85rem 1rem;margin-bottom:1rem;">
+                <div style="font-size:.7rem;font-weight:700;color:#f59e0b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem;display:flex;align-items:center;gap:6px;">
+                    <i class="fa-solid fa-note-sticky"></i> Notes
+                </div>
+                <div style="font-size:.85rem;color:var(--text-main);line-height:1.6;white-space:pre-wrap;">${esc(lead.notes)}</div>
+            </div>`;
+        }
+
         // ── AI Analysis ──
         if (analysis) {
             bodyHtml += `
@@ -910,9 +921,11 @@
         const canSend = ['new','scored','contacted','replied','follow_up'].includes(lead.status);
         const sendBtnStyle = lead.status === 'scored' ? 'background:#f59e0b;border:none;' : 'background:var(--info);border:none;';
         const isConverted = lead.status === 'converted';
+        const canLogReply = ['contacted','replied','follow_up'].includes(lead.status);
         document.getElementById('detailFoot').innerHTML = `
             <button class="modal-btn cancel" onclick="closeDetailModal()">Close</button>
             <button class="modal-btn cancel" style="margin-right:auto;" onclick="closeDetailModal();openEditModal('${lead.id}')"><i class="fa-solid fa-pencil"></i> Edit</button>
+            ${canLogReply ? `<button class="modal-btn cancel" style="border-color:#10b981;color:#10b981;" onclick="const n=prompt('Reply note (optional):');if(n!==null){closeDetailModal();logReply('${lead.id}',n)}"><i class="fa-solid fa-reply"></i> Log Reply</button>` : ''}
             ${canSend ? `<button class="modal-btn submit" style="${sendBtnStyle}" onclick="closeDetailModal();sendEmail('${lead.id}')">${lead.status==='scored'?'<i class="fa-solid fa-bolt"></i> Send Email Now':'<i class="fa-solid fa-envelope"></i> Send Email'}</button>` : ''}
             ${!isConverted ? `<button class="modal-btn submit" onclick="closeDetailModal();updateStatus('${lead.id}','converted')"><i class="fa-solid fa-check"></i> Mark Converted</button>` : `<span style="font-size:.8rem;color:#34d399;display:flex;align-items:center;gap:5px;"><i class="fa-solid fa-trophy"></i> Converted</span>`}`;
 
@@ -921,6 +934,34 @@
 
     function closeDetailModal() {
         document.getElementById('detailModal').classList.remove('open');
+    }
+
+    async function logReply(id, note) {
+        const lead = allLeads.find(l => l.id === id);
+        if (!lead) return;
+        try {
+            await fetch('https://n8n.srv1090894.hstgr.cloud/webhook/update-lead-status', {
+                method: 'POST', headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ lead_id: id, status: 'replied', note })
+            });
+            lead.status = 'replied';
+            if (note && note.trim()) {
+                const existing = lead.notes || '';
+                const dated = `[Reply ${new Date().toLocaleDateString('en-GB')}] ${note.trim()}`;
+                const newNotes = existing ? existing + '\n' + dated : dated;
+                await fetch('https://n8n.srv1090894.hstgr.cloud/webhook/edit-lead', {
+                    method: 'POST', headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({ id, notes: newNotes })
+                });
+                lead.notes = newNotes;
+            }
+            filterLeads();
+            updateStats(allLeads);
+            updatePipeline(allLeads);
+            showToast('Reply logged', 'success');
+        } catch(err) {
+            showToast('Failed to log reply: ' + err.message, 'error');
+        }
     }
 
     // ─── Edit Lead ─────────────────────────────────────────────────
