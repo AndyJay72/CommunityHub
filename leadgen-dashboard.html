@@ -581,6 +581,10 @@
 <script>
     const BASE_API = 'https://n8n.srv1090894.hstgr.cloud/webhook';
 
+    function getAuthHeaders() {
+        return { 'Authorization': 'Bearer ' + (localStorage.getItem('vp_token') || '') };
+    }
+
     let allLeads = [];
     let allActivity = [];
     let leadsPage = 1;
@@ -591,7 +595,7 @@
     // ─── Load leads ────────────────────────────────────────────────
     async function loadLeads() {
         try {
-            const res = await fetch(BASE_API + '/leads-get');
+            const res = await fetch(BASE_API + '/leads-get', { headers: getAuthHeaders() });
             if (!res.ok) throw new Error('HTTP ' + res.status);
             const data = await res.json();
             allLeads = Array.isArray(data) ? data : (data.data || data.leads || []);
@@ -613,7 +617,7 @@
     // ─── Load activity ──────────────────────────────────────────────
     async function loadActivity() {
         try {
-            const res = await fetch(BASE_API + '/leads-activity');
+            const res = await fetch(BASE_API + '/leads-activity', { headers: getAuthHeaders() });
             if (!res.ok) throw new Error();
             const data = await res.json();
             allActivity = Array.isArray(data) ? data : (data.data || []);
@@ -773,7 +777,7 @@
         btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Adding...';
         const payload = { venue_name: name, venue_type: type, contact_name: document.getElementById('f_contact').value.trim(), email, phone: document.getElementById('f_phone').value.trim(), website_url: document.getElementById('f_website').value.trim(), notes: document.getElementById('f_notes').value.trim(), status: 'new', ai_score: null };
         try {
-            const res = await fetch(BASE_API + '/leads-add', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+            const res = await fetch(BASE_API + '/leads-add', { method:'POST', headers:{ ...getAuthHeaders(), 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
             if (!res.ok) throw new Error();
             showToast(`Lead added: ${name}`, 'success');
             closeAddModal();
@@ -793,7 +797,7 @@
 
     async function updateStatus(id, status) {
         try {
-            await fetch(BASE_API + '/leads-update', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id, status }) });
+            await fetch(BASE_API + '/leads-update', { method:'POST', headers:{ ...getAuthHeaders(), 'Content-Type':'application/json' }, body: JSON.stringify({ id, status }) });
         } catch {}
         const lead = allLeads.find(l => l.id === id);
         if (lead) { lead.status = status; renderLeads(allLeads); updateStats(allLeads); updatePipeline(allLeads); }
@@ -812,7 +816,7 @@
         try {
             const res = await fetch('https://n8n.srv1090894.hstgr.cloud/webhook/send-lead-email', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
                 body: JSON.stringify({ lead_id: id })
             });
             if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -944,7 +948,7 @@
         if (!lead) return;
         try {
             await fetch('https://n8n.srv1090894.hstgr.cloud/webhook/update-lead-status', {
-                method: 'POST', headers: {'Content-Type':'application/json'},
+                method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type':'application/json' },
                 body: JSON.stringify({ lead_id: id, status: 'replied', note })
             });
             lead.status = 'replied';
@@ -953,7 +957,7 @@
                 const dated = `[Reply ${new Date().toLocaleDateString('en-GB')}] ${note.trim()}`;
                 const newNotes = existing ? existing + '\n' + dated : dated;
                 await fetch('https://n8n.srv1090894.hstgr.cloud/webhook/edit-lead', {
-                    method: 'POST', headers: {'Content-Type':'application/json'},
+                    method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type':'application/json' },
                     body: JSON.stringify({ id, notes: newNotes })
                 });
                 lead.notes = newNotes;
@@ -1000,7 +1004,7 @@
         btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
         try {
             const r = await fetch('https://n8n.srv1090894.hstgr.cloud/webhook/edit-lead', {
-                method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+                method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type':'application/json' }, body: JSON.stringify(payload)
             });
             const data = await r.json();
             if (data.success !== false) {
@@ -1057,7 +1061,7 @@
         try {
             const res = await fetch(BASE_API + '/run-lead-discovery', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
                 body: '{}'
             });
             if (res.ok) {
@@ -1081,7 +1085,7 @@
         try {
             const res = await fetch(BASE_API + '/run-leadgen-now', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
                 body: '{}'
             });
             if (res.ok) {
