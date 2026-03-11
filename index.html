@@ -1079,14 +1079,22 @@
             searchTerm = document.getElementById('main-search').value;
             const sections = ['cards-section','interactions-section','customers-section'];
             sections.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
+            const actFeed = document.querySelector('.act-feed');
+            const dashGrid = document.querySelector('.dash-grid');
             if (view === 'interactions') {
                 document.getElementById('interactions-section').style.display = 'block';
+                if (actFeed) actFeed.style.display = 'none';
+                if (dashGrid) dashGrid.style.gridTemplateColumns = '1fr';
                 renderInteractionsTable();
             } else if (view === 'customers') {
                 document.getElementById('customers-section').style.display = 'block';
+                if (actFeed) actFeed.style.display = 'none';
+                if (dashGrid) dashGrid.style.gridTemplateColumns = '1fr';
                 loadCustomersTab();
             } else {
                 document.getElementById('cards-section').style.display = 'block';
+                if (actFeed) actFeed.style.display = '';
+                if (dashGrid) dashGrid.style.gridTemplateColumns = '';
                 renderCurrentView();
             }
         }
@@ -2367,7 +2375,7 @@
                     try {
                         const dj=await dashR.value.json(); const dd=dj.data||dj;
                         (dd.recent_customers||[]).forEach(c=>evts.push({type:'enquiry',ts:c.created_at||c.requested_date,name:c.full_name||c.customer_name||'—',detail:`${c.room_name||'Room TBC'} · ${c.event_type||''}`.replace(/·\s*$/,'')}) );
-                        (dd.upcoming_bookings||[]).forEach(b=>evts.push({type:'booking',ts:b.booking_date||b.date_from,name:b.customer_name||'—',detail:`${b.room_name||''} · ${b.status||'confirmed'}${b.total_amount?' · £'+parseFloat(b.total_amount).toFixed(2):''}`.trim().replace(/·\s*$/,'')}) );
+                        (dd.upcoming_bookings||[]).forEach(b=>evts.push({type:'booking',ts:b.created_at||b.confirmed_at||b.booking_date||b.date_from,name:b.customer_name||'—',detail:`${b.room_name||''} · ${b.status||'confirmed'}${b.total_amount?' · £'+parseFloat(b.total_amount).toFixed(2):''}`.trim().replace(/·\s*$/,'')}) );
                     } catch(e){}
                 }
                 if (txR.status==='fulfilled' && txR.value.ok) {
