@@ -710,6 +710,20 @@
         }
         let allEvents=[],calendarInstance=null,dateStatusMap={};
         function clearFilters(){document.getElementById('roomFilter').value='';document.getElementById('statusFilter').value='';document.querySelectorAll('.room-tab').forEach(t=>{t.classList.remove('active');if(t.dataset.room==='')t.classList.add('active');});applyFilters();}
+        function applyDayCellColors(){
+            const roomVal=document.getElementById('roomFilter').value;
+            const map=dateStatusMap[roomVal]||dateStatusMap['']||{};
+            const today=new Date();today.setHours(0,0,0,0);
+            document.querySelectorAll('.fc-daygrid-day[data-date]').forEach(cell=>{
+                const ds=cell.getAttribute('data-date');
+                const d=new Date(ds+'T00:00:00');
+                if(d<today){cell.style.removeProperty('background-color');return;}
+                if(blockedBgEvents.some(b=>b.start===ds)){cell.style.removeProperty('background-color');return;}
+                const s=map[ds];
+                const col=s==='booked'?'rgba(239,68,68,0.25)':s==='pending'?'rgba(245,158,11,0.25)':'rgba(16,185,129,0.22)';
+                cell.style.setProperty('background-color',col,'important');
+            });
+        }
         function applyFilters(){
             const roomVal=document.getElementById('roomFilter').value;
             const statusVal=document.getElementById('statusFilter').value;
@@ -724,7 +738,8 @@
                 if(statusVal==='past')return isPast;
                 return true;
             });
-            if(calendarInstance){calendarInstance.removeAllEvents();calendarInstance.addEventSource([...filtered,...blockedBgEvents]);}}
+            if(calendarInstance){calendarInstance.removeAllEvents();calendarInstance.addEventSource([...filtered,...blockedBgEvents]);}
+            applyDayCellColors();}
         document.addEventListener('DOMContentLoaded',async function(){
             const calEl=document.getElementById('calendar');
             try{
@@ -782,6 +797,8 @@
                     else{eventObj.start=`${startDateStr}T${startT}:00`;eventObj.end=`${startDateStr}T${endT}:00`;}
                     return eventObj;
                 });
+                // dateStatusMap[roomName][dateStr] = 'booked'|'pending'
+                // dateStatusMap[''][dateStr]      = aggregate across all rooms
                 dateStatusMap={};
                 allEvents.forEach(e=>{
                     if(e.extendedProps.isPast)return;
@@ -789,27 +806,19 @@
                     // Pending requests older than 7 days are treated as available (green)
                     if(isPending){const bDate=new Date((e.extendedProps.date_from||e.extendedProps.booking_date||e.start).split('T')[0]+'T00:00:00');if((now-bDate)/86400000>7)return;}
                     const status=isPending?'pending':'booked';
+                    const room=e.extendedProps.room_name||'Unknown';
+                    if(!dateStatusMap[room])dateStatusMap[room]={};
+                    if(!dateStatusMap[''])dateStatusMap['']={};
+                    const setStatus=(map,ds)=>{if(map[ds]!=='booked')map[ds]=status;};
                     const startStr=e.start.split('T')[0];
-                    if(e.allDay&&e.end){const d=new Date(startStr+'T00:00:00');const endD=new Date(e.end+'T00:00:00');while(d<endD){const ds=d.toISOString().split('T')[0];if(dateStatusMap[ds]!=='booked')dateStatusMap[ds]=status;d.setDate(d.getDate()+1);}}
-                    else{if(dateStatusMap[startStr]!=='booked')dateStatusMap[startStr]=status;}
+                    if(e.allDay&&e.end){const d=new Date(startStr+'T00:00:00');const endD=new Date(e.end+'T00:00:00');while(d<endD){const ds=d.toISOString().split('T')[0];setStatus(dateStatusMap[room],ds);setStatus(dateStatusMap[''],ds);d.setDate(d.getDate()+1);}}
+                    else{setStatus(dateStatusMap[room],startStr);setStatus(dateStatusMap[''],startStr);}
                 });
                 calendarInstance=new FullCalendar.Calendar(calEl,{
                     initialView:'dayGridMonth',
                     headerToolbar:{left:'prev,next today',center:'title',right:'dayGridMonth,timeGridWeek,timeGridDay,listWeek'},
                     events:[...allEvents,...blockedBgEvents],height:'auto',
-                    dayCellDidMount:function(arg){
-                        if(arg.view.type!=='dayGridMonth')return;
-                        const today=new Date();today.setHours(0,0,0,0);
-                        if(arg.date<today)return;
-                        // Use local date components (not toISOString) to avoid BST/timezone off-by-one
-                        const d=arg.date;
-                        const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-                        if(blockedBgEvents.some(b=>b.start===ds))return;
-                        const s=dateStatusMap[ds];
-                        const col=s==='booked'?'rgba(239,68,68,0.25)':s==='pending'?'rgba(245,158,11,0.25)':'rgba(16,185,129,0.22)';
-                        // setProperty with important overrides .fc-day-today { background: … !important }
-                        arg.el.style.setProperty('background-color',col,'important');
-                    },
+                    datesSet:function(){applyDayCellColors();},
                     dateClick:function(info){
                         const today=new Date();today.setHours(0,0,0,0);
                         const clicked=new Date(info.dateStr+'T00:00:00');
