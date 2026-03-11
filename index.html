@@ -149,7 +149,25 @@
         .filter-interactions:hover, .filter-interactions.active { background: #8b5cf6; color: white; border-color: #8b5cf6; }
         .filter-customers { border-color: rgba(14, 165, 233, 0.3); }
         .filter-customers:hover, .filter-customers.active { background: #0ea5e9; color: white; border-color: #0ea5e9; }
-        
+
+        /* --- ACTIVITY FEED --- */
+        .act-feed { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 2rem; }
+        .act-feed-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); }
+        .act-feed-title { font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .act-item { display: flex; align-items: flex-start; gap: 12px; padding: 0.75rem 1.5rem; border-bottom: 1px solid rgba(148,163,184,0.06); transition: background 0.15s; }
+        .act-item:last-child { border-bottom: none; }
+        .act-item:hover { background: rgba(255,255,255,0.025); }
+        .act-dot { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.78rem; margin-top: 1px; }
+        .act-body { flex: 1; min-width: 0; }
+        .act-name { font-weight: 600; font-size: 0.87rem; }
+        .act-detail { font-size: 0.76rem; color: var(--text-muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .act-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+        .act-time { font-size: 0.7rem; color: var(--text-muted); white-space: nowrap; }
+        .act-type-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 10px; font-size: 0.67rem; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
+        body.light-mode .act-feed { background: rgba(255,255,255,0.92); border-color: rgba(0,0,0,0.1); }
+        body.light-mode .act-detail { color: #64748b; }
+        body.light-mode .act-time { color: #94a3b8; }
+
         /* --- BOOKING CARDS --- */
         .booking-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s; }
         .booking-card:hover { transform: translateY(-2px); background: rgba(255,255,255,0.04); }
@@ -735,6 +753,15 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- ACTIVITY FEED -->
+        <div class="act-feed">
+            <div class="act-feed-header">
+                <div class="act-feed-title"><i class="fa-solid fa-bolt" style="color:#f59e0b"></i> Recent Activity</div>
+                <a href="audit-log.html" style="font-size:0.8rem;color:var(--primary);text-decoration:none;font-weight:600;">View Full Log <i class="fa-solid fa-arrow-right" style="font-size:0.7rem"></i></a>
+            </div>
+            <div id="act-feed-list"><div style="padding:2rem;text-align:center;color:var(--text-muted)"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</div></div>
         </div>
 
 
@@ -1761,7 +1788,7 @@
             if (!e || e.target.id === 'bookMod') document.getElementById('bookMod').classList.remove('open');
         }
 
-        startClock(); loadDashboard(); loadAllBookings(); loadAllInteractions(); setInterval(() => { loadDashboard(); loadAllBookings(); loadAllInteractions(); }, 60000);
+        startClock(); loadDashboard(); loadAllBookings(); loadAllInteractions(); loadActivityFeed(); setInterval(() => { loadDashboard(); loadAllBookings(); loadAllInteractions(); loadActivityFeed(); }, 60000);
 
         async function loadAllInteractions() {
             const INTERACTIONS_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/customer-interactions';
@@ -2262,6 +2289,70 @@
         function toggleSidebarCollapse(){
             const col=document.body.classList.toggle('sidebar-collapsed');
             localStorage.setItem('vp_sidebar_col',col?'1':'0');
+        }
+        // ── ACTIVITY FEED ──
+        const ACT_CONFIG = {
+            enquiry:     { bg:'rgba(245,158,11,0.15)',   color:'#f59e0b', icon:'fa-inbox',         label:'Enquiry' },
+            booking:     { bg:'rgba(16,185,129,0.15)',   color:'#10b981', icon:'fa-calendar-check', label:'Booking' },
+            payment:     { bg:'rgba(6,182,212,0.15)',    color:'#06b6d4', icon:'fa-credit-card',    label:'Payment' },
+            interaction: { bg:'rgba(139,92,246,0.15)',   color:'#8b5cf6', icon:'fa-comments',       label:'Interaction' },
+            email:       { bg:'rgba(59,130,246,0.15)',   color:'#3b82f6', icon:'fa-envelope',       label:'Email' },
+        };
+        function actRelTime(ts) {
+            if (!ts) return '—';
+            const m = Math.floor((Date.now() - new Date(ts).getTime()) / 60000);
+            if (m < 1) return 'just now';
+            if (m < 60) return m + 'm ago';
+            const h = Math.floor(m / 60);
+            if (h < 24) return h + 'h ago';
+            const d = Math.floor(h / 24);
+            if (d < 7) return d + 'd ago';
+            return new Date(ts).toLocaleDateString('en-GB', {day:'numeric',month:'short'});
+        }
+        async function loadActivityFeed() {
+            const list = document.getElementById('act-feed-list');
+            try {
+                const [dashR, txR, intR] = await Promise.allSettled([
+                    fetch('https://n8n.srv1090894.hstgr.cloud/webhook/staff-dashboard', {headers:getAuthHeaders()}),
+                    fetch('https://n8n.srv1090894.hstgr.cloud/webhook/accounts-data',   {headers:getAuthHeaders()}),
+                    fetch('https://n8n.srv1090894.hstgr.cloud/webhook/customer-interactions', {headers:getAuthHeaders()}),
+                ]);
+                const evts = [];
+                if (dashR.status==='fulfilled' && dashR.value.ok) {
+                    try {
+                        const dj=await dashR.value.json(); const dd=dj.data||dj;
+                        (dd.recent_customers||[]).forEach(c=>evts.push({type:'enquiry',ts:c.created_at||c.requested_date,name:c.full_name||c.customer_name||'—',detail:`${c.room_name||'Room TBC'} · ${c.event_type||''}`.replace(/·\s*$/,'')}) );
+                        (dd.upcoming_bookings||[]).forEach(b=>evts.push({type:'booking',ts:b.booking_date||b.date_from,name:b.customer_name||'—',detail:`${b.room_name||''} · ${b.status||'confirmed'}${b.total_amount?' · £'+parseFloat(b.total_amount).toFixed(2):''}`.trim().replace(/·\s*$/,'')}) );
+                    } catch(e){}
+                }
+                if (txR.status==='fulfilled' && txR.value.ok) {
+                    try {
+                        const tj=await txR.value.json(); const td=tj.data||tj;
+                        const txns = Array.isArray(td)?td:(td.transactions||td.payments||[]);
+                        txns.forEach(p=>evts.push({type:'payment',ts:p.payment_date||p.created_at,name:p.customer_name||'—',detail:`${(p.payment_type||'payment').replace(/_/g,' ')} · ${p.room_name||''} · £${parseFloat(p.amount||0).toFixed(2)} via ${(p.payment_method||'').replace(/_/g,' ')}`.replace(/·\s*$/,'')}) );
+                    } catch(e){}
+                }
+                if (intR.status==='fulfilled' && intR.value.ok) {
+                    try {
+                        const ij=await intR.value.json(); const ia=ij.data||(Array.isArray(ij)?ij:[]);
+                        ia.forEach(i=>{ const isEmail=/email/i.test(i.interaction_type||''); evts.push({type:isEmail?'email':'interaction',ts:i.timestamp||i.created_at,name:i.customer_name||'—',detail:`${i.interaction_type||'Interaction'} · ${i.subject||''} · ${i.room_name||''}`.replace(/(·\s*){2,}/g,'· ').replace(/·\s*$/,'')}) });
+                    } catch(e){}
+                }
+                evts.sort((a,b)=>new Date(b.ts||0)-new Date(a.ts||0));
+                const top = evts.slice(0, 12);
+                if (!top.length) { list.innerHTML='<div style="padding:2rem;text-align:center;color:var(--text-muted)">No recent activity</div>'; return; }
+                list.innerHTML = top.map(ev=>{
+                    const c = ACT_CONFIG[ev.type]||ACT_CONFIG.booking;
+                    return `<div class="act-item">
+                        <div class="act-dot" style="background:${c.bg}"><i class="fa-solid ${c.icon}" style="color:${c.color}"></i></div>
+                        <div class="act-body">
+                            <div class="act-name">${ev.name} <span class="act-type-badge" style="background:${c.bg};color:${c.color};border:1px solid ${c.color}33">${c.label}</span></div>
+                            <div class="act-detail">${ev.detail||''}</div>
+                        </div>
+                        <div class="act-right"><div class="act-time">${actRelTime(ev.ts)}</div></div>
+                    </div>`;
+                }).join('');
+            } catch(e) { if(list)list.innerHTML='<div style="padding:2rem;text-align:center;color:#ef4444">Failed to load activity</div>'; }
         }
         (function(){if(localStorage.getItem('vp_sidebar_col')==='1')document.body.classList.add('sidebar-collapsed');})();
         // ── THEME PERSISTENCE ──

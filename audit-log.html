@@ -44,6 +44,10 @@
         .type-payment{background:rgba(16,185,129,0.15);color:#10b981;border:1px solid rgba(16,185,129,0.3)}
         .type-deposit{background:rgba(99,102,241,0.15);color:#6366f1;border:1px solid rgba(99,102,241,0.3)}
         .type-refund{background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.3)}
+        .type-booking{background:rgba(6,182,212,0.15);color:#06b6d4;border:1px solid rgba(6,182,212,0.3)}
+        .type-enquiry{background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3)}
+        .type-interaction{background:rgba(139,92,246,0.15);color:#8b5cf6;border:1px solid rgba(139,92,246,0.3)}
+        .type-email{background:rgba(59,130,246,0.15);color:#3b82f6;border:1px solid rgba(59,130,246,0.3)}
         .type-other{background:rgba(148,163,184,0.1);color:#94a3b8;border:1px solid rgba(148,163,184,0.2)}
         .method-badge{padding:3px 8px;border-radius:8px;font-size:0.7rem;font-weight:600;background:rgba(0,0,0,0.3);border:1px solid var(--border);text-transform:capitalize}
         .pagination{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-top:1px solid var(--border)}
@@ -293,7 +297,7 @@
         <header style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
             <div style="display:flex;align-items:center">
                 <button class="menu-toggle" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></button>
-                <div><h1 style="font-size:1.8rem;font-weight:700">Audit Log</h1><p style="color:var(--text-muted);font-size:0.88rem;margin-top:3px">All payment transactions</p></div>
+                <div><h1 style="font-size:1.8rem;font-weight:700">Audit Log</h1><p style="color:var(--text-muted);font-size:0.88rem;margin-top:3px">All activity — bookings, payments, interactions &amp; enquiries</p></div>
             </div>
             <div style="display:flex;gap:8px;align-items:center">
                 <button onclick="exportCSV()" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:9px 16px;border-radius:8px;cursor:pointer;font-size:0.88rem;font-weight:600;font-family:inherit;display:flex;align-items:center;gap:6px;transition:0.2s" onmouseover="this.style.background='rgba(16,185,129,0.2)'" onmouseout="this.style.background='rgba(16,185,129,0.1)'"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
@@ -309,6 +313,10 @@
                 <option value="payment">Payment</option>
                 <option value="deposit">Deposit</option>
                 <option value="refund">Refund</option>
+                <option value="booking">Booking</option>
+                <option value="enquiry">Enquiry</option>
+                <option value="interaction">Interaction</option>
+                <option value="email">Email</option>
             </select>
             <select id="f-method" class="f-select" onchange="applyFilters()">
                 <option value="">All Methods</option>
@@ -319,15 +327,15 @@
             <button class="f-clear" onclick="clearFilters()"><i class="fa-solid fa-xmark"></i> Clear</button>
         </div>
         <div class="summary-strip">
-            <div class="sum-card"><div class="sum-val" id="s-count">—</div><div class="sum-lbl">Transactions</div></div>
-            <div class="sum-card"><div class="sum-val" id="s-total">—</div><div class="sum-lbl">Total Value</div></div>
-            <div class="sum-card"><div class="sum-val" id="s-deps">—</div><div class="sum-lbl">Deposits</div></div>
-            <div class="sum-card"><div class="sum-val" id="s-bals">—</div><div class="sum-lbl">Balance Payments</div></div>
+            <div class="sum-card"><div class="sum-val" id="s-count">—</div><div class="sum-lbl">Total Events</div></div>
+            <div class="sum-card"><div class="sum-val" id="s-total">—</div><div class="sum-lbl">Payments Total</div></div>
+            <div class="sum-card"><div class="sum-val" id="s-deps">—</div><div class="sum-lbl">Bookings &amp; Enquiries</div></div>
+            <div class="sum-card"><div class="sum-val" id="s-bals">—</div><div class="sum-lbl">Interactions</div></div>
         </div>
         <div class="table-wrap">
             <div class="table-inner">
                 <table>
-                    <thead><tr><th>Date &amp; Time</th><th>Customer</th><th>Room</th><th>Type</th><th>Method</th><th>Amount</th><th>Reference</th></tr></thead>
+                    <thead><tr><th>Date &amp; Time</th><th>Customer</th><th>Room</th><th>Type</th><th>Details</th><th>Amount</th><th>Ref / Subject</th></tr></thead>
                     <tbody id="log-tbody"><tr><td colspan="7" style="text-align:center;padding:3rem;color:var(--text-muted)"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</td></tr></tbody>
                 </table>
             </div>
@@ -339,7 +347,9 @@
         </div>
     </main>
     <script>
-        const API = 'https://n8n.srv1090894.hstgr.cloud/webhook/accounts-data';
+        const PAYMENTS_API      = 'https://n8n.srv1090894.hstgr.cloud/webhook/accounts-data';
+        const INTERACTIONS_API  = 'https://n8n.srv1090894.hstgr.cloud/webhook/customer-interactions';
+        const DASHBOARD_API     = 'https://n8n.srv1090894.hstgr.cloud/webhook/staff-dashboard';
         const fmt = n => new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP'}).format(parseFloat(n)||0);
         function getAuthHeaders(){return{'Authorization':'Bearer '+(localStorage.getItem('vp_token')||'')};}
         function toggleMenu() {
@@ -355,6 +365,18 @@
             if (overlay) overlay.classList.remove('active');
         }
         function logout(){if(confirm("Log out?")){localStorage.removeItem('vp_token');window.location.href='login.html';}}
+
+        const TYPE_CONFIG = {
+            payment:     { cls:'type-payment',     label:'Payment',     icon:'fa-credit-card' },
+            deposit:     { cls:'type-deposit',     label:'Deposit',     icon:'fa-coins' },
+            refund:      { cls:'type-refund',      label:'Refund',      icon:'fa-rotate-left' },
+            booking:     { cls:'type-booking',     label:'Booking',     icon:'fa-calendar-check' },
+            enquiry:     { cls:'type-enquiry',     label:'Enquiry',     icon:'fa-inbox' },
+            interaction: { cls:'type-interaction', label:'Interaction', icon:'fa-comments' },
+            email:       { cls:'type-email',       label:'Email',       icon:'fa-envelope' },
+        };
+        function getTypeCfg(t) { return TYPE_CONFIG[t] || {cls:'type-other',label:t||'Other',icon:'fa-circle'}; }
+
         let allTx=[], filtered=[], page=1;
         const PAGE_SIZE=25;
         function clearFilters(){document.getElementById('f-search').value='';document.getElementById('f-from').value='';document.getElementById('f-to').value='';document.getElementById('f-type').value='';document.getElementById('f-method').value='';applyFilters();}
@@ -365,12 +387,12 @@
             const typ=document.getElementById('f-type').value;
             const meth=document.getElementById('f-method').value;
             filtered=allTx.filter(t=>{
-                if(q&&![(t.customer_name||''),(t.room_name||''),(t.reference||t.reference_number||''),(t.customer_email||t.email||'')].join(' ').toLowerCase().includes(q))return false;
-                const d=(t.payment_date||t.created_at||t.date||'').slice(0,10);
+                if(q&&![(t.customer_name||''),(t.room_name||''),(t.ref||''),(t.customer_email||''),(t.details||'')].join(' ').toLowerCase().includes(q))return false;
+                const d=(t.ts||'').slice(0,10);
                 if(from&&d<from)return false;
                 if(to&&d>to)return false;
-                if(typ&&(t.payment_type||t.type||'').toLowerCase()!==typ)return false;
-                if(meth&&(t.payment_method||t.method||'').toLowerCase()!==meth)return false;
+                if(typ&&t.type!==typ)return false;
+                if(meth&&t.method&&t.method.toLowerCase()!==meth)return false;
                 return true;
             });
             page=1;
@@ -378,13 +400,13 @@
             render();
         }
         function updateSummary(){
-            const total=filtered.reduce((s,t)=>s+parseFloat(t.amount||0),0);
-            const deps=filtered.filter(t=>/(deposit)/i.test(t.payment_type||t.type||'')).reduce((s,t)=>s+parseFloat(t.amount||0),0);
-            const bals=filtered.filter(t=>/(payment|balance)/i.test(t.payment_type||t.type||'')).reduce((s,t)=>s+parseFloat(t.amount||0),0);
+            const payTotal=filtered.filter(t=>['payment','deposit','refund'].includes(t.type)).reduce((s,t)=>s+parseFloat(t.amount||0),0);
+            const bookEnq=filtered.filter(t=>['booking','enquiry'].includes(t.type)).length;
+            const intCount=filtered.filter(t=>['interaction','email'].includes(t.type)).length;
             document.getElementById('s-count').innerText=filtered.length;
-            document.getElementById('s-total').innerText=fmt(total);
-            document.getElementById('s-deps').innerText=fmt(deps);
-            document.getElementById('s-bals').innerText=fmt(bals);
+            document.getElementById('s-total').innerText=fmt(payTotal);
+            document.getElementById('s-deps').innerText=bookEnq;
+            document.getElementById('s-bals').innerText=intCount;
         }
         function render(){
             const tbody=document.getElementById('log-tbody');
@@ -392,27 +414,19 @@
             if(page>totalPages)page=totalPages;
             const start=(page-1)*PAGE_SIZE;
             const slice=filtered.slice(start,start+PAGE_SIZE);
-            if(!filtered.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:3rem;color:var(--text-muted)">No transactions found</td></tr>';document.getElementById('pg-info').innerText='No results';document.getElementById('pg-prev').disabled=true;document.getElementById('pg-next').disabled=true;return;}
+            if(!filtered.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:3rem;color:var(--text-muted)">No activity found</td></tr>';document.getElementById('pg-info').innerText='No results';document.getElementById('pg-prev').disabled=true;document.getElementById('pg-next').disabled=true;return;}
             tbody.innerHTML=slice.map(t=>{
-                const raw=t.payment_type||t.type||'other';
-                const typ=raw.toLowerCase();
-                let pillCls='type-other';
-                if(/payment|balance/.test(typ))pillCls='type-payment';
-                else if(/deposit/.test(typ))pillCls='type-deposit';
-                else if(/refund/.test(typ))pillCls='type-refund';
-                const meth=(t.payment_method||t.method||'').replace(/_/g,' ')||'—';
-                const dateRaw=t.payment_date||t.created_at||t.date||'';
-                let dateStr='—';
-                if(dateRaw){try{dateStr=new Date(dateRaw).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){dateStr=dateRaw;}}
-                const ref=t.reference||t.reference_number||'';
+                const cfg=getTypeCfg(t.type);
+                const dateStr=t.ts?(()=>{try{return new Date(t.ts).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){return t.ts;}})():'—';
+                const amountCell=t.amount?`<span style="font-weight:700;color:var(--success)">${fmt(t.amount)}</span>`:'<span style="color:var(--text-muted)">—</span>';
                 return `<tr>
-                    <td style="font-size:0.82rem;color:var(--text-muted)">${dateStr}</td>
-                    <td><div style="font-weight:600">${t.customer_name||'—'}</div><div style="font-size:0.75rem;color:var(--text-muted)">${t.customer_email||t.email||''}</div></td>
-                    <td>${t.room_name||'—'}</td>
-                    <td><span class="type-pill ${pillCls}">${raw}</span></td>
-                    <td><span class="method-badge">${meth}</span></td>
-                    <td style="font-weight:700;color:var(--success)">${fmt(t.amount)}</td>
-                    <td style="font-family:monospace;font-size:0.78rem;color:var(--text-muted)">${ref||'—'}</td>
+                    <td style="font-size:0.82rem;color:var(--text-muted);white-space:nowrap">${dateStr}</td>
+                    <td><div style="font-weight:600">${t.customer_name||'—'}</div><div style="font-size:0.75rem;color:var(--text-muted)">${t.customer_email||''}</div></td>
+                    <td style="font-size:0.85rem">${t.room_name||'—'}</td>
+                    <td><span class="type-pill ${cfg.cls}"><i class="fa-solid ${cfg.icon}" style="margin-right:4px"></i>${cfg.label}</span></td>
+                    <td style="font-size:0.83rem;color:var(--text-muted)">${t.details||'—'}</td>
+                    <td>${amountCell}</td>
+                    <td style="font-family:monospace;font-size:0.78rem;color:var(--text-muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.ref||''}">${t.ref||'—'}</td>
                 </tr>`;
             }).join('');
             document.getElementById('pg-info').innerText=`Page ${page} of ${totalPages} (${filtered.length} records)`;
@@ -421,45 +435,61 @@
         }
         function changePage(dir){page+=dir;render();}
         function exportCSV(){
-            if(!filtered.length){alert('No data to export. Apply filters or load data first.');return;}
-            const cols=['Date & Time','Customer Name','Customer Email','Room','Payment Type','Payment Method','Amount (GBP)','Reference'];
-            const escape=v=>{
-                const s=String(v==null?'':v).replace(/"/g,'""');
-                return /[",\n\r]/.test(s)?`"${s}"`:s;
-            };
+            if(!filtered.length){alert('No data to export.');return;}
+            const cols=['Date & Time','Customer','Email','Room','Type','Details','Amount (GBP)','Ref / Subject'];
+            const esc=v=>{const s=String(v==null?'':v).replace(/"/g,'""');return /[",\n\r]/.test(s)?`"${s}"`:s;};
             const rows=filtered.map(t=>{
-                const dateRaw=t.payment_date||t.created_at||t.date||'';
-                let dateStr='';
-                if(dateRaw){try{dateStr=new Date(dateRaw).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){dateStr=dateRaw;}}
-                return [
-                    dateStr,
-                    t.customer_name||'',
-                    t.customer_email||t.email||'',
-                    t.room_name||'',
-                    t.payment_type||t.type||'',
-                    (t.payment_method||t.method||'').replace(/_/g,' '),
-                    parseFloat(t.amount||0).toFixed(2),
-                    t.reference||t.reference_number||''
-                ].map(escape).join(',');
+                const dateStr=t.ts?(()=>{try{return new Date(t.ts).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){return t.ts;}})():'';
+                return [dateStr,t.customer_name||'',t.customer_email||'',t.room_name||'',t.type||'',t.details||'',parseFloat(t.amount||0).toFixed(2),t.ref||''].map(esc).join(',');
             });
-            const csv=[cols.map(escape).join(','),...rows].join('\r\n');
+            const csv=[cols.map(esc).join(','),...rows].join('\r\n');
             const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
             const url=URL.createObjectURL(blob);
             const a=document.createElement('a');
-            const now=new Date();
-            const stamp=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
-            a.href=url;a.download='venuepro-audit-log-'+stamp+'.csv';
+            a.href=url;a.download='venuepro-audit-log-'+new Date().toISOString().slice(0,10)+'.csv';
             document.body.appendChild(a);a.click();
             setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},100);
         }
         async function loadData(){
             document.getElementById('log-tbody').innerHTML='<tr><td colspan="7" style="text-align:center;padding:3rem;color:var(--text-muted)"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</td></tr>';
             try{
-                const res=await fetch(API,{headers:getAuthHeaders()});
-                const json=await res.json();
-                const data=json.data||(Array.isArray(json)?json:[]);
-                allTx=(data.transactions||data.payments||data).filter(t=>t&&t.amount);
-                allTx.sort((a,b)=>{const da=new Date(a.payment_date||a.created_at||a.date||0);const db=new Date(b.payment_date||b.created_at||b.date||0);return db-da;});
+                const [txR,intR,dashR]=await Promise.allSettled([
+                    fetch(PAYMENTS_API,     {headers:getAuthHeaders()}),
+                    fetch(INTERACTIONS_API, {headers:getAuthHeaders()}),
+                    fetch(DASHBOARD_API,    {headers:getAuthHeaders()}),
+                ]);
+                const events=[];
+                if(txR.status==='fulfilled'&&txR.value.ok){
+                    try{
+                        const tj=await txR.value.json();const td=tj.data||tj;
+                        const txns=Array.isArray(td)?td:(td.transactions||td.payments||[]);
+                        txns.filter(t=>t&&t.amount).forEach(p=>{
+                            const raw=(p.payment_type||p.type||'payment').toLowerCase();
+                            let type='payment';
+                            if(/deposit/.test(raw))type='deposit';
+                            else if(/refund/.test(raw))type='refund';
+                            events.push({type,ts:p.payment_date||p.created_at,customer_name:p.customer_name,customer_email:p.customer_email||p.email,room_name:p.room_name,details:(p.payment_method||'').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())||'—',amount:p.amount,method:p.payment_method,ref:p.reference||p.reference_number||p.deposit_reference||''});
+                        });
+                    }catch(e){}
+                }
+                if(intR.status==='fulfilled'&&intR.value.ok){
+                    try{
+                        const ij=await intR.value.json();const ia=ij.data||(Array.isArray(ij)?ij:[]);
+                        ia.forEach(i=>{
+                            const isEmail=/email/i.test(i.interaction_type||'');
+                            events.push({type:isEmail?'email':'interaction',ts:i.timestamp||i.created_at,customer_name:i.customer_name,customer_email:i.customer_email||i.email,room_name:i.room_name,details:`${i.interaction_type||'Interaction'}${i.staff_member?' \u00b7 '+i.staff_member:''}`,amount:null,ref:i.subject||i.notes||''});
+                        });
+                    }catch(e){}
+                }
+                if(dashR.status==='fulfilled'&&dashR.value.ok){
+                    try{
+                        const dj=await dashR.value.json();const dd=dj.data||dj;
+                        (dd.recent_customers||[]).forEach(c=>events.push({type:'enquiry',ts:c.created_at||c.requested_date,customer_name:c.full_name||c.customer_name,customer_email:c.email,room_name:c.room_name,details:`${c.event_type||''} \u00b7 ${c.guests_count||c.guest_count||'?'} guests`.replace(/^\s*\u00b7\s*/,''),amount:null,ref:c.notes||''}));
+                        (dd.upcoming_bookings||[]).forEach(b=>events.push({type:'booking',ts:b.booking_date||b.date_from,customer_name:b.customer_name,customer_email:b.customer_email,room_name:b.room_name,details:`${(b.status||'confirmed').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())} \u00b7 ${b.guest_count||'?'} guests`,amount:b.total_amount,ref:b.id||''}));
+                    }catch(e){}
+                }
+                events.sort((a,b)=>new Date(b.ts||0)-new Date(a.ts||0));
+                allTx=events;
                 applyFilters();
             }catch(e){
                 document.getElementById('log-tbody').innerHTML='<tr><td colspan="7" style="text-align:center;padding:3rem;color:#ef4444"><i class="fa-solid fa-triangle-exclamation"></i> Failed to load data</td></tr>';
