@@ -2374,7 +2374,8 @@
                     } catch(e){}
                 }
                 evts.sort((a,b)=>new Date(b.ts||0)-new Date(a.ts||0));
-                actEvents = evts;
+                const _seenAct=new Set();
+                actEvents=evts.filter(e=>{const k=`${e.type}|${e.ts}|${e.name}`;if(_seenAct.has(k))return false;_seenAct.add(k);return true;});
                 actPage = 1;
                 renderActivityFeed();
             } catch(e) { if(list)list.innerHTML='<div style="padding:2rem;text-align:center;color:#ef4444">Failed to load activity</div>'; }

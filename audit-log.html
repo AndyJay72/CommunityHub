@@ -489,7 +489,8 @@
                     }catch(e){}
                 }
                 events.sort((a,b)=>new Date(b.ts||0)-new Date(a.ts||0));
-                allTx=events;
+                const _seenAudit=new Set();
+                allTx=events.filter(e=>{const k=`${e.type}|${e.ts}|${e.customer_name}|${e.ref}`;if(_seenAudit.has(k))return false;_seenAudit.add(k);return true;});
                 applyFilters();
             }catch(e){
                 document.getElementById('log-tbody').innerHTML='<tr><td colspan="7" style="text-align:center;padding:3rem;color:#ef4444"><i class="fa-solid fa-triangle-exclamation"></i> Failed to load data</td></tr>';
