@@ -794,6 +794,7 @@
                 <div class="detail-group"><label>Email</label><div class="detail-value" id="m-email">--</div></div>
                 <div class="detail-group"><label>Phone</label><div class="detail-value" id="m-phone">--</div></div>
                 <div class="detail-group"><label>Event Type</label><div class="detail-value" id="m-event">--</div></div>
+                <div class="detail-group"><label>Room</label><div class="detail-value" id="m-room">--</div></div>
                 <div class="detail-group"><label>Date</label><div class="detail-value" id="m-date">--</div></div>
                 <div class="detail-group"><label>Guests</label><div class="detail-value" id="m-guests">--</div></div>
                 <div class="detail-group" style="grid-column:span 2;"><label>Notes</label><div class="detail-value" id="m-notes" style="white-space:pre-wrap;line-height:1.6;">--</div></div>
@@ -1272,6 +1273,7 @@
             document.getElementById('m-email').innerText = data.email || 'N/A';
             document.getElementById('m-phone').innerText = data.phone || 'N/A';
             document.getElementById('m-event').innerText = data.event_type || 'N/A';
+            document.getElementById('m-room').innerText  = data.room_name || '—';
             (function(){
                 const fmtD = d => { try { return new Date(d+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); } catch(e){ return d; } };
                 const df = data.date_from ? data.date_from.split('T')[0] : null;
