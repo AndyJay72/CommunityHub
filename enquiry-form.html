@@ -317,9 +317,9 @@
                 ]);
                 const rJson = await rRes.json(), eJson = await eRes.json();
                 if (bRes) { try { enquiryBlockedRules = (await bRes.json()).data || []; } catch(e){} }
-                const rooms = (rJson.data || rJson).filter(r => r.is_active);
+                const rooms = (rJson.data || (Array.isArray(rJson) ? rJson : [])).filter(r => r.is_active || r.is_active === undefined);
                 enquiryRoomsData = rooms;
-                const types = (eJson.data || eJson).filter(e => e.is_active);
+                const types = (eJson.data || (Array.isArray(eJson) ? eJson : [])).filter(e => e.is_active || e.is_active === undefined);
                 const roomSel = document.getElementById('roomName');
                 roomSel.innerHTML = '<option value="" disabled selected>Select Room</option>';
                 rooms.forEach(r => roomSel.add(new Option(r.name + (r.capacity ? ` (Cap: ${r.capacity})` : ''), r.name)));

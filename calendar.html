@@ -815,21 +815,27 @@
             const eventType=document.getElementById('qb-eventType').value;
             const{from,to}=qbGetDates();
             if(!roomName||!from){document.getElementById('qb-totalDisplay').textContent='£0.00';document.getElementById('qb-costBreakdown').textContent='';qbTotalAmount=0;qbDepositAmount=0;return;}
-            const pricing=qbPricingData.find(p=>(p.room_name||p.name)===roomName);
-            if(!pricing){document.getElementById('qb-costBreakdown').textContent='No pricing found for this room.';return;}
+            const room=qbRoomsData.find(r=>(r.name||r.room_name||String(r.id))===roomName);
+            if(!room){document.getElementById('qb-costBreakdown').textContent='No pricing found for this room.';return;}
             const days=qbDayCount(from,to);
-            const fullRate=parseFloat(pricing.full_day_rate||0);
-            const halfRate=parseFloat(pricing.half_day_rate||0);
+            const fullRate=parseFloat(room.day_rate||0);
+            const halfRate=parseFloat(room.half_rate||0);
             const startT=document.getElementById('qb-startTime').value||'09:00';
             const endT=document.getElementById('qb-endTime').value||'17:00';
             const[sh,sm]=startT.split(':').map(Number);const[eh,em]=endT.split(':').map(Number);
             const hrs=(eh*60+em-sh*60-sm)/60;
-            const baseRate=hrs<=5?halfRate:fullRate;
-            let breakdown=hrs<=5?`Half-day: ${fmt(halfRate)}`:`Full-day: ${fmt(fullRate)}`;
+            if(hrs<=0){document.getElementById('qb-costBreakdown').textContent='End time must be after start time';return;}
+            let perDayCost,rateLabel;
+            if(hrs>=6){perDayCost=fullRate;rateLabel=`Full-day: ${fmt(fullRate)}`;}
+            else if(halfRate&&hrs>=3){perDayCost=halfRate;rateLabel=`Half-day: ${fmt(halfRate)}`;}
+            else{perDayCost=(hrs/8)*fullRate;rateLabel=`Pro-rated ${hrs.toFixed(1)}h: ${fmt(perDayCost)}`;}
+            let total=perDayCost*days;
+            let breakdown=rateLabel;
             if(days>1)breakdown+=` × ${days} days`;
-            let total=baseRate*days;
-            const typeRow=qbPricingData.find(p=>p.event_type===eventType);
-            if(typeRow&&typeRow.surcharge){const s=parseFloat(typeRow.surcharge)*days;if(s){total+=s;breakdown+=` + ${fmt(s)} surcharge`;}}
+            if(eventType&&room.id){
+                const sur=qbPricingData.find(p=>String(p.room_id)===String(room.id)&&(p.event_type_name||p.event_type||'').toLowerCase()===eventType.toLowerCase());
+                if(sur&&parseFloat(sur.day_rate)>0){const s=parseFloat(sur.day_rate)*days;total+=s;breakdown+=` + ${fmt(s)} surcharge`;}
+            }
             qbTotalAmount=total;qbDepositAmount=Math.round(total*QBR_DEPOSIT_PCT)/100;
             document.getElementById('qb-totalDisplay').textContent=fmt(total);
             document.getElementById('qb-costBreakdown').textContent=breakdown;
@@ -1018,7 +1024,7 @@
                     const eventObj={
                         title:e.customer_name||'Guest',
                         backgroundColor:color,borderColor:color,
-                        extendedProps:{booking_id:e.id||e.booking_id||null,customer_name:e.customer_name||'Guest',customer_email:e.customer_email||e.email||'',customer_phone:e.customer_phone||e.phone||'',room_name:e.room_name||'Unknown',booking_date:e.booking_date,date_from:e.date_from,date_to:e.date_to,dateLabel,time:`${startT} \u2013 ${endT}`,total_amount:e.total_amount,balance_due:e.balance_due,guest_count:e.guest_count,isPast,isPending,status:e.status||'confirmed'}
+                        extendedProps:{booking_id:e.id||e.booking_id||null,customer_name:e.customer_name||'Guest',customer_email:e.customer_email||e.email||'',customer_phone:e.customer_phone||e.phone||'',room_name:e.room_name||e.room||'Unknown',booking_date:e.booking_date,date_from:e.date_from,date_to:e.date_to,dateLabel,time:`${startT} \u2013 ${endT}`,total_amount:e.total_amount,balance_due:e.balance_due,guest_count:e.guest_count,isPast,isPending,status:e.status||'confirmed'}
                     };
                     if(isMultiDay){eventObj.start=startDateStr;eventObj.end=endExcl;eventObj.allDay=true;}
                     else{eventObj.start=`${startDateStr}T${startT}:00`;eventObj.end=`${startDateStr}T${endT}:00`;}
