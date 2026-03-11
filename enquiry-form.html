@@ -312,7 +312,7 @@
         const STATIC_ROOMS_URL = 'rooms-data.json';
         const STATIC_TYPES_URL = 'event-types-data.json';
 
-        async function fetchJsonPublic(apiUrl, staticUrl) {
+        async function fetchJsonPublic(apiUrl, staticUrl, cacheKey) {
             try {
                 const res = await fetch(apiUrl);
                 if (res.ok) {
@@ -320,7 +320,12 @@
                     return j.data || (Array.isArray(j) ? j : null);
                 }
             } catch(e) {}
-            // API unavailable — fall back to static file
+            // Try localStorage cache written by admin-config when last visited
+            try {
+                const cached = localStorage.getItem(cacheKey);
+                if (cached) { const j = JSON.parse(cached); if (Array.isArray(j) && j.length) return j; }
+            } catch(e) {}
+            // Last resort: static fallback file
             try {
                 const res = await fetch(staticUrl);
                 if (res.ok) { const j = await res.json(); return Array.isArray(j) ? j : []; }
@@ -331,8 +336,8 @@
         async function loadRoomsAndTypes() {
             try {
                 const [rooms, types, bRes] = await Promise.all([
-                    fetchJsonPublic(BASE_API + '/get-rooms', STATIC_ROOMS_URL),
-                    fetchJsonPublic(BASE_API + '/get-event-types', STATIC_TYPES_URL),
+                    fetchJsonPublic(BASE_API + '/get-rooms', STATIC_ROOMS_URL, 'vp_cached_rooms'),
+                    fetchJsonPublic(BASE_API + '/get-event-types', STATIC_TYPES_URL, 'vp_cached_event_types'),
                     fetch(BLOCKED_API).catch(() => null)
                 ]);
                 if (bRes) { try { enquiryBlockedRules = (await bRes.json()).data || []; } catch(e){} }
