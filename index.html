@@ -662,7 +662,7 @@
         </div>
 
         <!-- MAIN CONTENT AREA -->
-        <div class="table-container" id="cards-section" style="margin-bottom: 2rem;">
+        <div class="table-container" id="cards-section" style="margin-bottom: 0.75rem;">
             <div class="table-header">
                 <h3 id="section-title"><i class="fa-solid fa-inbox"></i> Pending Requests</h3>
                 <div class="search-wrapper">
@@ -670,7 +670,7 @@
                     <input id="main-search" class="search-input" type="text" placeholder="Search..." oninput="applyMainSearch()">
                 </div>
             </div>
-            <div id="main-list-container" style="padding: 1.5rem;">
+            <div id="main-list-container" style="padding: 1rem;">
                 <div style="text-align:center; padding:2rem; color:var(--text-muted);"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</div>
             </div>
             <div id="main-pagination" class="pagination-bar" style="display:none;">
@@ -762,6 +762,11 @@
                 <a href="audit-log.html" style="font-size:0.8rem;color:var(--primary);text-decoration:none;font-weight:600;">View Full Log <i class="fa-solid fa-arrow-right" style="font-size:0.7rem"></i></a>
             </div>
             <div id="act-feed-list"><div style="padding:2rem;text-align:center;color:var(--text-muted)"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</div></div>
+            <div id="act-feed-nav" class="pagination-bar" style="display:none;">
+                <button class="btn-page" id="act-prev" onclick="changeActPage(-1)">&#8249; Prev</button>
+                <span id="act-page-info" style="font-size:0.85rem;color:var(--text-muted);"></span>
+                <button class="btn-page" id="act-next" onclick="changeActPage(1)">Next &#8250;</button>
+            </div>
         </div>
 
 
@@ -1012,7 +1017,7 @@
         let lastRenderedInteractions = [];
         let currentView = 'requests';
         let currentPage = 1;
-        const PAGE_SIZE = 10;
+        const PAGE_SIZE = 6;
         let searchTerm = '';
 
         const formatCurrency = (num) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(num);
@@ -1154,7 +1159,7 @@
                 container.innerHTML = paginatedItems.map(item => renderCard(item)).join('');
                 
                 // Show/hide pagination
-                if (totalPages > 1) {
+                if (items.length > 0) {
                     paginationEl.style.display = 'flex';
                     document.getElementById('main-page-info').innerText = `Page ${currentPage} of ${totalPages} (${items.length} items)`;
                     document.getElementById('main-prev').disabled = currentPage === 1;
@@ -2309,6 +2314,36 @@
             if (d < 7) return d + 'd ago';
             return new Date(ts).toLocaleDateString('en-GB', {day:'numeric',month:'short'});
         }
+        let actEvents = [], actPage = 1;
+        const ACT_PAGE_SIZE = 6;
+        function renderActivityFeed() {
+            const list = document.getElementById('act-feed-list');
+            const navEl = document.getElementById('act-feed-nav');
+            const totalPages = Math.max(1, Math.ceil(actEvents.length / ACT_PAGE_SIZE));
+            if (actPage > totalPages) actPage = totalPages;
+            const slice = actEvents.slice((actPage - 1) * ACT_PAGE_SIZE, actPage * ACT_PAGE_SIZE);
+            if (!slice.length) {
+                list.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text-muted)">No recent activity</div>';
+                navEl.style.display = 'none';
+                return;
+            }
+            list.innerHTML = slice.map(ev => {
+                const c = ACT_CONFIG[ev.type] || ACT_CONFIG.booking;
+                return `<div class="act-item">
+                    <div class="act-dot" style="background:${c.bg}"><i class="fa-solid ${c.icon}" style="color:${c.color}"></i></div>
+                    <div class="act-body">
+                        <div class="act-name">${ev.name} <span class="act-type-badge" style="background:${c.bg};color:${c.color};border:1px solid ${c.color}33">${c.label}</span></div>
+                        <div class="act-detail">${ev.detail||''}</div>
+                    </div>
+                    <div class="act-right"><div class="act-time">${actRelTime(ev.ts)}</div></div>
+                </div>`;
+            }).join('');
+            navEl.style.display = actEvents.length > ACT_PAGE_SIZE ? 'flex' : 'none';
+            document.getElementById('act-page-info').innerText = `Page ${actPage} of ${totalPages} (${actEvents.length} events)`;
+            document.getElementById('act-prev').disabled = actPage === 1;
+            document.getElementById('act-next').disabled = actPage === totalPages;
+        }
+        function changeActPage(dir) { actPage += dir; renderActivityFeed(); }
         async function loadActivityFeed() {
             const list = document.getElementById('act-feed-list');
             try {
@@ -2339,19 +2374,9 @@
                     } catch(e){}
                 }
                 evts.sort((a,b)=>new Date(b.ts||0)-new Date(a.ts||0));
-                const top = evts.slice(0, 12);
-                if (!top.length) { list.innerHTML='<div style="padding:2rem;text-align:center;color:var(--text-muted)">No recent activity</div>'; return; }
-                list.innerHTML = top.map(ev=>{
-                    const c = ACT_CONFIG[ev.type]||ACT_CONFIG.booking;
-                    return `<div class="act-item">
-                        <div class="act-dot" style="background:${c.bg}"><i class="fa-solid ${c.icon}" style="color:${c.color}"></i></div>
-                        <div class="act-body">
-                            <div class="act-name">${ev.name} <span class="act-type-badge" style="background:${c.bg};color:${c.color};border:1px solid ${c.color}33">${c.label}</span></div>
-                            <div class="act-detail">${ev.detail||''}</div>
-                        </div>
-                        <div class="act-right"><div class="act-time">${actRelTime(ev.ts)}</div></div>
-                    </div>`;
-                }).join('');
+                actEvents = evts;
+                actPage = 1;
+                renderActivityFeed();
             } catch(e) { if(list)list.innerHTML='<div style="padding:2rem;text-align:center;color:#ef4444">Failed to load activity</div>'; }
         }
         (function(){if(localStorage.getItem('vp_sidebar_col')==='1')document.body.classList.add('sidebar-collapsed');})();
