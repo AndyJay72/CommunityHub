@@ -616,7 +616,6 @@ async function loadRooms() {
         const res = await fetch(API.getRooms, { headers: getAuthHeaders() });
         const json = await res.json();
         rooms = json.data || (Array.isArray(json) ? json : []);
-        try { localStorage.setItem('vp_cached_rooms', JSON.stringify(rooms)); } catch(e) {}
         renderRoomsTable();
     } catch(e) {
         document.getElementById('roomsTable').innerHTML =
@@ -761,7 +760,6 @@ async function loadEventTypes() {
         const res = await fetch(API.getEventTypes, { headers: getAuthHeaders() });
         const json = await res.json();
         eventTypes = json.data || (Array.isArray(json) ? json : []);
-        try { localStorage.setItem('vp_cached_event_types', JSON.stringify(eventTypes)); } catch(e) {}
         renderEventTypesTable();
     } catch(e) {
         document.getElementById('eventTypesTable').innerHTML =
