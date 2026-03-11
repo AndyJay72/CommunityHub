@@ -798,12 +798,14 @@
                         if(arg.view.type!=='dayGridMonth')return;
                         const today=new Date();today.setHours(0,0,0,0);
                         if(arg.date<today)return;
-                        const ds=arg.date.toISOString().split('T')[0];
+                        // Use local date components (not toISOString) to avoid BST/timezone off-by-one
+                        const d=arg.date;
+                        const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
                         if(blockedBgEvents.some(b=>b.start===ds))return;
                         const s=dateStatusMap[ds];
-                        if(s==='booked'){arg.el.style.backgroundColor='rgba(239,68,68,0.2)';}
-                        else if(s==='pending'){arg.el.style.backgroundColor='rgba(245,158,11,0.2)';}
-                        else{arg.el.style.backgroundColor='rgba(16,185,129,0.18)';}
+                        const col=s==='booked'?'rgba(239,68,68,0.25)':s==='pending'?'rgba(245,158,11,0.25)':'rgba(16,185,129,0.22)';
+                        // setProperty with important overrides .fc-day-today { background: … !important }
+                        arg.el.style.setProperty('background-color',col,'important');
                     },
                     dateClick:function(info){
                         const today=new Date();today.setHours(0,0,0,0);
