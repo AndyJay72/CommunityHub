@@ -151,7 +151,7 @@
         .filter-customers:hover, .filter-customers.active { background: #0ea5e9; color: white; border-color: #0ea5e9; }
 
         /* --- ACTIVITY FEED --- */
-        .act-feed { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 2rem; }
+        .act-feed { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
         .act-feed-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); }
         .act-feed-title { font-size: 1.17rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
         .act-item { display: flex; align-items: flex-start; gap: 12px; padding: 0.75rem 1.5rem; border-bottom: 1px solid rgba(148,163,184,0.06); transition: background 0.15s; }
@@ -159,14 +159,19 @@
         .act-item:hover { background: rgba(255,255,255,0.025); }
         .act-dot { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.78rem; margin-top: 1px; }
         .act-body { flex: 1; min-width: 0; }
-        .act-name { font-weight: 600; font-size: 0.87rem; }
-        .act-detail { font-size: 0.76rem; color: var(--text-muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .act-name { font-weight: 600; font-size: 0.87rem; color: #fff; }
+        .act-detail { font-size: 0.76rem; color: rgba(255,255,255,0.65); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .act-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
-        .act-time { font-size: 0.7rem; color: var(--text-muted); white-space: nowrap; }
+        .act-time { font-size: 0.7rem; color: rgba(255,255,255,0.5); white-space: nowrap; }
         .act-type-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 10px; font-size: 0.67rem; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
         body.light-mode .act-feed { background: rgba(255,255,255,0.92); border-color: rgba(0,0,0,0.1); }
+        body.light-mode .act-name { color: #1e293b; }
         body.light-mode .act-detail { color: #64748b; }
         body.light-mode .act-time { color: #94a3b8; }
+
+        /* --- DASHBOARD 2-COL GRID --- */
+        .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; align-items: start; margin-bottom: 2rem; }
+        @media (max-width: 1100px) { .dash-grid { grid-template-columns: 1fr; } }
 
         /* --- BOOKING CARDS --- */
         .booking-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s; }
@@ -661,8 +666,11 @@
 
         </div>
 
+        <!-- DASHBOARD 2-COL GRID: PENDING REQUESTS + RECENT ACTIVITY -->
+        <div class="dash-grid">
+
         <!-- MAIN CONTENT AREA -->
-        <div class="table-container" id="cards-section" style="margin-bottom: 0.75rem;">
+        <div class="table-container" id="cards-section">
             <div class="table-header">
                 <h3 id="section-title"><i class="fa-solid fa-inbox"></i> Pending Requests</h3>
                 <div class="search-wrapper">
@@ -759,7 +767,7 @@
         <div class="act-feed">
             <div class="act-feed-header">
                 <div class="act-feed-title"><i class="fa-solid fa-bolt" style="color:#f59e0b"></i> Recent Activity</div>
-                <a href="audit-log.html" style="font-size:0.8rem;color:var(--primary);text-decoration:none;font-weight:600;">View Full Log <i class="fa-solid fa-arrow-right" style="font-size:0.7rem"></i></a>
+                <a href="audit-log.html" style="font-size:0.8rem;color:#fff;text-decoration:none;font-weight:600;">View Full Log <i class="fa-solid fa-arrow-right" style="font-size:0.7rem"></i></a>
             </div>
             <div id="act-feed-list"><div style="padding:2rem;text-align:center;color:var(--text-muted)"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</div></div>
             <div id="act-feed-nav" class="pagination-bar" style="display:none;">
@@ -768,6 +776,8 @@
                 <button class="btn-page" id="act-next" onclick="changeActPage(1)">Next &#8250;</button>
             </div>
         </div>
+
+        </div><!-- end .dash-grid -->
 
 
     </main>
