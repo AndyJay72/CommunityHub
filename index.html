@@ -1028,6 +1028,7 @@
         let currentView = 'requests';
         let currentPage = 1;
         const PAGE_SIZE = 6;
+        const UPCOMING_PAGE_SIZE = 4;
         let searchTerm = '';
 
         const formatCurrency = (num) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(num);
@@ -1164,9 +1165,10 @@
             titleEl.innerHTML = `<i class="fa-solid ${icon}"></i> ${title}`;
             
             // Pagination logic
-            const totalPages = Math.ceil(items.length / PAGE_SIZE);
-            const startIndex = (currentPage - 1) * PAGE_SIZE;
-            const endIndex = startIndex + PAGE_SIZE;
+            const effectivePageSize = (currentView === 'outstanding' || currentView === 'upcoming') ? 4 : PAGE_SIZE;
+            const totalPages = Math.ceil(items.length / effectivePageSize);
+            const startIndex = (currentPage - 1) * effectivePageSize;
+            const endIndex = startIndex + effectivePageSize;
             const paginatedItems = items.slice(startIndex, endIndex);
             
             // Render items
@@ -1426,7 +1428,8 @@
                 if (response.ok) {
                     showToast(`${name} accepted`);
                     // Refresh data to update the view
-                    await loadDashboard(); 
+                    await loadDashboard();
+                    loadActivityFeed();
                 } else { throw new Error("Update failed"); }
             } catch (error) {
                 showToast("Failed to update", "error");
@@ -1496,7 +1499,7 @@
                 if (!r.ok) throw new Error();
                 showToast(`${name}'s request cancelled`);
                 closeModal();
-                setTimeout(loadDashboard, 800);
+                setTimeout(() => { loadDashboard(); loadActivityFeed(); }, 800);
             } catch(e) { showToast('Failed to cancel', 'error'); }
         }
 
@@ -1652,6 +1655,7 @@
                     document.getElementById('rc-ref').innerText    = 'Ref: ' + ref;
                     document.getElementById('receiptMod').classList.add('open');
                     loadAllBookings();
+                    loadActivityFeed();
                 } else {
                     showToast('Payment failed — please try again', 'error');
                 }
