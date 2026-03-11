@@ -50,13 +50,6 @@
         .fc-bg-event{opacity:0.25 !important}
         .fc-daygrid-day:not(.fc-day-disabled){cursor:pointer}
         .fc-daygrid-day:not(.fc-day-disabled):hover .fc-daygrid-day-frame{background:rgba(99,102,241,0.07)}
-        /* ── Room Tabs ── */
-        .room-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem}
-        .room-tab{background:rgba(0,0,0,0.25);border:1px solid var(--border);color:var(--text-muted);padding:7px 16px;border-radius:20px;cursor:pointer;font-size:0.82rem;font-weight:600;font-family:inherit;transition:0.18s;white-space:nowrap;min-height:unset}
-        .room-tab:hover{border-color:var(--primary);color:var(--primary)}
-        .room-tab.active{background:rgba(99,102,241,0.15);border-color:var(--primary);color:var(--primary)}
-        body.light-mode .room-tab{background:rgba(255,255,255,0.8);border-color:rgba(0,0,0,0.15);color:#475569}
-        body.light-mode .room-tab.active{background:rgba(99,102,241,0.1);border-color:var(--primary);color:var(--primary)}
         /* ── Quick Booking Modal ── */
         .qb-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.72);backdrop-filter:blur(6px);z-index:4000;display:none;justify-content:center;align-items:flex-start;padding-top:2.5rem;overflow-y:auto}
         .qb-overlay.open{display:flex}
@@ -405,7 +398,7 @@
             </button>
         </header>
         <div class="cal-filter-bar">
-            <select id="roomFilter" class="cal-filter-select" onchange="syncTabsToDropdown()">
+            <select id="roomFilter" class="cal-filter-select" onchange="applyFilters()">
                 <option value="">All Rooms</option>
             </select>
             <select id="statusFilter" class="cal-filter-select" onchange="applyFilters()">
@@ -425,7 +418,6 @@
                 <div class="legend-item"><div class="legend-dot" style="background:#7c3aed"></div> Closed</div>
             </div>
         </div>
-        <div class="room-tabs" id="roomTabs"></div>
         <div id="calendar"></div>
     </main>
 
@@ -771,20 +763,6 @@
         function logout(){if(confirm("Log out?")){localStorage.removeItem('vp_token');window.location.href='login.html';}}
         function closeModal(){document.getElementById('eventModal').classList.remove('open');const ps=document.getElementById('e-pay-section');if(ps)ps.style.display='none';}
 
-        function selectRoomTab(el){
-            document.querySelectorAll('.room-tab').forEach(t=>t.classList.remove('active'));
-            el.classList.add('active');
-            document.getElementById('roomFilter').value=el.dataset.room;
-            applyFilters();
-        }
-
-        function syncTabsToDropdown(){
-            const val=document.getElementById('roomFilter').value;
-            document.querySelectorAll('.room-tab').forEach(t=>{
-                t.classList.toggle('active',t.dataset.room===val);
-            });
-            applyFilters();
-        }
 
         let qbRoomsData=[],qbPricingData=[],_qbAvailTimeout=null,qbInitDone=false,qbTotalAmount=0,qbDepositAmount=0;
         async function qbInit(){
@@ -813,8 +791,8 @@
             document.getElementById('qb-availText').textContent='Fill in room, date & times to check availability.';
             document.getElementById('qb-guestCapWarning').style.display='none';
             qbSetButtons(false);
-            const activeTab=document.querySelector('.room-tab.active');
-            qbInit().then(()=>{if(activeTab&&activeTab.dataset.room){document.getElementById('qb-roomSelect').value=activeTab.dataset.room;qbOnRoomChange();}});
+            const activeRoom=document.getElementById('roomFilter').value;
+            qbInit().then(()=>{if(activeRoom){document.getElementById('qb-roomSelect').value=activeRoom;qbOnRoomChange();}});
             document.getElementById('qbModal').classList.add('open');
             if(startStr)setTimeout(qbCheckAvailability,350);
         }
@@ -980,7 +958,7 @@
             }catch(e){showToast('Error: '+e.message,'error');}
             finally{btn.disabled=false;}
         }
-        function clearFilters(){document.getElementById('roomFilter').value='';document.getElementById('statusFilter').value='';document.querySelectorAll('.room-tab').forEach(t=>{t.classList.remove('active');if(t.dataset.room==='')t.classList.add('active');});applyFilters();}
+        function clearFilters(){document.getElementById('roomFilter').value='';document.getElementById('statusFilter').value='';applyFilters();}
         function applyDayCellColors(){
             const roomVal=document.getElementById('roomFilter').value;
             const map=dateStatusMap[roomVal]||dateStatusMap['']||{};
@@ -1022,15 +1000,6 @@
                 const rooms=[...new Set(raw.map(e=>e.room_name).filter(Boolean))].sort();
                 const roomSel=document.getElementById('roomFilter');
                 rooms.forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r;roomSel.appendChild(o);});
-                // Populate room tabs
-                const roomTabsEl=document.getElementById('roomTabs');
-                const allTab=document.createElement('button');
-                allTab.className='room-tab active';allTab.textContent='All Rooms';allTab.dataset.room='';
-                allTab.onclick=function(){selectRoomTab(this);};roomTabsEl.appendChild(allTab);
-                rooms.forEach(r=>{
-                    const tab=document.createElement('button');tab.className='room-tab';tab.textContent=r;tab.dataset.room=r;
-                    tab.onclick=function(){selectRoomTab(this);};roomTabsEl.appendChild(tab);
-                });
                 qbInit();
                 allEvents=raw.filter(e=>e.status!=='cancelled'&&(e.date_from||e.booking_date)).map(e=>{
                     const startDateStr=(e.date_from||e.booking_date).split('T')[0];
