@@ -385,11 +385,11 @@
                 <i class="fa-solid fa-xmark"></i> Clear
             </button>
             <div class="cal-legend">
-                <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div> &#x1F7E2; Available</div>
-                <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div> &#x1F534; Booked</div>
-                <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div> &#x1F7E1; Pending</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div> Available</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div> Booked</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div> Pending</div>
                 <div class="legend-item"><div class="legend-dot" style="background:#475569"></div> Past</div>
-                <div class="legend-item"><div class="legend-dot" style="background:#ef4444;opacity:0.5"></div> Closed</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#7c3aed"></div> Closed</div>
             </div>
         </div>
         <div class="room-tabs" id="roomTabs"></div>
@@ -558,13 +558,13 @@
                 if(b.block_type==='recurring'&&b.day_of_week!==null&&b.day_of_week!==undefined){
                     const d=new Date(rs);
                     while(d.getDay()!==parseInt(b.day_of_week))d.setDate(d.getDate()+1);
-                    while(d<=re){events.push({title:label,start:d.toISOString().split('T')[0],display:'background',backgroundColor:'#ef4444',extendedProps:{...ep,dayName:DAY_NAMES[b.day_of_week]}});d.setDate(d.getDate()+7);}
+                    while(d<=re){events.push({title:label,start:d.toISOString().split('T')[0],display:'background',backgroundColor:'#7c3aed',extendedProps:{...ep,dayName:DAY_NAMES[b.day_of_week]}});d.setDate(d.getDate()+7);}
                 }else if(b.block_type==='oneoff'&&b.block_date){
-                    events.push({title:label,start:b.block_date.split('T')[0],display:'background',backgroundColor:'#ef4444',extendedProps:ep});
+                    events.push({title:label,start:b.block_date.split('T')[0],display:'background',backgroundColor:'#7c3aed',extendedProps:ep});
                 }else if(b.block_type==='range'&&b.date_from&&b.date_to){
                     const d=new Date(b.date_from.split('T')[0]+'T00:00:00');
                     const to=new Date(b.date_to.split('T')[0]+'T00:00:00');
-                    while(d<=to){events.push({title:label,start:d.toISOString().split('T')[0],display:'background',backgroundColor:'#ef4444',extendedProps:ep});d.setDate(d.getDate()+1);}
+                    while(d<=to){events.push({title:label,start:d.toISOString().split('T')[0],display:'background',backgroundColor:'#7c3aed',extendedProps:ep});d.setDate(d.getDate()+1);}
                 }
             }
             return events;
@@ -811,7 +811,7 @@
                     if(!dateStatusMap[''])dateStatusMap['']={};
                     const setStatus=(map,ds)=>{if(map[ds]!=='booked')map[ds]=status;};
                     const startStr=e.start.split('T')[0];
-                    if(e.allDay&&e.end){const d=new Date(startStr+'T00:00:00');const endD=new Date(e.end+'T00:00:00');while(d<endD){const ds=d.toISOString().split('T')[0];setStatus(dateStatusMap[room],ds);setStatus(dateStatusMap[''],ds);d.setDate(d.getDate()+1);}}
+                    if(e.allDay&&e.end){const d=new Date(startStr+'T00:00:00');const endD=new Date(e.end+'T00:00:00');while(d<endD){const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;setStatus(dateStatusMap[room],ds);setStatus(dateStatusMap[''],ds);d.setDate(d.getDate()+1);}}
                     else{setStatus(dateStatusMap[room],startStr);setStatus(dateStatusMap[''],startStr);}
                 });
                 calendarInstance=new FullCalendar.Calendar(calEl,{
