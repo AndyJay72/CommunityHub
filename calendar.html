@@ -1037,7 +1037,6 @@
                     if(e.extendedProps.isPast)return;
                     const isPending=e.extendedProps.isPending;
                     // Pending requests older than 7 days are treated as available (green)
-                    if(isPending){const bDate=new Date((e.extendedProps.date_from||e.extendedProps.booking_date||e.start).split('T')[0]+'T00:00:00');if((now-bDate)/86400000>7)return;}
                     const status=isPending?'pending':'booked';
                     const room=e.extendedProps.room_name||'Unknown';
                     if(!dateStatusMap[room])dateStatusMap[room]={};
