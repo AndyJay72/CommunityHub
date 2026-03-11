@@ -46,6 +46,32 @@
         .fc-list-event-time{color:var(--text-muted) !important}
         .fc-list-empty{background:var(--bg-card) !important;color:var(--text-muted) !important}
         .fc-bg-event{opacity:0.25 !important}
+        .fc-daygrid-day:not(.fc-day-disabled){cursor:pointer}
+        .fc-daygrid-day:not(.fc-day-disabled):hover .fc-daygrid-day-frame{background:rgba(99,102,241,0.07)}
+        /* ── Room Tabs ── */
+        .room-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem}
+        .room-tab{background:rgba(0,0,0,0.25);border:1px solid var(--border);color:var(--text-muted);padding:7px 16px;border-radius:20px;cursor:pointer;font-size:0.82rem;font-weight:600;font-family:inherit;transition:0.18s;white-space:nowrap;min-height:unset}
+        .room-tab:hover{border-color:var(--primary);color:var(--primary)}
+        .room-tab.active{background:rgba(99,102,241,0.15);border-color:var(--primary);color:var(--primary)}
+        body.light-mode .room-tab{background:rgba(255,255,255,0.8);border-color:rgba(0,0,0,0.15);color:#475569}
+        body.light-mode .room-tab.active{background:rgba(99,102,241,0.1);border-color:var(--primary);color:var(--primary)}
+        /* ── Quick Booking Modal ── */
+        .qb-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.72);backdrop-filter:blur(6px);z-index:4000;display:none;justify-content:center;align-items:flex-start;padding-top:2.5rem;overflow-y:auto}
+        .qb-overlay.open{display:flex}
+        .qb-card{background:#1e293b;border:1px solid var(--border);width:92%;max-width:560px;border-radius:20px;padding:2rem;box-shadow:0 30px 60px rgba(0,0,0,0.5);animation:slideUp 0.25s ease;margin-bottom:2rem}
+        .qb-title{font-size:1.1rem;font-weight:700;display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid var(--border)}
+        .qb-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem}
+        .qb-full{grid-column:1/-1}
+        .qb-label{font-size:0.75rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px}
+        .qb-input,.qb-select{background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:8px;color:var(--text-main);padding:9px 12px;font-size:0.88rem;font-family:inherit;width:100%;outline:none;min-height:unset}
+        .qb-input:focus,.qb-select:focus{border-color:var(--primary)}
+        .qb-select option{background:#1e293b}
+        .qb-btn-row{display:flex;gap:10px;margin-top:1.25rem}
+        .qb-btn-submit{flex:1;background:var(--primary);border:none;color:white;padding:11px;border-radius:8px;cursor:pointer;font-weight:700;font-family:inherit;font-size:0.9rem}
+        .qb-btn-submit:hover{background:#4f46e5}
+        .qb-btn-cancel{background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text-muted);padding:11px 18px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:0.9rem;font-weight:600}
+        body.light-mode .qb-card{background:#fff;border-color:rgba(0,0,0,0.12);color:#0f172a}
+        body.light-mode .qb-input,body.light-mode .qb-select{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.15);color:#0f172a}
         /* ── Blocked Dates Modal ── */
         .bd-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.72);backdrop-filter:blur(6px);z-index:3000;display:none;justify-content:center;align-items:flex-start;padding-top:3rem;overflow-y:auto}
         .bd-modal-overlay.open{display:flex}
@@ -351,20 +377,21 @@
             </select>
             <select id="statusFilter" class="cal-filter-select" onchange="applyFilters()">
                 <option value="">All Statuses</option>
-                <option value="paid">Fully Paid</option>
-                <option value="balance">Balance Due</option>
+                <option value="booked">Booked</option>
+                <option value="pending">Pending</option>
                 <option value="past">Past Events</option>
             </select>
             <button onclick="clearFilters()" style="background:rgba(148,163,184,0.1);border:1px solid var(--border);color:var(--text-muted);padding:9px 14px;border-radius:10px;cursor:pointer;font-size:0.85rem;font-weight:600;font-family:inherit;transition:0.2s" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--text-muted)'">
                 <i class="fa-solid fa-xmark"></i> Clear
             </button>
             <div class="cal-legend">
-                <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div> Fully Paid</div>
-                <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div> Balance Due</div>
-                <div class="legend-item"><div class="legend-dot" style="background:#475569"></div> Past Event</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div> &#x1F534; Booked</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div> &#x1F7E1; Pending</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#475569"></div> Past</div>
                 <div class="legend-item"><div class="legend-dot" style="background:#ef4444;opacity:0.5"></div> Closed</div>
             </div>
         </div>
+        <div class="room-tabs" id="roomTabs"></div>
         <div id="calendar"></div>
     </main>
 
@@ -447,12 +474,76 @@
             <button class="close-btn" onclick="closeModal()">Close</button>
         </div>
     </div>
+
+    <!-- QUICK BOOKING REQUEST MODAL -->
+    <div id="qbModal" class="qb-overlay" onclick="if(event.target.id==='qbModal')closeQbModal()">
+        <div class="qb-card">
+            <div class="qb-title">
+                <span><i class="fa-solid fa-calendar-plus" style="color:var(--primary);margin-right:8px"></i> New Booking Request</span>
+                <button onclick="closeQbModal()" style="background:none;border:none;color:var(--text-muted);font-size:1.4rem;cursor:pointer;min-height:unset">&times;</button>
+            </div>
+            <div class="qb-grid">
+                <div class="qb-full">
+                    <label class="qb-label">Customer Name *</label>
+                    <input type="text" id="qb-name" class="qb-input" placeholder="Full name">
+                </div>
+                <div>
+                    <label class="qb-label">Email *</label>
+                    <input type="email" id="qb-email" class="qb-input" placeholder="email@example.com">
+                </div>
+                <div>
+                    <label class="qb-label">Phone</label>
+                    <input type="tel" id="qb-phone" class="qb-input" placeholder="+44...">
+                </div>
+                <div>
+                    <label class="qb-label">Room *</label>
+                    <select id="qb-room" class="qb-select">
+                        <option value="">Select room...</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="qb-label">Date *</label>
+                    <input type="date" id="qb-date" class="qb-input">
+                </div>
+                <div>
+                    <label class="qb-label">Start Time</label>
+                    <input type="time" id="qb-start" class="qb-input" value="09:00">
+                </div>
+                <div>
+                    <label class="qb-label">End Time</label>
+                    <input type="time" id="qb-end" class="qb-input" value="17:00">
+                </div>
+                <div>
+                    <label class="qb-label">Guests</label>
+                    <input type="number" id="qb-guests" class="qb-input" min="1" placeholder="e.g. 50">
+                </div>
+                <div class="qb-full">
+                    <label class="qb-label">Notes</label>
+                    <input type="text" id="qb-notes" class="qb-input" placeholder="Optional notes or requirements">
+                </div>
+            </div>
+            <div class="qb-btn-row">
+                <button class="qb-btn-cancel" onclick="closeQbModal()">Cancel</button>
+                <button class="qb-btn-submit" id="qb-submit-btn" onclick="submitBookingRequest()"><i class="fa-solid fa-paper-plane"></i> Submit Request</button>
+            </div>
+        </div>
+    </div>
     <script>
         const API_URL='https://n8n.srv1090894.hstgr.cloud/webhook/all-bookings';
         const BLOCKED_API='https://n8n.srv1090894.hstgr.cloud/webhook/blocked-dates';
+        const ROOMS_API='https://n8n.srv1090894.hstgr.cloud/webhook/get-rooms';
+        const BOOKING_API='https://n8n.srv1090894.hstgr.cloud/webhook/walk-in-booking';
         const DAY_NAMES=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
         const fmt=n=>new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP'}).format(parseFloat(n)||0);
         function getAuthHeaders(){return{'Authorization':'Bearer '+(localStorage.getItem('vp_token')||'')};}
+
+        function showToast(msg,type){
+            const t=document.createElement('div');
+            const bg=type==='error'?'#ef4444':type==='info'?'#6366f1':'#10b981';
+            t.style.cssText=`position:fixed;bottom:24px;right:24px;z-index:9999;background:${bg};color:#fff;padding:12px 20px;border-radius:10px;font-size:0.88rem;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.4);opacity:0;transition:opacity 0.25s`;
+            t.textContent=msg;document.body.appendChild(t);
+            requestAnimationFrame(()=>{t.style.opacity='1';setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),300);},3500);});
+        }
 
         let allBlockedRules=[], blockedBgEvents=[];
 
@@ -557,8 +648,59 @@
         }
         function logout(){if(confirm("Log out?")){localStorage.removeItem('vp_token');window.location.href='login.html';}}
         function closeModal(){document.getElementById('eventModal').classList.remove('open');}
+
+        function selectRoomTab(el){
+            document.querySelectorAll('.room-tab').forEach(t=>t.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('roomFilter').value=el.dataset.room;
+            applyFilters();
+        }
+
+        function openQbModal(dateStr){
+            document.getElementById('qb-date').value=dateStr||'';
+            ['qb-name','qb-email','qb-phone','qb-notes'].forEach(id=>{document.getElementById(id).value='';});
+            document.getElementById('qb-guests').value='';
+            document.getElementById('qb-start').value='09:00';
+            document.getElementById('qb-end').value='17:00';
+            const activeTab=document.querySelector('.room-tab.active');
+            if(activeTab&&activeTab.dataset.room)document.getElementById('qb-room').value=activeTab.dataset.room;
+            else document.getElementById('qb-room').value='';
+            document.getElementById('qbModal').classList.add('open');
+        }
+        function closeQbModal(){document.getElementById('qbModal').classList.remove('open');}
+
+        async function submitBookingRequest(){
+            const name=document.getElementById('qb-name').value.trim();
+            const email=document.getElementById('qb-email').value.trim();
+            const room=document.getElementById('qb-room').value;
+            const date=document.getElementById('qb-date').value;
+            if(!name||!email||!room||!date){showToast('Please fill in Name, Email, Room and Date','error');return;}
+            const btn=document.getElementById('qb-submit-btn');
+            btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
+            const payload={
+                customer_name:name,customer_email:email,
+                customer_phone:document.getElementById('qb-phone').value.trim(),
+                room_name:room,booking_date:date,
+                start_time:document.getElementById('qb-start').value,
+                end_time:document.getElementById('qb-end').value,
+                guest_count:parseInt(document.getElementById('qb-guests').value)||null,
+                notes:document.getElementById('qb-notes').value.trim(),
+                status:'pending',created_by:'calendar'
+            };
+            try{
+                const res=await fetch(BOOKING_API,{method:'POST',headers:{...getAuthHeaders(),'Content-Type':'application/json'},body:JSON.stringify(payload)});
+                if(!res.ok)throw new Error('HTTP '+res.status);
+                closeQbModal();
+                showToast('Booking request submitted!','success');
+                setTimeout(()=>location.reload(),1500);
+            }catch(err){
+                showToast('Failed to submit: '+err.message,'error');
+            }finally{
+                btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-paper-plane"></i> Submit Request';
+            }
+        }
         let allEvents=[],calendarInstance=null;
-        function clearFilters(){document.getElementById('roomFilter').value='';document.getElementById('statusFilter').value='';applyFilters();}
+        function clearFilters(){document.getElementById('roomFilter').value='';document.getElementById('statusFilter').value='';document.querySelectorAll('.room-tab').forEach(t=>{t.classList.remove('active');if(t.dataset.room==='')t.classList.add('active');});applyFilters();}
         function applyFilters(){
             const roomVal=document.getElementById('roomFilter').value;
             const statusVal=document.getElementById('statusFilter').value;
@@ -566,10 +708,10 @@
             let filtered=allEvents;
             if(roomVal)filtered=filtered.filter(e=>e.extendedProps.room_name===roomVal);
             if(statusVal)filtered=filtered.filter(e=>{
-                const isPast=new Date(e.extendedProps.booking_date)<now;
-                const hasBal=parseFloat(e.extendedProps.balance_due||0)>0;
-                if(statusVal==='paid')return !hasBal&&!isPast;
-                if(statusVal==='balance')return hasBal&&!isPast;
+                const isPast=e.extendedProps.isPast;
+                const isPending=e.extendedProps.isPending;
+                if(statusVal==='booked')return !isPast&&!isPending;
+                if(statusVal==='pending')return !isPast&&isPending;
                 if(statusVal==='past')return isPast;
                 return true;
             });
@@ -585,6 +727,29 @@
                 const rooms=[...new Set(raw.map(e=>e.room_name).filter(Boolean))].sort();
                 const roomSel=document.getElementById('roomFilter');
                 rooms.forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r;roomSel.appendChild(o);});
+                // Populate room tabs
+                const roomTabsEl=document.getElementById('roomTabs');
+                const allTab=document.createElement('button');
+                allTab.className='room-tab active';allTab.textContent='All Rooms';allTab.dataset.room='';
+                allTab.onclick=function(){selectRoomTab(this);};roomTabsEl.appendChild(allTab);
+                rooms.forEach(r=>{
+                    const tab=document.createElement('button');tab.className='room-tab';tab.textContent=r;tab.dataset.room=r;
+                    tab.onclick=function(){selectRoomTab(this);};roomTabsEl.appendChild(tab);
+                });
+                // Populate qb-room select from /get-rooms API
+                try{
+                    const rRes=await fetch(ROOMS_API,{headers:getAuthHeaders()});
+                    const rJson=await rRes.json();
+                    const rData=rJson.data||(Array.isArray(rJson)?rJson:[]);
+                    const qbRoomSel=document.getElementById('qb-room');
+                    rData.filter(r=>r.is_active||r.is_active===undefined).forEach(r=>{
+                        const o=document.createElement('option');o.value=r.name||r.room_name||r.id;o.textContent=r.name||r.room_name||r.id;qbRoomSel.appendChild(o);
+                    });
+                }catch(e){
+                    // Fallback: use room names already known from bookings
+                    const qbRoomSel=document.getElementById('qb-room');
+                    rooms.forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r;qbRoomSel.appendChild(o);});
+                }
                 allEvents=raw.filter(e=>e.status!=='cancelled'&&(e.date_from||e.booking_date)).map(e=>{
                     const startDateStr=(e.date_from||e.booking_date).split('T')[0];
                     const endDateStr=(e.date_to||e.booking_date||e.date_from).split('T')[0];
@@ -593,7 +758,8 @@
                     const isPast=bDate<now;
                     const startT=(e.start_time||'09:00').slice(0,5);
                     const endT=(e.end_time||'10:00').slice(0,5);
-                    const color=isPast?'#475569':balance>0?'#f59e0b':'#10b981';
+                    const isPending=e.status==='pending'||e.status==='enquiry'||e.status==='contacted';
+                    const color=isPast?'#475569':isPending?'#f59e0b':'#ef4444';
                     const isMultiDay=startDateStr!==endDateStr;
                     const endExcl=isMultiDay?(()=>{const [_y,_m,_d]=endDateStr.split('-').map(Number);return new Date(Date.UTC(_y,_m-1,_d+1)).toISOString().split('T')[0];})():null;
                     const fmtD=s=>new Date(s+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
@@ -601,7 +767,7 @@
                     const eventObj={
                         title:e.customer_name||'Guest',
                         backgroundColor:color,borderColor:color,
-                        extendedProps:{customer_name:e.customer_name||'Guest',customer_email:e.customer_email||e.email||'',customer_phone:e.customer_phone||e.phone||'',room_name:e.room_name||'Unknown',booking_date:e.booking_date,date_from:e.date_from,date_to:e.date_to,dateLabel,time:`${startT} \u2013 ${endT}`,total_amount:e.total_amount,balance_due:e.balance_due,guest_count:e.guest_count,isPast}
+                        extendedProps:{customer_name:e.customer_name||'Guest',customer_email:e.customer_email||e.email||'',customer_phone:e.customer_phone||e.phone||'',room_name:e.room_name||'Unknown',booking_date:e.booking_date,date_from:e.date_from,date_to:e.date_to,dateLabel,time:`${startT} \u2013 ${endT}`,total_amount:e.total_amount,balance_due:e.balance_due,guest_count:e.guest_count,isPast,isPending,status:e.status||'confirmed'}
                     };
                     if(isMultiDay){eventObj.start=startDateStr;eventObj.end=endExcl;eventObj.allDay=true;}
                     else{eventObj.start=`${startDateStr}T${startT}:00`;eventObj.end=`${startDateStr}T${endT}:00`;}
@@ -611,6 +777,12 @@
                     initialView:'dayGridMonth',
                     headerToolbar:{left:'prev,next today',center:'title',right:'dayGridMonth,timeGridWeek,timeGridDay,listWeek'},
                     events:[...allEvents,...blockedBgEvents],height:'auto',
+                    dateClick:function(info){
+                        const today=new Date();today.setHours(0,0,0,0);
+                        const clicked=new Date(info.dateStr+'T00:00:00');
+                        if(clicked<today)return; // ignore past dates
+                        openQbModal(info.dateStr);
+                    },
                     eventContent:function(arg){
                         const p=arg.event.extendedProps;
                         const room=p.room_name?`<span style="opacity:0.75;font-size:0.74rem"> \u00b7 ${p.room_name}</span>`:'';
@@ -631,8 +803,8 @@
                         document.getElementById('e-balance').innerText=fmt(balance);
                         let badge;
                         if(p.isPast)badge='<span class="status-pill pill-past">Completed</span>';
-                        else if(balance>0)badge=`<span class="status-pill pill-balance">\u00a3${balance.toFixed(2)} Due</span>`;
-                        else badge='<span class="status-pill pill-paid">Fully Paid</span>';
+                        else if(p.isPending)badge='<span class="status-pill pill-balance">Pending Request</span>';
+                        else badge='<span class="status-pill pill-paid">Booked</span>';
                         document.getElementById('e-status-badge').innerHTML=badge;
                         const tD=document.getElementById('tl-deposit'),tB=document.getElementById('tl-balance'),tS=document.getElementById('tl-settled');
                         const l1=document.getElementById('tl-line1'),l2=document.getElementById('tl-line2');
