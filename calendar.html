@@ -119,6 +119,19 @@
         .tl-line.done{background:var(--success)}
         .close-btn{width:100%;padding:11px;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:white;border-radius:8px;margin-top:1.25rem;cursor:pointer;font-family:inherit;font-size:0.9rem;font-weight:600}
         .close-btn:hover{background:rgba(255,255,255,0.1)}
+        .e-action-row{display:flex;gap:10px;margin-top:10px}
+        .e-action-pay{flex:1;padding:10px;background:rgba(16,185,129,0.13);border:1px solid rgba(16,185,129,0.35);color:var(--success);border-radius:8px;font-weight:600;cursor:pointer;font-family:inherit;font-size:0.85rem;transition:0.2s}
+        .e-action-pay:hover{background:rgba(16,185,129,0.25)}
+        .e-action-cancel{flex:1;padding:10px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:var(--danger);border-radius:8px;font-weight:600;cursor:pointer;font-family:inherit;font-size:0.85rem;transition:0.2s}
+        .e-action-cancel:hover{background:rgba(239,68,68,0.22)}
+        .e-pay-section{display:none;margin-top:12px;background:rgba(0,0,0,0.15);border:1px solid var(--border);border-radius:10px;padding:14px}
+        .e-pay-section .e-pay-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+        .e-pay-lbl{font-size:0.73rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px}
+        .e-pay-submit{width:100%;padding:9px;background:var(--success);border:none;color:white;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.88rem;font-family:inherit}
+        .e-pay-submit:hover{background:#0da56b}
+        body.light-mode .e-action-pay{background:rgba(16,185,129,0.1);color:#059669}
+        body.light-mode .e-action-cancel{background:rgba(239,68,68,0.07);color:#dc2626}
+        body.light-mode .e-pay-section{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.1)}
         .overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:90}
         .overlay.active{display:block}
         @media(max-width:768px){
@@ -475,6 +488,18 @@
                 <div class="tl-step"><div class="tl-dot pending" id="tl-settled"><i class="fa-solid fa-circle-check"></i></div><div class="tl-label">Settled</div></div>
             </div>
             <button class="close-btn" onclick="closeModal()">Close</button>
+            <div class="e-action-row">
+                <button id="e-pay-btn" class="e-action-pay" onclick="recordPaymentFromModal()"><i class="fa-solid fa-coins"></i> Record Payment</button>
+                <button id="e-cancel-btn" class="e-action-cancel" onclick="cancelBookingFromModal()"><i class="fa-solid fa-ban"></i> Cancel Booking</button>
+            </div>
+            <div id="e-pay-section" class="e-pay-section">
+                <div style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px;">Record Payment</div>
+                <div class="e-pay-grid">
+                    <div><label class="e-pay-lbl">Amount (£)</label><input id="e-pay-amount" type="number" min="0" step="0.01" class="qb-input" placeholder="0.00"></div>
+                    <div><label class="e-pay-lbl">Method</label><select id="e-pay-method" class="qb-select"><option value="cash">Cash</option><option value="card">Card</option><option value="bank_transfer">Bank Transfer</option><option value="bacs">BACS</option></select></div>
+                </div>
+                <button class="e-pay-submit" onclick="submitPaymentFromModal()"><i class="fa-solid fa-check"></i> Submit Payment</button>
+            </div>
         </div>
     </div>
 
@@ -650,7 +675,7 @@
             if (overlay) overlay.classList.remove('active');
         }
         function logout(){if(confirm("Log out?")){localStorage.removeItem('vp_token');window.location.href='login.html';}}
-        function closeModal(){document.getElementById('eventModal').classList.remove('open');}
+        function closeModal(){document.getElementById('eventModal').classList.remove('open');const ps=document.getElementById('e-pay-section');if(ps)ps.style.display='none';}
 
         function selectRoomTab(el){
             document.querySelectorAll('.room-tab').forEach(t=>t.classList.remove('active'));
@@ -710,7 +735,67 @@
                 btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-paper-plane"></i> Submit Request';
             }
         }
-        let allEvents=[],calendarInstance=null,dateStatusMap={};
+        let allEvents=[],calendarInstance=null,dateStatusMap={},currentModalBookingId=null;
+        const CAL_CANCEL_URL='https://n8n.srv1090894.hstgr.cloud/webhook/cancel-booking';
+        const CAL_PAY_URL='https://n8n.srv1090894.hstgr.cloud/webhook/pay-balance';
+        function openEventModal(ev){
+            const p=ev.extendedProps;
+            currentModalBookingId=p.booking_id;
+            const balance=parseFloat(p.balance_due||0);
+            document.getElementById('e-title').innerText=ev.title+'\u2014'+(p.room_name||'Unknown');
+            document.getElementById('e-customer').innerText=p.customer_name||'N/A';
+            document.getElementById('e-email').innerText=p.customer_email||'N/A';
+            document.getElementById('e-phone').innerText=p.customer_phone||'N/A';
+            document.getElementById('e-room').innerText=p.room_name||'N/A';
+            document.getElementById('e-date').innerText=p.dateLabel||'N/A';
+            document.getElementById('e-time').innerText=p.time;
+            document.getElementById('e-guests').innerText=p.guest_count||'\u2014';
+            document.getElementById('e-total').innerText=p.total_amount!=null?fmt(p.total_amount):'\u2014';
+            document.getElementById('e-balance').innerText=fmt(balance);
+            let badge;
+            if(p.isPast)badge='<span class="status-pill pill-past">Completed</span>';
+            else if(p.isPending)badge='<span class="status-pill pill-balance">Pending Request</span>';
+            else badge='<span class="status-pill pill-paid">Booked</span>';
+            document.getElementById('e-status-badge').innerHTML=badge;
+            const tD=document.getElementById('tl-deposit'),tB=document.getElementById('tl-balance'),tS=document.getElementById('tl-settled');
+            const l1=document.getElementById('tl-line1'),l2=document.getElementById('tl-line2');
+            tD.className='tl-dot done';tD.innerHTML='<i class="fa-solid fa-check"></i>';l1.className='tl-line done';
+            if(balance<=0){tB.className='tl-dot done';tB.innerHTML='<i class="fa-solid fa-check"></i>';l2.className='tl-line done';tS.className='tl-dot done';tS.innerHTML='<i class="fa-solid fa-circle-check"></i>';}
+            else{tB.className='tl-dot active';tB.innerHTML='<i class="fa-solid fa-coins"></i>';l2.className='tl-line';tS.className='tl-dot pending';tS.innerHTML='<i class="fa-solid fa-circle"></i>';}
+            const payBtn=document.getElementById('e-pay-btn'),cancelBtn=document.getElementById('e-cancel-btn');
+            if(payBtn)payBtn.style.display=(!p.isPast&&balance>0)?'':'none';
+            if(cancelBtn)cancelBtn.style.display=(!p.isPast)?'':'none';
+            document.getElementById('e-pay-section').style.display='none';
+            document.getElementById('eventModal').classList.add('open');
+        }
+        async function cancelBookingFromModal(){
+            if(!currentModalBookingId){showToast('Booking ID not found — cancel from the Bookings page','error');return;}
+            if(!confirm('Cancel this booking? This cannot be undone.'))return;
+            try{
+                const res=await fetch(CAL_CANCEL_URL,{method:'POST',headers:{...getAuthHeaders(),'Content-Type':'application/json'},body:JSON.stringify({booking_id:currentModalBookingId})});
+                if(res.ok){showToast('Booking cancelled','success');closeModal();setTimeout(()=>location.reload(),1500);}
+                else showToast('Error cancelling — try the Bookings page','error');
+            }catch(e){showToast('Error: '+e.message,'error');}
+        }
+        function recordPaymentFromModal(){
+            const sec=document.getElementById('e-pay-section');
+            sec.style.display=sec.style.display==='none'?'block':'none';
+        }
+        async function submitPaymentFromModal(){
+            if(!currentModalBookingId){showToast('Booking ID not found','error');return;}
+            const amount=parseFloat(document.getElementById('e-pay-amount').value||0);
+            if(!amount||amount<=0){showToast('Enter a valid amount','error');return;}
+            const method=document.getElementById('e-pay-method').value;
+            const balance=parseFloat(document.getElementById('e-balance').innerText.replace(/[^0-9.]/g,'')||0);
+            const btn=document.querySelector('.e-pay-submit');
+            btn.disabled=true;
+            try{
+                const res=await fetch(CAL_PAY_URL,{method:'POST',headers:{...getAuthHeaders(),'Content-Type':'application/json'},body:JSON.stringify({booking_id:currentModalBookingId,amount,payment_method:method,payment_type:amount>=balance?'full':'partial'})});
+                if(res.ok){showToast('Payment recorded!','success');closeModal();setTimeout(()=>location.reload(),1500);}
+                else showToast('Error recording payment — try the Bookings page','error');
+            }catch(e){showToast('Error: '+e.message,'error');}
+            finally{btn.disabled=false;}
+        }
         function clearFilters(){document.getElementById('roomFilter').value='';document.getElementById('statusFilter').value='';document.querySelectorAll('.room-tab').forEach(t=>{t.classList.remove('active');if(t.dataset.room==='')t.classList.add('active');});applyFilters();}
         function applyDayCellColors(){
             const roomVal=document.getElementById('roomFilter').value;
@@ -793,7 +878,7 @@
                     const eventObj={
                         title:e.customer_name||'Guest',
                         backgroundColor:color,borderColor:color,
-                        extendedProps:{customer_name:e.customer_name||'Guest',customer_email:e.customer_email||e.email||'',customer_phone:e.customer_phone||e.phone||'',room_name:e.room_name||'Unknown',booking_date:e.booking_date,date_from:e.date_from,date_to:e.date_to,dateLabel,time:`${startT} \u2013 ${endT}`,total_amount:e.total_amount,balance_due:e.balance_due,guest_count:e.guest_count,isPast,isPending,status:e.status||'confirmed'}
+                        extendedProps:{booking_id:e.id||e.booking_id||null,customer_name:e.customer_name||'Guest',customer_email:e.customer_email||e.email||'',customer_phone:e.customer_phone||e.phone||'',room_name:e.room_name||'Unknown',booking_date:e.booking_date,date_from:e.date_from,date_to:e.date_to,dateLabel,time:`${startT} \u2013 ${endT}`,total_amount:e.total_amount,balance_due:e.balance_due,guest_count:e.guest_count,isPast,isPending,status:e.status||'confirmed'}
                     };
                     if(isMultiDay){eventObj.start=startDateStr;eventObj.end=endExcl;eventObj.allDay=true;}
                     else{eventObj.start=`${startDateStr}T${startT}:00`;eventObj.end=`${startDateStr}T${endT}:00`;}
@@ -824,9 +909,22 @@
                     dateClick:function(info){
                         const today=new Date();today.setHours(0,0,0,0);
                         const clicked=new Date(info.dateStr+'T00:00:00');
-                        if(clicked<today)return; // ignore past dates
+                        if(clicked<today)return;
                         const isBlocked=blockedBgEvents.some(b=>b.start===info.dateStr);
                         if(isBlocked){showToast('This date is blocked — manage via Blocked Dates','info');return;}
+                        // Route click based on room-aware cell status
+                        const roomVal=document.getElementById('roomFilter').value;
+                        const map=dateStatusMap[roomVal]||dateStatusMap['']||{};
+                        const cellStatus=map[info.dateStr];
+                        if(cellStatus==='booked'||cellStatus==='pending'){
+                            const match=allEvents.find(e=>{
+                                if(roomVal&&e.extendedProps.room_name!==roomVal)return false;
+                                const s=e.start.split('T')[0];
+                                if(e.allDay&&e.end)return new Date(info.dateStr+'T00:00:00')>=new Date(s+'T00:00:00')&&new Date(info.dateStr+'T00:00:00')<new Date(e.end+'T00:00:00');
+                                return s===info.dateStr;
+                            });
+                            if(match){openEventModal(match);return;}
+                        }
                         openQbModal(info.dateStr);
                     },
                     eventContent:function(arg){
@@ -834,31 +932,7 @@
                         const room=p.room_name?`<span style="opacity:0.75;font-size:0.74rem"> \u00b7 ${p.room_name}</span>`:'';
                         return{html:`<div style="padding:2px 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><strong>${arg.event.title}</strong>${room}</div>`};
                     },
-                    eventClick:function(info){
-                        const p=info.event.extendedProps;
-                        const balance=parseFloat(p.balance_due||0);
-                        document.getElementById('e-title').innerText=info.event.title+' \u2014 '+(p.room_name||'Unknown');
-                        document.getElementById('e-customer').innerText=p.customer_name||'N/A';
-                        document.getElementById('e-email').innerText=p.customer_email||'N/A';
-                        document.getElementById('e-phone').innerText=p.customer_phone||'N/A';
-                        document.getElementById('e-room').innerText=p.room_name||'N/A';
-                        document.getElementById('e-date').innerText=p.dateLabel||'N/A';
-                        document.getElementById('e-time').innerText=p.time;
-                        document.getElementById('e-guests').innerText=p.guest_count||'\u2014';
-                        document.getElementById('e-total').innerText=p.total_amount!=null?fmt(p.total_amount):'\u2014';
-                        document.getElementById('e-balance').innerText=fmt(balance);
-                        let badge;
-                        if(p.isPast)badge='<span class="status-pill pill-past">Completed</span>';
-                        else if(p.isPending)badge='<span class="status-pill pill-balance">Pending Request</span>';
-                        else badge='<span class="status-pill pill-paid">Booked</span>';
-                        document.getElementById('e-status-badge').innerHTML=badge;
-                        const tD=document.getElementById('tl-deposit'),tB=document.getElementById('tl-balance'),tS=document.getElementById('tl-settled');
-                        const l1=document.getElementById('tl-line1'),l2=document.getElementById('tl-line2');
-                        tD.className='tl-dot done';tD.innerHTML='<i class="fa-solid fa-check"></i>';l1.className='tl-line done';
-                        if(balance<=0){tB.className='tl-dot done';tB.innerHTML='<i class="fa-solid fa-check"></i>';l2.className='tl-line done';tS.className='tl-dot done';tS.innerHTML='<i class="fa-solid fa-circle-check"></i>';}
-                        else{tB.className='tl-dot active';tB.innerHTML='<i class="fa-solid fa-coins"></i>';l2.className='tl-line';tS.className='tl-dot pending';tS.innerHTML='<i class="fa-solid fa-circle"></i>';}
-                        document.getElementById('eventModal').classList.add('open');
-                    }
+                    eventClick:function(info){openEventModal(info.event);}
                 });
                 calendarInstance.render();
             }catch(e){console.error('Calendar error:',e);}
