@@ -785,7 +785,10 @@
                 dateStatusMap={};
                 allEvents.forEach(e=>{
                     if(e.extendedProps.isPast)return;
-                    const status=e.extendedProps.isPending?'pending':'booked';
+                    const isPending=e.extendedProps.isPending;
+                    // Pending requests older than 7 days are treated as available (green)
+                    if(isPending){const bDate=new Date((e.extendedProps.date_from||e.extendedProps.booking_date||e.start).split('T')[0]+'T00:00:00');if((now-bDate)/86400000>7)return;}
+                    const status=isPending?'pending':'booked';
                     const startStr=e.start.split('T')[0];
                     if(e.allDay&&e.end){const d=new Date(startStr+'T00:00:00');const endD=new Date(e.end+'T00:00:00');while(d<endD){const ds=d.toISOString().split('T')[0];if(dateStatusMap[ds]!=='booked')dateStatusMap[ds]=status;d.setDate(d.getDate()+1);}}
                     else{if(dateStatusMap[startStr]!=='booked')dateStatusMap[startStr]=status;}
