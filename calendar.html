@@ -529,8 +529,9 @@
             <div id="e-confirm-section" class="e-confirm-section">
                 <div class="e-cs-title"><i class="fa-solid fa-calendar-check" style="margin-right:6px"></i>Confirm Booking &amp; Take Deposit</div>
                 <div class="e-cs-hint">Set the total price and record the deposit collected at confirmation.</div>
+                <div id="e-cs-breakdown" style="font-size:0.78rem;color:#f59e0b;background:rgba(245,158,11,0.08);border-radius:6px;padding:7px 10px;margin-bottom:10px;display:none"></div>
                 <div class="e-cs-grid">
-                    <div><label class="e-pay-lbl">Total Price (£) *</label><input id="e-cs-total" type="number" min="0" step="0.01" class="qb-input" placeholder="e.g. 450.00"></div>
+                    <div><label class="e-pay-lbl">Total Price (£) *</label><input id="e-cs-total" type="number" min="0" step="0.01" class="qb-input" placeholder="e.g. 450.00" oninput="csOnTotalChange()"></div>
                     <div><label class="e-pay-lbl">Deposit Taken (£)</label><input id="e-cs-deposit" type="number" min="0" step="0.01" class="qb-input" placeholder="0.00"></div>
                     <div class="e-cs-full"><label class="e-pay-lbl">Payment Method</label><select id="e-cs-method" class="qb-select"><option value="cash">Cash</option><option value="card">Card</option><option value="bank_transfer">Bank Transfer</option><option value="bacs">BACS</option></select></div>
                 </div>
@@ -939,7 +940,7 @@
             }catch(err){showToast('Failed to submit: '+err.message,'error');}
             finally{['qb-btn-deposit','qb-btn-full','qb-btn-pending'].forEach(id=>document.getElementById(id).disabled=false);qbSetButtons(true);}
         }
-        let allEvents=[],calendarInstance=null,dateStatusMap={},currentModalBookingId=null;
+        let allEvents=[],calendarInstance=null,dateStatusMap={},currentModalBookingId=null,currentModalProps=null;
         const CAL_CANCEL_URL='https://n8n.srv1090894.hstgr.cloud/webhook/cancel-booking';
         const CAL_PAY_URL='https://n8n.srv1090894.hstgr.cloud/webhook/pay-balance';
         const CAL_CONFIRM_URL='https://n8n.srv1090894.hstgr.cloud/webhook/confirm-booking';
@@ -984,6 +985,10 @@
             // Reset confirm form
             document.getElementById('e-cs-total').value='';
             document.getElementById('e-cs-deposit').value='';
+            document.getElementById('e-cs-breakdown').style.display='none';
+            document.getElementById('e-cs-breakdown').textContent='';
+            // Store extendedProps for cost calc when confirm form opens
+            currentModalProps=p;
             document.getElementById('eventModal').classList.add('open');
         }
         function confirmBookingFromModal(){
@@ -991,7 +996,49 @@
             const cs=document.getElementById('e-confirm-section');
             const ps=document.getElementById('e-pay-section');
             ps.style.display='none';
-            cs.style.display=cs.style.display==='none'?'block':'none';
+            const opening=cs.style.display==='none';
+            cs.style.display=opening?'block':'none';
+            if(opening)csCalcCost();
+        }
+        function csCalcCost(){
+            // Auto-calculate cost using same logic as qbCalculateCost
+            const p=currentModalProps;
+            if(!p||!qbRoomsData.length)return;
+            const roomName=p.room_name;
+            const room=qbRoomsData.find(r=>(r.name||r.room_name||String(r.id))===roomName);
+            if(!room){document.getElementById('e-cs-breakdown').style.display='none';return;}
+            const from=(p.date_from||p.booking_date||'').split('T')[0];
+            const to=(p.date_to||p.date_from||p.booking_date||'').split('T')[0];
+            // Parse start/end times from the stored "HH:MM – HH:MM" string
+            const timeParts=(p.time||'09:00 – 17:00').split(/–|-/).map(s=>s.trim());
+            const startT=timeParts[0]||'09:00';
+            const endT=timeParts[1]||'17:00';
+            const[sh,sm]=startT.split(':').map(Number);
+            const[eh,em]=endT.split(':').map(Number);
+            const hrs=(eh*60+em-sh*60-sm)/60;
+            if(hrs<=0)return;
+            const days=qbDayCount(from,to);
+            const fullRate=parseFloat(room.day_rate||0);
+            const halfRate=parseFloat(room.half_rate||0);
+            let perDayCost,rateLabel;
+            if(hrs>=6){perDayCost=fullRate;rateLabel=`Full-day: ${fmt(fullRate)}`;}
+            else if(halfRate&&hrs>=3){perDayCost=halfRate;rateLabel=`Half-day: ${fmt(halfRate)}`;}
+            else{perDayCost=(hrs/8)*fullRate;rateLabel=`Pro-rated ${hrs.toFixed(1)}h: ${fmt(perDayCost)}`;}
+            let total=perDayCost*days;
+            let breakdown=rateLabel;
+            if(days>1)breakdown+=` × ${days} days`;
+            const deposit=Math.round(total*QBR_DEPOSIT_PCT)/100;
+            breakdown+=` = ${fmt(total)} (${QBR_DEPOSIT_PCT}% deposit = ${fmt(deposit)})`;
+            const bd=document.getElementById('e-cs-breakdown');
+            bd.textContent='ℹ️ Calculated: '+breakdown;
+            bd.style.display='block';
+            // Pre-fill the fields
+            document.getElementById('e-cs-total').value=total.toFixed(2);
+            document.getElementById('e-cs-deposit').value=deposit.toFixed(2);
+        }
+        function csOnTotalChange(){
+            const total=parseFloat(document.getElementById('e-cs-total').value||0);
+            if(total>0)document.getElementById('e-cs-deposit').value=(Math.round(total*QBR_DEPOSIT_PCT)/100).toFixed(2);
         }
         async function submitConfirmWithDeposit(){
             if(!currentModalBookingId){showToast('Booking ID not found','error');return;}
