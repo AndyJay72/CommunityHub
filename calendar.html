@@ -107,7 +107,14 @@
         body.light-mode .bd-item-label{color:#0f172a}
         .modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.72);backdrop-filter:blur(6px);z-index:2000;display:none;justify-content:center;align-items:center}
         .modal-overlay.open{display:flex}
-        .modal-card{background:#1e293b;border:1px solid var(--border);width:92%;max-width:520px;border-radius:20px;padding:2rem;box-shadow:0 30px 60px rgba(0,0,0,0.5);animation:slideUp 0.25s ease}
+        .modal-card{background:#1e293b;border:1px solid var(--border);width:96%;max-width:860px;border-radius:20px;padding:2rem;box-shadow:0 30px 60px rgba(0,0,0,0.5);animation:slideUp 0.25s ease;max-height:92vh;overflow-y:auto}
+        .modal-body-cols{display:flex;gap:0;align-items:flex-start}
+        .modal-col-info{flex:0 0 auto;width:290px;min-width:0}
+        .modal-col-divider{width:1px;background:var(--border);margin:0 1.5rem;align-self:stretch;flex-shrink:0}
+        .modal-col-action{flex:1;min-width:200px;display:flex;flex-direction:column}
+        .modal-col-placeholder{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text-muted);font-size:0.82rem;gap:10px;padding:2.5rem 1rem;border:1px dashed rgba(148,163,184,0.18);border-radius:12px;text-align:center;min-height:200px}
+        .modal-col-placeholder i{font-size:2rem;opacity:0.3}
+        .modal-col-action-title{font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
         @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
         .modal-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem;border-bottom:1px solid var(--border);padding-bottom:1rem}
         .modal-title{font-size:1.15rem;font-weight:700;line-height:1.3;flex:1;padding-right:1rem}
@@ -138,7 +145,7 @@
         .e-action-cancel:hover{background:rgba(239,68,68,0.22)}
         .e-action-confirm{flex:1;padding:10px;background:rgba(245,158,11,0.13);border:1px solid rgba(245,158,11,0.35);color:#f59e0b;border-radius:8px;font-weight:600;cursor:pointer;font-family:inherit;font-size:0.85rem;transition:0.2s}
         .e-action-confirm:hover{background:rgba(245,158,11,0.25)}
-        .e-confirm-section{display:none;margin-top:12px;background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.28);border-radius:10px;padding:14px}
+        .e-confirm-section{display:none;background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.28);border-radius:10px;padding:14px}
         .e-confirm-section .e-cs-title{font-size:0.78rem;font-weight:700;color:#f59e0b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px}
         .e-confirm-section .e-cs-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
         .e-confirm-section .e-cs-full{grid-column:1/-1}
@@ -148,7 +155,7 @@
         .e-cs-skip{width:100%;padding:7px;background:transparent;border:1px solid var(--border);color:var(--text-muted);border-radius:8px;font-weight:600;cursor:pointer;font-family:inherit;font-size:0.82rem}
         .e-cs-skip:hover{border-color:var(--text-muted)}
         body.light-mode .e-confirm-section{background:rgba(245,158,11,0.06);border-color:rgba(245,158,11,0.3)}
-        .e-pay-section{display:none;margin-top:12px;background:rgba(0,0,0,0.15);border:1px solid var(--border);border-radius:10px;padding:14px}
+        .e-pay-section{display:none;background:rgba(0,0,0,0.15);border:1px solid var(--border);border-radius:10px;padding:14px}
         .e-pay-section .e-pay-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
         .e-pay-lbl{font-size:0.73rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px}
         .e-pay-submit{width:100%;padding:9px;background:var(--success);border:none;color:white;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.88rem;font-family:inherit}
@@ -158,6 +165,7 @@
         body.light-mode .e-action-confirm{background:rgba(245,158,11,0.1);color:#d97706}
         body.light-mode .e-cs-submit{background:#d97706;color:#fff}
         body.light-mode .e-pay-section{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.1)}
+        @media(max-width:720px){.modal-body-cols{flex-direction:column}.modal-col-info{width:100%}.modal-col-divider{width:100%;height:1px;margin:1rem 0;align-self:auto}}
         .overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:90}
         .overlay.active{display:block}
         @media(max-width:768px){
@@ -495,48 +503,63 @@
                 <div class="modal-title" id="e-title">&#x2014;</div>
                 <button class="modal-close-btn" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="modal-row"><span class="modal-label"><i class="fa-solid fa-user" style="margin-right:6px;opacity:0.6"></i>Customer</span><span class="modal-val" id="e-customer">&#x2014;</span></div>
-            <div class="modal-row"><span class="modal-label"><i class="fa-solid fa-envelope" style="margin-right:6px;opacity:0.6"></i>Email</span><span class="modal-val" id="e-email" style="font-size:0.82rem">&#x2014;</span></div>
-            <div class="modal-row"><span class="modal-label"><i class="fa-solid fa-phone" style="margin-right:6px;opacity:0.6"></i>Phone</span><span class="modal-val" id="e-phone">&#x2014;</span></div>
-            <div class="modal-row"><span class="modal-label"><i class="fa-solid fa-layer-group" style="margin-right:6px;opacity:0.6"></i>Room</span><span class="modal-val" id="e-room">&#x2014;</span></div>
-            <div class="modal-row"><span class="modal-label"><i class="fa-solid fa-calendar-days" style="margin-right:6px;opacity:0.6"></i>Date</span><span class="modal-val" id="e-date">&#x2014;</span></div>
-            <div class="modal-row"><span class="modal-label"><i class="fa-solid fa-clock" style="margin-right:6px;opacity:0.6"></i>Time</span><span class="modal-val" id="e-time">&#x2014;</span></div>
-            <div class="modal-row"><span class="modal-label"><i class="fa-solid fa-users" style="margin-right:6px;opacity:0.6"></i>Guests</span><span class="modal-val" id="e-guests">&#x2014;</span></div>
-            <div class="modal-row"><span class="modal-label"><i class="fa-solid fa-sterling-sign" style="margin-right:6px;opacity:0.6"></i>Total</span><span class="modal-val" id="e-total">&#x2014;</span></div>
-            <div class="modal-row"><span class="modal-label"><i class="fa-solid fa-coins" style="margin-right:6px;opacity:0.6"></i>Balance Due</span><span class="modal-val" id="e-balance">&#x2014;</span></div>
-            <div class="modal-row"><span class="modal-label">Status</span><span id="e-status-badge">&#x2014;</span></div>
-            <div class="pay-timeline">
-                <div class="tl-step"><div class="tl-dot done" id="tl-deposit"><i class="fa-solid fa-check"></i></div><div class="tl-label">Deposit</div></div>
-                <div class="tl-line" id="tl-line1"></div>
-                <div class="tl-step"><div class="tl-dot pending" id="tl-balance"><i class="fa-solid fa-circle"></i></div><div class="tl-label">Balance</div></div>
-                <div class="tl-line" id="tl-line2"></div>
-                <div class="tl-step"><div class="tl-dot pending" id="tl-settled"><i class="fa-solid fa-circle-check"></i></div><div class="tl-label">Settled</div></div>
-            </div>
-            <button class="close-btn" onclick="closeModal()">Close</button>
-            <div class="e-action-row">
-                <button id="e-confirm-btn" class="e-action-confirm" onclick="confirmBookingFromModal()"><i class="fa-solid fa-calendar-check"></i> Confirm Booking</button>
-                <button id="e-pay-btn" class="e-action-pay" onclick="recordPaymentFromModal()"><i class="fa-solid fa-coins"></i> Record Payment</button>
-                <button id="e-cancel-btn" class="e-action-cancel" onclick="cancelBookingFromModal()"><i class="fa-solid fa-ban"></i> Cancel Booking</button>
-            </div>
-            <div id="e-pay-section" class="e-pay-section">
-                <div style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px;">Record Payment</div>
-                <div class="e-pay-grid">
-                    <div><label class="e-pay-lbl">Amount (£)</label><input id="e-pay-amount" type="number" min="0" step="0.01" class="qb-input" placeholder="0.00"></div>
-                    <div><label class="e-pay-lbl">Method</label><select id="e-pay-method" class="qb-select"><option value="cash">Cash</option><option value="card">Card</option><option value="bank_transfer">Bank Transfer</option><option value="bacs">BACS</option></select></div>
+            <div class="modal-body-cols">
+                <!-- Left column: Booking Info -->
+                <div class="modal-col-info">
+                    <div class="modal-row"><span class="modal-label"><i class="fa-solid fa-user" style="margin-right:6px;opacity:0.6"></i>Customer</span><span class="modal-val" id="e-customer">&#x2014;</span></div>
+                    <div class="modal-row"><span class="modal-label"><i class="fa-solid fa-envelope" style="margin-right:6px;opacity:0.6"></i>Email</span><span class="modal-val" id="e-email" style="font-size:0.82rem">&#x2014;</span></div>
+                    <div class="modal-row"><span class="modal-label"><i class="fa-solid fa-phone" style="margin-right:6px;opacity:0.6"></i>Phone</span><span class="modal-val" id="e-phone">&#x2014;</span></div>
+                    <div class="modal-row"><span class="modal-label"><i class="fa-solid fa-layer-group" style="margin-right:6px;opacity:0.6"></i>Room</span><span class="modal-val" id="e-room">&#x2014;</span></div>
+                    <div class="modal-row"><span class="modal-label"><i class="fa-solid fa-calendar-days" style="margin-right:6px;opacity:0.6"></i>Date</span><span class="modal-val" id="e-date">&#x2014;</span></div>
+                    <div class="modal-row"><span class="modal-label"><i class="fa-solid fa-clock" style="margin-right:6px;opacity:0.6"></i>Time</span><span class="modal-val" id="e-time">&#x2014;</span></div>
+                    <div class="modal-row"><span class="modal-label"><i class="fa-solid fa-users" style="margin-right:6px;opacity:0.6"></i>Guests</span><span class="modal-val" id="e-guests">&#x2014;</span></div>
+                    <div class="modal-row"><span class="modal-label"><i class="fa-solid fa-sterling-sign" style="margin-right:6px;opacity:0.6"></i>Total</span><span class="modal-val" id="e-total">&#x2014;</span></div>
+                    <div class="modal-row"><span class="modal-label"><i class="fa-solid fa-coins" style="margin-right:6px;opacity:0.6"></i>Balance Due</span><span class="modal-val" id="e-balance">&#x2014;</span></div>
+                    <div class="modal-row"><span class="modal-label">Status</span><span id="e-status-badge">&#x2014;</span></div>
+                    <div class="pay-timeline">
+                        <div class="tl-step"><div class="tl-dot done" id="tl-deposit"><i class="fa-solid fa-check"></i></div><div class="tl-label">Deposit</div></div>
+                        <div class="tl-line" id="tl-line1"></div>
+                        <div class="tl-step"><div class="tl-dot pending" id="tl-balance"><i class="fa-solid fa-circle"></i></div><div class="tl-label">Balance</div></div>
+                        <div class="tl-line" id="tl-line2"></div>
+                        <div class="tl-step"><div class="tl-dot pending" id="tl-settled"><i class="fa-solid fa-circle-check"></i></div><div class="tl-label">Settled</div></div>
+                    </div>
+                    <div class="e-action-row" style="margin-top:14px">
+                        <button id="e-confirm-btn" class="e-action-confirm" onclick="confirmBookingFromModal()"><i class="fa-solid fa-calendar-check"></i> Confirm</button>
+                        <button id="e-pay-btn" class="e-action-pay" onclick="recordPaymentFromModal()"><i class="fa-solid fa-coins"></i> Payment</button>
+                        <button id="e-cancel-btn" class="e-action-cancel" onclick="cancelBookingFromModal()"><i class="fa-solid fa-ban"></i> Cancel</button>
+                    </div>
+                    <button class="close-btn" onclick="closeModal()" style="margin-top:10px">Close</button>
                 </div>
-                <button class="e-pay-submit" onclick="submitPaymentFromModal()"><i class="fa-solid fa-check"></i> Submit Payment</button>
-            </div>
-            <div id="e-confirm-section" class="e-confirm-section">
-                <div class="e-cs-title"><i class="fa-solid fa-calendar-check" style="margin-right:6px"></i>Confirm Booking &amp; Take Deposit</div>
-                <div class="e-cs-hint">Set the total price and record the deposit collected at confirmation.</div>
-                <div id="e-cs-breakdown" style="font-size:0.78rem;color:#f59e0b;background:rgba(245,158,11,0.08);border-radius:6px;padding:7px 10px;margin-bottom:10px;display:none"></div>
-                <div class="e-cs-grid">
-                    <div><label class="e-pay-lbl">Total Price (£) *</label><input id="e-cs-total" type="number" min="0" step="0.01" class="qb-input" placeholder="e.g. 450.00" oninput="csOnTotalChange()"></div>
-                    <div><label class="e-pay-lbl">Deposit Taken (£)</label><input id="e-cs-deposit" type="number" min="0" step="0.01" class="qb-input" placeholder="0.00"></div>
-                    <div class="e-cs-full"><label class="e-pay-lbl">Payment Method</label><select id="e-cs-method" class="qb-select"><option value="cash">Cash</option><option value="card">Card</option><option value="bank_transfer">Bank Transfer</option><option value="bacs">BACS</option></select></div>
+                <!-- Divider -->
+                <div class="modal-col-divider"></div>
+                <!-- Right column: Action Panel -->
+                <div class="modal-col-action">
+                    <div class="modal-col-action-title" id="e-panel-title" style="display:none"></div>
+                    <div class="modal-col-placeholder" id="e-action-placeholder">
+                        <i class="fa-solid fa-hand-pointer"></i>
+                        <span>Select an action<br><span style="font-size:0.72rem;opacity:0.65">Use the buttons on the left<br>to manage this booking</span></span>
+                    </div>
+                    <div id="e-pay-section" class="e-pay-section">
+                        <div style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px;">Record Payment</div>
+                        <div class="e-pay-grid">
+                            <div><label class="e-pay-lbl">Amount (£)</label><input id="e-pay-amount" type="number" min="0" step="0.01" class="qb-input" placeholder="0.00"></div>
+                            <div><label class="e-pay-lbl">Method</label><select id="e-pay-method" class="qb-select"><option value="cash">Cash</option><option value="card">Card</option><option value="bank_transfer">Bank Transfer</option><option value="bacs">BACS</option></select></div>
+                        </div>
+                        <button class="e-pay-submit" onclick="submitPaymentFromModal()"><i class="fa-solid fa-check"></i> Submit Payment</button>
+                    </div>
+                    <div id="e-confirm-section" class="e-confirm-section">
+                        <div class="e-cs-title"><i class="fa-solid fa-calendar-check" style="margin-right:6px"></i>Confirm Booking &amp; Take Deposit</div>
+                        <div class="e-cs-hint">Set the total price and record the deposit collected at confirmation.</div>
+                        <div id="e-cs-breakdown" style="font-size:0.78rem;color:#f59e0b;background:rgba(245,158,11,0.08);border-radius:6px;padding:7px 10px;margin-bottom:10px;display:none"></div>
+                        <div class="e-cs-grid">
+                            <div><label class="e-pay-lbl">Total Price (£) *</label><input id="e-cs-total" type="number" min="0" step="0.01" class="qb-input" placeholder="e.g. 450.00" oninput="csOnTotalChange()"></div>
+                            <div><label class="e-pay-lbl">Deposit Taken (£)</label><input id="e-cs-deposit" type="number" min="0" step="0.01" class="qb-input" placeholder="0.00"></div>
+                            <div class="e-cs-full"><label class="e-pay-lbl">Payment Method</label><select id="e-cs-method" class="qb-select"><option value="cash">Cash</option><option value="card">Card</option><option value="bank_transfer">Bank Transfer</option><option value="bacs">BACS</option></select></div>
+                        </div>
+                        <button class="e-cs-submit" onclick="submitConfirmWithDeposit()"><i class="fa-solid fa-check"></i> Confirm &amp; Record Deposit</button>
+                        <button class="e-cs-skip" onclick="submitConfirmNoDeposit()">Confirm Without Deposit</button>
+                    </div>
                 </div>
-                <button class="e-cs-submit" onclick="submitConfirmWithDeposit()"><i class="fa-solid fa-check"></i> Confirm &amp; Record Deposit</button>
-                <button class="e-cs-skip" onclick="submitConfirmNoDeposit()">Confirm Without Deposit</button>
             </div>
         </div>
     </div>
@@ -982,6 +1005,7 @@
             if(cancelBtn)cancelBtn.style.display=(!p.isPast)?'':'none';
             document.getElementById('e-pay-section').style.display='none';
             document.getElementById('e-confirm-section').style.display='none';
+            const ep=document.getElementById('e-action-placeholder');if(ep)ep.style.display='';
             // Reset confirm form
             document.getElementById('e-cs-total').value='';
             document.getElementById('e-cs-deposit').value='';
@@ -992,12 +1016,13 @@
             document.getElementById('eventModal').classList.add('open');
         }
         function confirmBookingFromModal(){
-            // Toggle the inline deposit form instead of immediately confirming
             const cs=document.getElementById('e-confirm-section');
             const ps=document.getElementById('e-pay-section');
+            const ep=document.getElementById('e-action-placeholder');
             ps.style.display='none';
-            const opening=cs.style.display==='none';
+            const opening=cs.style.display==='none'||cs.style.display==='';
             cs.style.display=opening?'block':'none';
+            if(ep)ep.style.display=opening?'none':'';
             if(opening)csCalcCost();
         }
         function csCalcCost(){
@@ -1086,7 +1111,12 @@
         }
         function recordPaymentFromModal(){
             const sec=document.getElementById('e-pay-section');
-            sec.style.display=sec.style.display==='none'?'block':'none';
+            const cs=document.getElementById('e-confirm-section');
+            const ep=document.getElementById('e-action-placeholder');
+            cs.style.display='none';
+            const opening=sec.style.display==='none'||sec.style.display==='';
+            sec.style.display=opening?'block':'none';
+            if(ep)ep.style.display=opening?'none':'';
         }
         async function submitPaymentFromModal(){
             if(!currentModalBookingId){showToast('Booking ID not found','error');return;}
