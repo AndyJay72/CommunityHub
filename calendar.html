@@ -919,8 +919,8 @@
             document.getElementById('e-date').innerText=p.dateLabel||'N/A';
             document.getElementById('e-time').innerText=p.time;
             document.getElementById('e-guests').innerText=p.guest_count||'\u2014';
-            document.getElementById('e-total').innerText=p.total_amount!=null?fmt(p.total_amount):'\u2014';
-            document.getElementById('e-balance').innerText=fmt(balance);
+            document.getElementById('e-total').innerText=p.isPending?'\u2014':(p.total_amount!=null?fmt(p.total_amount):'\u2014');
+            document.getElementById('e-balance').innerText=p.isPending?'\u2014':fmt(balance);
             let badge;
             if(p.isPast)badge='<span class="status-pill pill-past">Completed</span>';
             else if(p.isPending)badge='<span class="status-pill pill-balance">Pending Request</span>';
@@ -928,9 +928,15 @@
             document.getElementById('e-status-badge').innerHTML=badge;
             const tD=document.getElementById('tl-deposit'),tB=document.getElementById('tl-balance'),tS=document.getElementById('tl-settled');
             const l1=document.getElementById('tl-line1'),l2=document.getElementById('tl-line2');
-            tD.className='tl-dot done';tD.innerHTML='<i class="fa-solid fa-check"></i>';l1.className='tl-line done';
-            if(balance<=0){tB.className='tl-dot done';tB.innerHTML='<i class="fa-solid fa-check"></i>';l2.className='tl-line done';tS.className='tl-dot done';tS.innerHTML='<i class="fa-solid fa-circle-check"></i>';}
-            else{tB.className='tl-dot active';tB.innerHTML='<i class="fa-solid fa-coins"></i>';l2.className='tl-line';tS.className='tl-dot pending';tS.innerHTML='<i class="fa-solid fa-circle"></i>';}
+            if(p.isPending){
+                tD.className='tl-dot pending';tD.innerHTML='<i class="fa-solid fa-circle"></i>';l1.className='tl-line';
+                tB.className='tl-dot pending';tB.innerHTML='<i class="fa-solid fa-circle"></i>';l2.className='tl-line';
+                tS.className='tl-dot pending';tS.innerHTML='<i class="fa-solid fa-circle"></i>';
+            } else {
+                tD.className='tl-dot done';tD.innerHTML='<i class="fa-solid fa-check"></i>';l1.className='tl-line done';
+                if(balance<=0){tB.className='tl-dot done';tB.innerHTML='<i class="fa-solid fa-check"></i>';l2.className='tl-line done';tS.className='tl-dot done';tS.innerHTML='<i class="fa-solid fa-circle-check"></i>';}
+                else{tB.className='tl-dot active';tB.innerHTML='<i class="fa-solid fa-coins"></i>';l2.className='tl-line';tS.className='tl-dot pending';tS.innerHTML='<i class="fa-solid fa-circle"></i>';}
+            }
             const payBtn=document.getElementById('e-pay-btn'),cancelBtn=document.getElementById('e-cancel-btn');
             if(payBtn)payBtn.style.display=(!p.isPast&&balance>0)?'':'none';
             if(cancelBtn)cancelBtn.style.display=(!p.isPast)?'':'none';
