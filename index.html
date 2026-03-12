@@ -1528,7 +1528,7 @@
                     const bDate   = new Date(b.date_to || b.booking_date); // use date_to so multi-day events stay visible until last day
                     const balance = parseFloat(b.balance_due || 0);
                     return bDate >= now && balance > 0;
-                }).sort((a, b) => new Date(a.booking_date) - new Date(b.booking_date));
+                }).sort((a, b) => new Date(a.date_from || a.booking_date) - new Date(b.date_from || b.booking_date));
 
                 // --- UPCOMING EVENTS: all future confirmed bookings (any payment status) ---
                 const seenKeys = new Set();
@@ -1822,6 +1822,7 @@
         }
 
         startClock(); loadDashboard(); loadAllBookings(); loadAllInteractions(); loadActivityFeed(); setInterval(() => { loadDashboard(); loadAllBookings(); loadAllInteractions(); loadActivityFeed(); }, 60000);
+        window.addEventListener('pageshow', function(e) { if (e.persisted) { loadDashboard(); loadAllBookings(); loadAllInteractions(); loadActivityFeed(); } });
 
         async function loadAllInteractions() {
             const INTERACTIONS_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/customer-interactions';
