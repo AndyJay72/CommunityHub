@@ -1080,7 +1080,7 @@
                 if(!r1.ok)throw new Error('Confirm failed: HTTP '+r1.status);
                 // Step 2 — record deposit payment if one was taken
                 if(deposit>0){
-                    const r2=await fetch(CAL_PAY_URL,{method:'POST',headers:{...getAuthHeaders(),'Content-Type':'application/json'},body:JSON.stringify({booking_id:currentModalBookingId,amount:deposit,payment_method:method,payment_type:deposit>=total?'full':'deposit'})});
+                    const r2=await fetch(CAL_PAY_URL,{method:'POST',headers:{...getAuthHeaders(),'Content-Type':'application/json'},body:JSON.stringify({booking_id:currentModalBookingId,customer_id:currentModalProps.customer_id,amount:deposit,payment_method:method,payment_type:deposit>=total?'full':'deposit'})});
                     if(!r2.ok)throw new Error('Payment record failed: HTTP '+r2.status);
                 }
                 showToast('Booking confirmed'+(deposit>0?' & deposit recorded':'')+'!','success');
@@ -1127,7 +1127,7 @@
             const btn=document.querySelector('.e-pay-submit');
             btn.disabled=true;
             try{
-                const res=await fetch(CAL_PAY_URL,{method:'POST',headers:{...getAuthHeaders(),'Content-Type':'application/json'},body:JSON.stringify({booking_id:currentModalBookingId,amount,payment_method:method,payment_type:amount>=balance?'full':'partial'})});
+                const res=await fetch(CAL_PAY_URL,{method:'POST',headers:{...getAuthHeaders(),'Content-Type':'application/json'},body:JSON.stringify({booking_id:currentModalBookingId,customer_id:currentModalProps.customer_id,amount,payment_method:method,payment_type:amount>=balance?'full':'partial'})});
                 if(res.ok){showToast('Payment recorded!','success');closeModal();setTimeout(()=>location.reload(),1500);}
                 else showToast('Error recording payment — try the Bookings page','error');
             }catch(e){showToast('Error: '+e.message,'error');}
@@ -1194,7 +1194,7 @@
                     const eventObj={
                         title:e.customer_name||'Guest',
                         backgroundColor:color,borderColor:color,
-                        extendedProps:{booking_id:e.id||e.booking_id||null,customer_name:e.customer_name||'Guest',customer_email:e.customer_email||e.email||'',customer_phone:e.customer_phone||e.phone||'',room_name:e.room_name||e.room||'Unknown',booking_date:e.booking_date,date_from:e.date_from,date_to:e.date_to,dateLabel,time:`${startT} \u2013 ${endT}`,total_amount:e.total_amount,balance_due:e.balance_due,guest_count:e.guest_count,isPast,isPending,status:e.status||'confirmed'}
+                        extendedProps:{booking_id:e.id||e.booking_id||null,customer_id:e.customer_id||null,customer_name:e.customer_name||'Guest',customer_email:e.customer_email||e.email||'',customer_phone:e.customer_phone||e.phone||'',room_name:e.room_name||e.room||'Unknown',booking_date:e.booking_date,date_from:e.date_from,date_to:e.date_to,dateLabel,time:`${startT} \u2013 ${endT}`,total_amount:e.total_amount,balance_due:e.balance_due,guest_count:e.guest_count,isPast,isPending,status:e.status||'confirmed'}
                     };
                     if(isMultiDay){eventObj.start=startDateStr;eventObj.end=endExcl;eventObj.allDay=true;}
                     else{eventObj.start=`${startDateStr}T${startT}:00`;eventObj.end=`${startDateStr}T${endT}:00`;}
