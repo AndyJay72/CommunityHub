@@ -856,6 +856,15 @@
             const av=document.getElementById('qb-availStatus');
             if(!roomName||!from||!startT||!endT){av.className='qb-avail-box qb-avail-idle';document.getElementById('qb-availText').textContent='Fill in room, date & times to check availability.';qbSetButtons(false);return;}
             if(qbIsDateBlocked(from)){av.className='qb-avail-box qb-avail-unavailable';document.getElementById('qb-availText').textContent='This date is blocked.';qbSetButtons(false);return;}
+            // Also block if a pending request exists for this room+date
+            const pendingConflict=allEvents.some(e=>{
+                if(!e.extendedProps.isPending)return false;
+                if(e.extendedProps.room_name!==roomName)return false;
+                const s=e.start.split('T')[0];
+                if(e.allDay&&e.end)return from>=s&&from<e.end.split('T')[0];
+                return s===from;
+            });
+            if(pendingConflict){av.className='qb-avail-box qb-avail-unavailable';document.getElementById('qb-availText').textContent='A pending request already exists for this room and date.';qbSetButtons(false);return;}
             av.className='qb-avail-box qb-avail-checking';document.getElementById('qb-availText').textContent='Checking availability…';qbSetButtons(false);
             _qbAvailTimeout=setTimeout(async()=>{
                 try{
@@ -909,6 +918,8 @@
         const CAL_PAY_URL='https://n8n.srv1090894.hstgr.cloud/webhook/pay-balance';
         function openEventModal(ev){
             const p=ev.extendedProps;
+            // Normalise isPending — may be missing if event came from dashboard endpoint
+            if(p.isPending===undefined)p.isPending=p.status==='pending'||p.status==='enquiry'||p.status==='contacted';
             currentModalBookingId=p.booking_id;
             const balance=parseFloat(p.balance_due||0);
             document.getElementById('e-title').innerText=ev.title+'\u2014'+(p.room_name||'Unknown');
@@ -1094,6 +1105,17 @@
                         if(new Date(info.startStr+'T00:00:00')<today)return;
                         const isBlocked=blockedBgEvents.some(b=>b.start===info.startStr);
                         if(isBlocked){showToast('This date is blocked — manage via Blocked Dates','info');return;}
+                        const roomVal=document.getElementById('roomFilter').value;
+                        const selMap=dateStatusMap[roomVal]||dateStatusMap['']||{};
+                        if(selMap[info.startStr]==='booked'||selMap[info.startStr]==='pending'){
+                            const match=allEvents.find(e=>{
+                                if(roomVal&&e.extendedProps.room_name!==roomVal)return false;
+                                const s=e.start.split('T')[0];
+                                if(e.allDay&&e.end)return new Date(info.startStr+'T00:00:00')>=new Date(s+'T00:00:00')&&new Date(info.startStr+'T00:00:00')<new Date(e.end+'T00:00:00');
+                                return s===info.startStr;
+                            });
+                            if(match){openEventModal(match);return;}
+                        }
                         const endD=new Date(new Date(info.endStr+'T00:00:00').getTime()-86400000);
                         const endStr=`${endD.getFullYear()}-${String(endD.getMonth()+1).padStart(2,'0')}-${String(endD.getDate()).padStart(2,'0')}`;
                         openQbModal(info.startStr,endStr);
