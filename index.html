@@ -170,10 +170,8 @@
         body.light-mode .act-time { color: #94a3b8; }
 
         /* --- DASHBOARD 2-COL GRID --- */
-        .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; align-items: start; margin-bottom: 2rem; }
-        @media (max-width: 1100px) { .dash-grid { grid-template-columns: 1fr 1fr; } }
-        @media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr; } }
-        .dash-grid-left { min-width: 0; display: flex; flex-direction: column; gap: 1rem; }
+        .pend-out-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start; margin-bottom: 2rem; }
+        @media (max-width: 900px) { .pend-out-grid { grid-template-columns: 1fr; } }
         .outstanding-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; position: sticky; top: 1rem; }
         .outstanding-panel-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); }
         .outstanding-panel-title { font-size: 1.17rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
@@ -662,21 +660,16 @@
             <div class="card"><div class="stat-header"><span class="stat-label">Monthly Bookings</span><div class="stat-icon" style="color: var(--primary);"><i class="fa-solid fa-calendar-check"></i></div></div><div style="display:flex;align-items:center;gap:8px"><button class="btn-month-nav" onclick="changeBookingsMonth(-1)">&#8249;</button><div style="flex:1;text-align:center"><div class="stat-value" id="val-bookings">--</div><div id="val-bookings-label" style="font-size:0.72rem;color:var(--text-muted);margin-top:3px">-- ----</div></div><button class="btn-month-nav" onclick="changeBookingsMonth(1)">&#8250;</button></div></div>
         </div>
 
-        <!-- DASHBOARD 2-COL GRID: PENDING REQUESTS + OUTSTANDING PAYMENTS -->
-        <div class="dash-grid">
-
-        <!-- LEFT COLUMN: FILTER TABS + CONTENT -->
-        <div class="dash-grid-left">
-
         <!-- FILTER TABS -->
         <div class="filter-bar">
             <button class="filter-btn filter-requests active" onclick="filterListView('requests', this)"><i class="fa-solid fa-inbox"></i> Pending Requests</button>
-            <button class="filter-btn filter-outstanding" onclick="filterListView('outstanding', this)"><i class="fa-solid fa-coins"></i> Outstanding Payments</button>
             <button class="filter-btn filter-upcoming" onclick="filterListView('upcoming', this)"><i class="fa-solid fa-calendar-check"></i> Upcoming Events</button>
             <button class="filter-btn filter-interactions" onclick="filterListView('interactions', this)"><i class="fa-solid fa-comments"></i> Customer Interactions</button>
             <button class="filter-btn filter-customers" onclick="filterListView('customers', this)"><i class="fa-solid fa-users"></i> Customers</button>
-
         </div>
+
+        <!-- PENDING REQUESTS + OUTSTANDING PAYMENTS -->
+        <div class="pend-out-grid">
 
         <!-- MAIN CONTENT AREA -->
         <div class="table-container" id="cards-section">
@@ -696,6 +689,24 @@
                 <button class="btn-page" id="main-next" onclick="changeMainPage(1)">Next &#8250;</button>
             </div>
         </div>
+
+        <div class="outstanding-panel">
+            <div class="outstanding-panel-header">
+                <div class="outstanding-panel-title"><i class="fa-solid fa-coins" style="color:#f59e0b"></i> Outstanding Payments</div>
+                <div class="search-wrapper">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input id="out-search" class="search-input" type="text" placeholder="Search..." oninput="applyOutSearch()">
+                </div>
+            </div>
+            <div id="outstanding-panel-list"><div style="padding:2rem;text-align:center;color:var(--text-muted)"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</div></div>
+            <div id="out-pagination" class="pagination-bar" style="display:none;">
+                <button class="btn-page" id="out-prev" onclick="changeOutPage(-1)">&#8249; Prev</button>
+                <span id="out-page-info" style="font-size:0.85rem;color:var(--text-muted);"></span>
+                <button class="btn-page" id="out-next" onclick="changeOutPage(1)">Next &#8250;</button>
+            </div>
+        </div>
+
+        </div><!-- end .pend-out-grid -->
 
         <!-- CUSTOMER INTERACTIONS VIEW -->
         <div id="interactions-section" style="display:none; margin-bottom:2rem;">
@@ -772,17 +783,6 @@
             </div>
         </div>
 
-        </div><!-- end .dash-grid-left -->
-
-        <!-- RIGHT COLUMN: OUTSTANDING PAYMENTS -->
-        <div class="outstanding-panel">
-            <div class="outstanding-panel-header">
-                <div class="outstanding-panel-title"><i class="fa-solid fa-coins" style="color:#f59e0b"></i> Outstanding Payments</div>
-            </div>
-            <div id="outstanding-panel-list"><div style="padding:2rem;text-align:center;color:var(--text-muted)"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</div></div>
-        </div>
-
-        </div><!-- end .dash-grid -->
 
 
     </main>
@@ -1083,24 +1083,18 @@
             currentView = view;
             currentPage = 1;
             searchTerm = document.getElementById('main-search').value;
-            const sections = ['cards-section','interactions-section','customers-section'];
-            sections.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
-            const outPanel = document.querySelector('.outstanding-panel');
-            const dashGrid = document.querySelector('.dash-grid');
+            ['interactions-section','customers-section'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
+            const pendOutGrid = document.querySelector('.pend-out-grid');
             if (view === 'interactions') {
                 document.getElementById('interactions-section').style.display = 'block';
-                if (outPanel) outPanel.style.display = 'none';
-                if (dashGrid) dashGrid.style.gridTemplateColumns = '1fr';
+                if (pendOutGrid) pendOutGrid.style.display = 'none';
                 renderInteractionsTable();
             } else if (view === 'customers') {
                 document.getElementById('customers-section').style.display = 'block';
-                if (outPanel) outPanel.style.display = 'none';
-                if (dashGrid) dashGrid.style.gridTemplateColumns = '1fr';
+                if (pendOutGrid) pendOutGrid.style.display = 'none';
                 loadCustomersTab();
             } else {
-                document.getElementById('cards-section').style.display = 'block';
-                if (outPanel) outPanel.style.display = '';
-                if (dashGrid) dashGrid.style.gridTemplateColumns = '';
+                if (pendOutGrid) pendOutGrid.style.display = '';
                 renderCurrentView();
             }
         }
@@ -2345,17 +2339,58 @@
             const abs = d.toLocaleString('en-GB', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false});
             return `${rel}<br><span style="font-size:0.65rem;opacity:0.6;">${abs}</span>`;
         }
+        let outPage = 1, outSearchTerm = '';
+        const OUT_PAGE_SIZE = 4;
+
+        function applyOutSearch() {
+            outSearchTerm = document.getElementById('out-search').value.toLowerCase();
+            outPage = 1;
+            renderOutstandingPanel();
+        }
+
+        function changeOutPage(delta) {
+            outPage += delta;
+            renderOutstandingPanel();
+        }
+
         function renderOutstandingPanel() {
-            const list = document.getElementById('outstanding-panel-list');
+            const list    = document.getElementById('outstanding-panel-list');
+            const navEl   = document.getElementById('out-pagination');
+            const pageInfo = document.getElementById('out-page-info');
+            const prevBtn  = document.getElementById('out-prev');
+            const nextBtn  = document.getElementById('out-next');
             if (!list) return;
-            if (!allOutstandingPayments || !allOutstandingPayments.length) {
-                list.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text-muted)"><i class="fa-solid fa-check-circle" style="color:var(--success)"></i> No outstanding balances</div>';
+
+            let items = allOutstandingPayments || [];
+
+            if (outSearchTerm) {
+                items = items.filter(b => {
+                    const name = (b.full_name || b.customer_name || '').toLowerCase();
+                    const room = (b.room_name || '').toLowerCase();
+                    return name.includes(outSearchTerm) || room.includes(outSearchTerm);
+                });
+            }
+
+            if (!items.length) {
+                list.innerHTML = outSearchTerm
+                    ? '<div style="padding:2rem;text-align:center;color:var(--text-muted)">No results found</div>'
+                    : '<div style="padding:2rem;text-align:center;color:var(--text-muted)"><i class="fa-solid fa-check-circle" style="color:var(--success)"></i> No outstanding balances</div>';
+                if (navEl) navEl.style.display = 'none';
                 return;
             }
-            const items = allOutstandingPayments.slice(0, 10);
-            list.innerHTML = '<div style="padding:0.5rem 0.75rem">' + items.map(item => renderCard(item)).join('') + '</div>';
-            if (allOutstandingPayments.length > 10) {
-                list.innerHTML += `<div style="padding:0.75rem 1.5rem;text-align:center;border-top:1px solid var(--border)"><small style="color:var(--text-muted)">${allOutstandingPayments.length - 10} more — use Outstanding tab to see all</small></div>`;
+
+            const totalPages = Math.ceil(items.length / OUT_PAGE_SIZE);
+            if (outPage > totalPages) outPage = totalPages;
+            if (outPage < 1) outPage = 1;
+            const slice = items.slice((outPage - 1) * OUT_PAGE_SIZE, outPage * OUT_PAGE_SIZE);
+
+            list.innerHTML = '<div style="padding:0.5rem 0.75rem">' + slice.map(item => renderCard(item)).join('') + '</div>';
+
+            if (navEl) {
+                navEl.style.display = 'flex';
+                if (pageInfo) pageInfo.innerText = `Page ${outPage} of ${totalPages} (${items.length} items)`;
+                if (prevBtn) prevBtn.disabled = outPage === 1;
+                if (nextBtn) nextBtn.disabled = outPage === totalPages;
             }
         }
 
