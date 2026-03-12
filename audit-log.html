@@ -468,7 +468,7 @@
                             let type='payment';
                             if(/deposit/.test(raw))type='deposit';
                             else if(/refund/.test(raw))type='refund';
-                            events.push({type,ts:p.payment_date||p.created_at,customer_name:p.customer_name,customer_email:p.customer_email||p.email,room_name:p.room_name,details:(p.payment_method||'').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())||'—',amount:p.amount,method:p.payment_method,ref:p.reference||p.reference_number||p.deposit_reference||''});
+                            events.push({type,ts:p.payment_created_at||p.created_at||p.payment_date,customer_name:p.customer_name,customer_email:p.customer_email||p.email,room_name:p.room_name,details:(p.payment_method||'').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())||'—',amount:p.amount,method:p.payment_method,ref:p.reference||p.reference_number||p.deposit_reference||''});
                         });
                     }catch(e){}
                 }
@@ -485,7 +485,7 @@
                     try{
                         const dj=await dashR.value.json();const dd=dj.data||dj;
                         (dd.recent_customers||[]).forEach(c=>events.push({type:'enquiry',ts:c.created_at||c.requested_date,customer_name:c.full_name||c.customer_name,customer_email:c.email,room_name:c.room_name,details:`${c.event_type||''} \u00b7 ${c.guests_count||c.guest_count||'?'} guests`.replace(/^\s*\u00b7\s*/,''),amount:null,ref:c.notes||''}));
-                        (dd.upcoming_bookings||[]).forEach(b=>events.push({type:'booking',ts:b.booking_date||b.date_from,customer_name:b.customer_name,customer_email:b.customer_email,room_name:b.room_name,details:`${(b.status||'confirmed').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())} \u00b7 ${b.guest_count||'?'} guests`,amount:b.total_amount,ref:b.id||''}));
+                        (dd.upcoming_bookings||[]).forEach(b=>events.push({type:'booking',ts:b.booking_created_at||b.booking_date||b.date_from,customer_name:b.customer_name,customer_email:b.customer_email,room_name:b.room_name,details:`${(b.status||'confirmed').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())} \u00b7 ${b.guest_count||'?'} guests`,amount:b.total_amount,ref:b.id||''}));
                     }catch(e){}
                 }
                 events.sort((a,b)=>new Date(b.ts||0)-new Date(a.ts||0));
