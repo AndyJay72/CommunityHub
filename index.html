@@ -173,6 +173,7 @@
         .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; align-items: start; margin-bottom: 2rem; }
         @media (max-width: 1100px) { .dash-grid { grid-template-columns: 1fr 1fr; } }
         @media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr; } }
+        .dash-grid-right { min-width: 0; display: flex; flex-direction: column; gap: 1rem; }
 
         /* --- BOOKING CARDS --- */
         .booking-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s; }
@@ -657,6 +658,26 @@
             <div class="card"><div class="stat-header"><span class="stat-label">Monthly Bookings</span><div class="stat-icon" style="color: var(--primary);"><i class="fa-solid fa-calendar-check"></i></div></div><div style="display:flex;align-items:center;gap:8px"><button class="btn-month-nav" onclick="changeBookingsMonth(-1)">&#8249;</button><div style="flex:1;text-align:center"><div class="stat-value" id="val-bookings">--</div><div id="val-bookings-label" style="font-size:0.72rem;color:var(--text-muted);margin-top:3px">-- ----</div></div><button class="btn-month-nav" onclick="changeBookingsMonth(1)">&#8250;</button></div></div>
         </div>
 
+        <!-- DASHBOARD 2-COL GRID: RECENT ACTIVITY + MAIN CONTENT -->
+        <div class="dash-grid">
+
+        <!-- ACTIVITY FEED -->
+        <div class="act-feed">
+            <div class="act-feed-header">
+                <div class="act-feed-title"><i class="fa-solid fa-bolt" style="color:#f59e0b"></i> Recent Activity</div>
+                <a href="audit-log.html" style="font-size:0.8rem;color:#fff;text-decoration:none;font-weight:600;">View Full Log <i class="fa-solid fa-arrow-right" style="font-size:0.7rem"></i></a>
+            </div>
+            <div id="act-feed-list"><div style="padding:2rem;text-align:center;color:var(--text-muted)"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</div></div>
+            <div id="act-feed-nav" class="pagination-bar" style="display:none;">
+                <button class="btn-page" id="act-prev" onclick="changeActPage(-1)">&#8249; Prev</button>
+                <span id="act-page-info" style="font-size:0.85rem;color:var(--text-muted);"></span>
+                <button class="btn-page" id="act-next" onclick="changeActPage(1)">Next &#8250;</button>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: FILTER TABS + CONTENT -->
+        <div class="dash-grid-right">
+
         <!-- FILTER TABS -->
         <div class="filter-bar">
             <button class="filter-btn filter-requests active" onclick="filterListView('requests', this)"><i class="fa-solid fa-inbox"></i> Pending Requests</button>
@@ -667,8 +688,6 @@
 
         </div>
 
-        <!-- DASHBOARD 2-COL GRID: PENDING REQUESTS + RECENT ACTIVITY -->
-        <div class="dash-grid">
 
         <!-- MAIN CONTENT AREA -->
         <div class="table-container" id="cards-section">
@@ -764,19 +783,8 @@
             </div>
         </div>
 
-        <!-- ACTIVITY FEED -->
-        <div class="act-feed">
-            <div class="act-feed-header">
-                <div class="act-feed-title"><i class="fa-solid fa-bolt" style="color:#f59e0b"></i> Recent Activity</div>
-                <a href="audit-log.html" style="font-size:0.8rem;color:#fff;text-decoration:none;font-weight:600;">View Full Log <i class="fa-solid fa-arrow-right" style="font-size:0.7rem"></i></a>
-            </div>
-            <div id="act-feed-list"><div style="padding:2rem;text-align:center;color:var(--text-muted)"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</div></div>
-            <div id="act-feed-nav" class="pagination-bar" style="display:none;">
-                <button class="btn-page" id="act-prev" onclick="changeActPage(-1)">&#8249; Prev</button>
-                <span id="act-page-info" style="font-size:0.85rem;color:var(--text-muted);"></span>
-                <button class="btn-page" id="act-next" onclick="changeActPage(1)">Next &#8250;</button>
-            </div>
-        </div>
+
+        </div><!-- end .dash-grid-right -->
 
         </div><!-- end .dash-grid -->
 
@@ -2328,14 +2336,17 @@
         };
         function actRelTime(ts) {
             if (!ts) return '—';
-            const m = Math.floor((Date.now() - new Date(ts).getTime()) / 60000);
-            if (m < 1) return 'just now';
-            if (m < 60) return m + 'm ago';
-            const h = Math.floor(m / 60);
-            if (h < 24) return h + 'h ago';
-            const d = Math.floor(h / 24);
-            if (d < 7) return d + 'd ago';
-            return new Date(ts).toLocaleDateString('en-GB', {day:'numeric',month:'short'});
+            const d = new Date(ts);
+            if (isNaN(d.getTime())) return '—';
+            const m = Math.floor((Date.now() - d.getTime()) / 60000);
+            let rel;
+            if (m < 1) rel = 'just now';
+            else if (m < 60) rel = m + 'm ago';
+            else if (m < 1440) rel = Math.floor(m/60) + 'h ago';
+            else if (m < 10080) rel = Math.floor(m/1440) + 'd ago';
+            else rel = d.toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'});
+            const abs = d.toLocaleString('en-GB', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false});
+            return `${rel}<br><span style="font-size:0.65rem;opacity:0.6;">${abs}</span>`;
         }
         let actEvents = [], actPage = 1;
         const ACT_PAGE_SIZE = 6;
