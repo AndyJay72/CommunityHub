@@ -482,7 +482,7 @@
         /* ---- 1200px (large desktop to medium desktop) ---- */
         @media (max-width: 1200px) {
             .stats-grid, .metrics-grid, .kpi-grid, .summary-strip {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(3, 1fr);
             }
             .charts-grid { grid-template-columns: 1fr 1fr; }
         }
@@ -492,7 +492,7 @@
             aside { width: 220px; }
             main { margin-left: 220px; }
             .stats-grid, .metrics-grid, .kpi-grid {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(3, 1fr);
             }
             .charts-grid { grid-template-columns: 1fr; }
         }
@@ -500,7 +500,7 @@
         /* ---- 900px (tablet landscape) ---- */
         @media (max-width: 900px) {
             .stats-grid, .metrics-grid, .kpi-grid, .summary-strip {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(3, 1fr);
             }
             .grid-split, .form-grid-2col { grid-template-columns: 1fr; }
             .filter-bar, .top-bar, .action-bar {
@@ -539,7 +539,7 @@
             .page-header .header-actions a { width: 100%; justify-content: center; }
 
             .stats-grid, .metrics-grid, .kpi-grid, .summary-strip {
-                grid-template-columns: 1fr 1fr;
+                grid-template-columns: repeat(3, 1fr);
                 gap: 0.75rem;
             }
 
