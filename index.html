@@ -507,6 +507,7 @@
                 flex-wrap: wrap;
                 gap: 0.5rem;
             }
+            .filter-bar .filter-btn { flex: 1 1 auto; justify-content: center; }
             .filter-bar input, .filter-bar select,
             .top-bar input, .top-bar select { width: 100%; }
             .charts-grid { grid-template-columns: 1fr; }
@@ -543,7 +544,12 @@
                 gap: 0.75rem;
             }
 
-            .filter-bar, .top-bar, .action-bar {
+            .filter-bar {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+            .filter-bar .filter-btn { flex: 1 1 auto; justify-content: center; }
+            .top-bar, .action-bar {
                 flex-direction: column;
                 align-items: stretch;
                 gap: 0.5rem;
