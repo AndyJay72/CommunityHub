@@ -577,6 +577,34 @@ tbody tr:last-child td { border-bottom: none; }
   </main>
 </div>
 
+<!-- ── Edit Venue Modal ─────────────────────────────────── -->
+<div class="ob-modal-overlay" id="editModal">
+  <div class="ob-modal" style="max-width:480px">
+    <h3><i class="fa-solid fa-pen-to-square" style="color:var(--primary-hi)"></i> Edit Venue</h3>
+    <p class="modal-sub" id="editModalLabel">Update venue name and contact details.</p>
+    <input type="hidden" id="editTenantId">
+    <input type="hidden" id="editVenueActive">
+    <div class="row2">
+      <div class="input-group">
+        <label>Venue Name</label>
+        <input type="text" id="editVenueName" placeholder="e.g. Park Suite" oninput="autoEditSlug()">
+      </div>
+      <div class="input-group">
+        <label>Slug</label>
+        <input type="text" id="editSlug" placeholder="e.g. park-suite">
+      </div>
+    </div>
+    <div class="input-group" style="margin-bottom:0">
+      <label>Contact Name</label>
+      <input type="text" id="editFullName" placeholder="e.g. Jane Smith">
+    </div>
+    <div class="ob-modal-actions">
+      <button class="btn" onclick="closeEditModal()"><i class="fa-solid fa-xmark"></i> Cancel</button>
+      <button class="btn btn-primary" id="editSaveBtn" onclick="confirmEditVenue()"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── Reset Password Modal ───────────────────────────── -->
 <div class="ob-modal-overlay" id="pwModal">
   <div class="ob-modal">
@@ -691,8 +719,9 @@ function renderVenues() {
         ? '<span class="badge-active"><i class="fa-solid fa-circle-check"></i> Active</span>'
         : '<span class="badge-inactive"><i class="fa-solid fa-circle-xmark"></i> Inactive</span>'}</td>
       <td>
-        <div class="td-actions">
-          <button class="btn btn-sm btn-success" onclick="launchVenue(${v.tenant_id},'${esc(v.venue_name)}')" title="Launch VenueDesk as this venue">
+        <div class="td-actions">          <button class="btn btn-sm" onclick="openEditModal(${v.tenant_id})" title="Edit venue details" style="background:rgba(99,102,241,0.12);color:#a5b4fc;border-color:rgba(99,102,241,0.3)">
+            <i class="fa-solid fa-pen-to-square"></i> Edit
+          </button>          <button class="btn btn-sm btn-success" onclick="launchVenue(${v.tenant_id},'${esc(v.venue_name)}')" title="Launch VenueDesk as this venue">
             <i class="fa-solid fa-rocket-launch"></i> Launch
           </button>
           ${v.username ? `
@@ -784,6 +813,55 @@ function launchVenue(tenantId, venueName) {
   localStorage.setItem('vp_venue_name', venueName);
   window.open('login.html', '_blank');
   showToast(`Opening VenueDesk for "${venueName}". Log in with that venue's credentials.`, 'success');
+}
+
+// ─── Edit venue modal ───────────────────────────────────
+function openEditModal(tenantId) {
+  const v = venues.find(x => x.tenant_id === tenantId);
+  if (!v) return;
+  document.getElementById('editTenantId').value  = tenantId;
+  document.getElementById('editVenueActive').value = v.active ? 'true' : 'false';
+  document.getElementById('editVenueName').value  = v.venue_name || '';
+  document.getElementById('editSlug').value       = v.slug || '';
+  document.getElementById('editFullName').value   = v.full_name || '';
+  document.getElementById('editModalLabel').textContent = `Editing: ${v.venue_name} (#${tenantId})`;
+  document.getElementById('editModal').classList.add('open');
+  setTimeout(() => document.getElementById('editVenueName').focus(), 100);
+}
+function closeEditModal() {
+  document.getElementById('editModal').classList.remove('open');
+}
+function autoEditSlug() {
+  const name = document.getElementById('editVenueName').value;
+  document.getElementById('editSlug').value = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+async function confirmEditVenue() {
+  const btn = document.getElementById('editSaveBtn');
+  const tenantId  = parseInt(document.getElementById('editTenantId').value, 10);
+  const venueName = document.getElementById('editVenueName').value.trim();
+  const slug      = document.getElementById('editSlug').value.trim();
+  const fullName  = document.getElementById('editFullName').value.trim();
+  const active    = document.getElementById('editVenueActive').value === 'true';
+  if (!venueName) { showToast('Venue name is required', 'error'); return; }
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…';
+  try {
+    const r = await fetch('https://n8n.srv1090894.hstgr.cloud/webhook/update-tenant', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AUTH },
+      body: JSON.stringify({ tenant_id: tenantId, name: venueName, slug: slug || venueName.toLowerCase().replace(/[^a-z0-9]+/g,'-'), active, full_name: fullName })
+    });
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.message || 'Failed');
+    closeEditModal();
+    await loadVenues();
+    showToast(`"${venueName}" updated successfully!`, 'success');
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Changes';
+  }
 }
 
 // ─── Reset password modal ─────────────────────────────
