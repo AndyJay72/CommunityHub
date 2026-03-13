@@ -581,12 +581,13 @@
         }
 
         const BASE_API    = 'https://n8n.srv1090894.hstgr.cloud/webhook';
+        const _MB_TID     = localStorage.getItem('vp_tenant_id') || '';
         const BOOKING_API   = BASE_API + '/walk-in-booking';
         const CHECK_API     = BASE_API + '/check-availability';
-        const ROOMS_API     = BASE_API + '/get-rooms';
+        const ROOMS_API     = BASE_API + '/get-rooms?tenant_id=' + _MB_TID;
         const PRICING_API   = BASE_API + '/get-pricing';
-        const TYPES_API     = BASE_API + '/get-event-types';
-        const BLOCKED_API   = BASE_API + '/blocked-dates';
+        const TYPES_API     = BASE_API + '/get-event-types?tenant_id=' + _MB_TID;
+        const BLOCKED_API   = BASE_API + '/blocked-dates?tenant_id=' + _MB_TID;
 
         const DEPOSIT_PCT = 30;
 

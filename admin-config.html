@@ -597,12 +597,13 @@
 // CONFIG
 // ─────────────────────────────────────────────
 const BASE = 'https://n8n.srv1090894.hstgr.cloud/webhook';
+const _TID = () => localStorage.getItem('vp_tenant_id') || '';
 const API = {
-    getRooms:       BASE + '/get-rooms',
+    getRooms:       () => BASE + '/get-rooms?tenant_id=' + _TID(),
     createRoom:     BASE + '/create-room',
     updateRoom:     BASE + '/update-room',
     deleteRoom:     BASE + '/delete-room',
-    getEventTypes:  BASE + '/get-event-types',
+    getEventTypes:  () => BASE + '/get-event-types?tenant_id=' + _TID(),
     createEventType:BASE + '/create-event-type',
     updateEventType:BASE + '/update-event-type',
     deleteEventType:BASE + '/delete-event-type',
@@ -675,7 +676,7 @@ function switchTab(name) {
 // ─────────────────────────────────────────────
 async function loadRooms() {
     try {
-        const res = await fetch(API.getRooms, { headers: getAuthHeaders() });
+        const res = await fetch(API.getRooms(), { headers: getAuthHeaders() });
         const json = await res.json();
         rooms = json.data || (Array.isArray(json) ? json : []);
         renderRoomsTable();
@@ -819,7 +820,7 @@ async function restoreRoom(id, name) {
 // ─────────────────────────────────────────────
 async function loadEventTypes() {
     try {
-        const res = await fetch(API.getEventTypes, { headers: getAuthHeaders() });
+        const res = await fetch(API.getEventTypes(), { headers: getAuthHeaders() });
         const json = await res.json();
         eventTypes = json.data || (Array.isArray(json) ? json : []);
         renderEventTypesTable();
