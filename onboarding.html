@@ -424,6 +424,89 @@ tbody tr:last-child td { border-bottom: none; }
 }
 .ob-modal-actions .btn { flex: 1; justify-content: center; }
 
+/* ── Venue Detail Modal ─────────────────────────────── */
+.ob-venue-detail {
+  background: rgba(10,17,40,0.97);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius);
+  width: min(96vw, 920px);
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.65);
+}
+.ob-vd-header {
+  padding: 1.4rem 2rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+.ob-vd-header-icon { font-size: 2rem; flex-shrink: 0; }
+.ob-vd-header-title { flex: 1; min-width: 0; }
+.ob-vd-name { font-size: 1.2rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ob-vd-meta { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.15rem; }
+.ob-vd-close {
+  background: none; border: none; color: var(--text-muted); cursor: pointer;
+  font-size: 1.1rem; padding: 6px 9px; border-radius: 8px; flex-shrink: 0;
+  transition: color 0.15s, background 0.15s;
+}
+.ob-vd-close:hover { color: var(--danger); background: rgba(248,113,113,0.12); }
+.ob-vd-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+@media (max-width: 660px) { .ob-vd-body { grid-template-columns: 1fr; } }
+.ob-vd-left {
+  padding: 1.75rem 2rem;
+  border-right: 1px solid var(--border);
+}
+.ob-vd-right { padding: 1.75rem 2rem; }
+.ob-vd-section-title {
+  font-size: 0.69rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+.ob-vd-field { margin-bottom: 1.1rem; }
+.ob-vd-label {
+  font-size: 0.71rem; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--text-muted); font-weight: 600; margin-bottom: 0.28rem;
+}
+.ob-vd-value { font-size: 0.94rem; font-weight: 500; color: var(--text); }
+.ob-vd-divider { border: none; border-top: 1px solid var(--border); margin: 1.2rem 0; }
+.ob-vd-quick-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.ob-launch-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  margin-bottom: 0.85rem;
+}
+.ob-launch-btn {
+  display: flex; flex-direction: column; gap: 0.2rem;
+  padding: 0.85rem 1rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s;
+  text-align: left; color: var(--text); font-family: inherit; text-decoration: none;
+}
+.ob-launch-btn:hover { background: rgba(99,102,241,0.11); border-color: rgba(99,102,241,0.38); }
+.ob-launch-btn .lb-icon { font-size: 1.25rem; margin-bottom: 0.15rem; }
+.ob-launch-btn .lb-title { font-size: 0.82rem; font-weight: 700; }
+.ob-launch-btn .lb-desc { font-size: 0.71rem; color: var(--text-muted); line-height: 1.3; }
+.ob-launch-full {
+  width: 100%; padding: 0.85rem;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  border: none; border-radius: 10px; color: #fff;
+  font-family: inherit; font-size: 0.9rem; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+  transition: opacity 0.18s, transform 0.15s;
+}
+.ob-launch-full:hover { opacity: 0.88; transform: translateY(-1px); }
+
 /* ── Toast ──────────────────────────────────────────── */
 #toast {
   position: fixed;
@@ -622,6 +705,60 @@ tbody tr:last-child td { border-bottom: none; }
   </div>
 </div>
 
+<!-- ── Venue Detail Modal ───────────────────────────── -->
+<div class="ob-modal-overlay" id="venueDetailModal" onclick="if(event.target===this)closeVenueDetail()">
+  <div class="ob-venue-detail">
+    <!-- Header -->
+    <div class="ob-vd-header">
+      <div class="ob-vd-header-icon">🏢</div>
+      <div class="ob-vd-header-title">
+        <div class="ob-vd-name" id="vdName">—</div>
+        <div class="ob-vd-meta" id="vdMeta">—</div>
+      </div>
+      <div id="vdStatusBadge" style="flex-shrink:0"></div>
+      <button class="ob-vd-close" onclick="closeVenueDetail()" title="Close"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <!-- Body: two columns -->
+    <div class="ob-vd-body">
+      <!-- LEFT: details + quick actions -->
+      <div class="ob-vd-left">
+        <div class="ob-vd-section-title"><i class="fa-solid fa-circle-info" style="margin-right:5px;opacity:0.6"></i>Venue Details</div>
+        <div class="ob-vd-field">
+          <div class="ob-vd-label">Venue ID</div>
+          <div class="ob-vd-value"><span id="vdId" style="font-family:monospace;background:rgba(99,102,241,0.12);color:#a5b4fc;padding:2px 9px;border-radius:5px;font-size:0.85rem"></span></div>
+        </div>
+        <div class="ob-vd-field">
+          <div class="ob-vd-label">Slug / URL Key</div>
+          <div class="ob-vd-value" id="vdSlug" style="font-family:monospace;font-size:0.88rem;color:#94a3b8"></div>
+        </div>
+        <div class="ob-vd-field">
+          <div class="ob-vd-label">Login Username</div>
+          <div class="ob-vd-value" id="vdUsername"></div>
+        </div>
+        <div class="ob-vd-field">
+          <div class="ob-vd-label">Contact Name</div>
+          <div class="ob-vd-value" id="vdContact"></div>
+        </div>
+        <div class="ob-vd-field">
+          <div class="ob-vd-label">Created</div>
+          <div class="ob-vd-value" id="vdCreated" style="font-size:0.85rem;color:var(--text-muted)"></div>
+        </div>
+        <hr class="ob-vd-divider">
+        <div class="ob-vd-section-title"><i class="fa-solid fa-bolt" style="margin-right:5px;opacity:0.6"></i>Quick Actions</div>
+        <div class="ob-vd-quick-actions" id="vdQuickActions"></div>
+      </div>
+      <!-- RIGHT: setup & access -->
+      <div class="ob-vd-right">
+        <div class="ob-vd-section-title"><i class="fa-solid fa-screwdriver-wrench" style="margin-right:5px;opacity:0.6"></i>Setup &amp; Manage Venue</div>
+        <div class="ob-launch-grid" id="vdLaunchGrid"></div>
+        <button class="ob-launch-full" id="vdLaunchFull">
+          <i class="fa-solid fa-rocket-launch"></i> Connect to Full VenueDesk Dashboard
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ── Toast ──────────────────────────────────────────── -->
 <div id="toast"></div>
 
@@ -704,7 +841,7 @@ function renderVenues() {
     return;
   }
   tb.innerHTML = venues.map(v => `
-    <tr>
+    <tr onclick="openVenueDetail(${v.tenant_id})" style="cursor:pointer">
       <td><span class="badge-id">#${v.tenant_id}</span></td>
       <td>
         <strong>${esc(v.venue_name)}</strong>
@@ -719,19 +856,21 @@ function renderVenues() {
         ? '<span class="badge-active"><i class="fa-solid fa-circle-check"></i> Active</span>'
         : '<span class="badge-inactive"><i class="fa-solid fa-circle-xmark"></i> Inactive</span>'}</td>
       <td>
-        <div class="td-actions">          <button class="btn btn-sm" onclick="openEditModal(${v.tenant_id})" title="Edit venue details" style="background:rgba(99,102,241,0.12);color:#a5b4fc;border-color:rgba(99,102,241,0.3)">
+        <div class="td-actions">
+          <button class="btn btn-sm" onclick="event.stopPropagation();openEditModal(${v.tenant_id})" title="Edit venue details" style="background:rgba(99,102,241,0.12);color:#a5b4fc;border-color:rgba(99,102,241,0.3)">
             <i class="fa-solid fa-pen-to-square"></i> Edit
-          </button>          <button class="btn btn-sm btn-success" onclick="launchVenue(${v.tenant_id},'${esc(v.venue_name)}')" title="Launch VenueDesk as this venue">
-            <i class="fa-solid fa-rocket-launch"></i> Launch
           </button>
-          <button class="btn btn-sm" onclick="copyEnquiryLink(${v.tenant_id},'${esc(v.venue_name)}')" title="Copy public enquiry form link" style="background:rgba(16,185,129,0.10);color:#34d399;border-color:rgba(16,185,129,0.28)">
+          <button class="btn btn-sm btn-success" onclick="event.stopPropagation();openVenueDetail(${v.tenant_id})" title="Open venue setup panel">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> Open
+          </button>
+          <button class="btn btn-sm" onclick="event.stopPropagation();copyEnquiryLink(${v.tenant_id},'${esc(v.venue_name)}')" title="Copy public enquiry form link" style="background:rgba(16,185,129,0.10);color:#34d399;border-color:rgba(16,185,129,0.28)">
             <i class="fa-solid fa-link"></i> Enquiry Link
           </button>
           ${v.username ? `
-          <button class="btn btn-sm btn-info" onclick="openPwModal('${esc(v.username)}','${esc(v.venue_name)}')" title="Reset password">
+          <button class="btn btn-sm btn-info" onclick="event.stopPropagation();openPwModal('${esc(v.username)}','${esc(v.venue_name)}')" title="Reset password">
             <i class="fa-solid fa-key"></i>
           </button>` : ''}
-          <button class="btn btn-sm btn-danger" onclick="toggleVenue(${v.tenant_id},'${esc(v.venue_name)}',${v.active})" title="${v.active ? 'Deactivate' : 'Reactivate'}">
+          <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();toggleVenue(${v.tenant_id},'${esc(v.venue_name)}',${v.active})" title="${v.active ? 'Deactivate' : 'Reactivate'}">
             <i class="fa-solid fa-${v.active ? 'pause' : 'play'}"></i>
           </button>
         </div>
@@ -828,13 +967,81 @@ function copyEnquiryLink(tenantId, venueName) {
     });
 }
 
-// ─── Launch as venue ──────────────────────────────────
-function launchVenue(tenantId, venueName) {
+// ─── Venue Detail Modal ───────────────────────────────
+function openVenueDetail(tenantId) {
+  const v = venues.find(x => x.tenant_id === tenantId);
+  if (!v) return;
+
+  document.getElementById('vdName').textContent = v.venue_name || '—';
+  document.getElementById('vdMeta').textContent = `Tenant #${v.tenant_id}  ·  ${v.slug || ''}`;
+  document.getElementById('vdId').textContent   = '#' + v.tenant_id;
+  document.getElementById('vdSlug').textContent  = v.slug || '—';
+  document.getElementById('vdUsername').innerHTML = v.username
+    ? `<code style="font-family:monospace;background:rgba(99,102,241,0.10);color:#a5b4fc;padding:2px 8px;border-radius:5px;font-size:0.85rem">${esc(v.username)}</code>`
+    : '<span style="color:var(--text-muted)">— not set —</span>';
+  document.getElementById('vdContact').textContent  = v.full_name || '—';
+  document.getElementById('vdCreated').textContent  = v.created_date
+    ? new Date(v.created_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+    : '—';
+  document.getElementById('vdStatusBadge').innerHTML = v.active
+    ? '<span class="badge-active"><i class="fa-solid fa-circle-check"></i> Active</span>'
+    : '<span class="badge-inactive"><i class="fa-solid fa-circle-xmark"></i> Inactive</span>';
+
+  // Quick actions
+  document.getElementById('vdQuickActions').innerHTML = `
+    <button class="btn btn-sm" onclick="closeVenueDetail();openEditModal(${v.tenant_id})" style="background:rgba(99,102,241,0.12);color:#a5b4fc;border-color:rgba(99,102,241,0.3)">
+      <i class="fa-solid fa-pen-to-square"></i> Edit Details
+    </button>
+    ${v.username ? `<button class="btn btn-sm btn-info" onclick="closeVenueDetail();openPwModal('${esc(v.username)}','${esc(v.venue_name)}')">
+      <i class="fa-solid fa-key"></i> Reset Password
+    </button>` : ''}
+    <button class="btn btn-sm" onclick="copyEnquiryLink(${v.tenant_id},'${esc(v.venue_name)}')" style="background:rgba(16,185,129,0.10);color:#34d399;border-color:rgba(16,185,129,0.28)">
+      <i class="fa-solid fa-link"></i> Copy Enquiry Link
+    </button>
+    <button class="btn btn-sm btn-danger" onclick="closeVenueDetail();toggleVenue(${v.tenant_id},'${esc(v.venue_name)}',${v.active})">
+      <i class="fa-solid fa-${v.active ? 'pause' : 'play'}"></i> ${v.active ? 'Deactivate' : 'Reactivate'}
+    </button>`;
+
+  // Launch grid
+  const pages = [
+    { icon: '🏨', title: 'Rooms & Pricing',   desc: 'Configure rooms, rates and event type pricing', page: 'admin-config.html' },
+    { icon: '📅', title: 'Calendar',           desc: 'View bookings and manage blocked dates',         page: 'calendar.html'     },
+    { icon: '👥', title: 'Customers',          desc: 'Browse and manage customer records',             page: 'customers.html'    },
+    { icon: '📋', title: 'Bookings',           desc: 'All confirmed bookings and walk-ins',            page: 'bookings.html'     },
+    { icon: '📊', title: 'Accounts',           desc: 'Payments, revenue and outstanding balances',     page: 'accounts.html'     },
+    { icon: '✍️',  title: 'Manual Booking',    desc: 'Create a booking on behalf of this venue',       page: 'manual-booking.html' },
+  ];
+  document.getElementById('vdLaunchGrid').innerHTML = pages.map(p => `
+    <button class="ob-launch-btn" onclick="connectToPage(${v.tenant_id},'${esc(v.venue_name)}','${esc(v.full_name || v.venue_name)}','${p.page}')">
+      <span class="lb-icon">${p.icon}</span>
+      <span class="lb-title">${p.title}</span>
+      <span class="lb-desc">${p.desc}</span>
+    </button>`).join('');
+
+  document.getElementById('vdLaunchFull').onclick = () =>
+    connectToPage(v.tenant_id, v.venue_name, v.full_name || v.venue_name, 'index.html');
+
+  document.getElementById('venueDetailModal').classList.add('open');
+}
+
+function closeVenueDetail() {
+  document.getElementById('venueDetailModal').classList.remove('open');
+}
+
+// Pre-authenticate as this venue and open the target VenueDesk page
+function connectToPage(tenantId, venueName, fullName, page) {
   localStorage.setItem('vp_tenant_id',  tenantId);
   localStorage.setItem('vp_venue_id',   tenantId);
   localStorage.setItem('vp_venue_name', venueName);
-  window.open('login.html', '_blank');
-  showToast(`Opening VenueDesk for "${venueName}". Log in with that venue's credentials.`, 'success');
+  localStorage.setItem('vp_token',      AUTH);
+  localStorage.setItem('vp_user',       JSON.stringify({ name: fullName || venueName, role: 'admin' }));
+  window.open(page, '_blank');
+  showToast(`Connecting to ${page.replace('.html','')} for "${venueName}"…`, 'success');
+}
+
+// ─── Launch as venue (legacy) ─────────────────────────
+function launchVenue(tenantId, venueName) {
+  connectToPage(tenantId, venueName, venueName, 'index.html');
 }
 
 // ─── Edit venue modal ───────────────────────────────────
