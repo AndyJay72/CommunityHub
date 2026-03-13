@@ -956,10 +956,11 @@
                 const existing = lead.notes || '';
                 const dated = `[Reply ${new Date().toLocaleDateString('en-GB')}] ${note.trim()}`;
                 const newNotes = existing ? existing + '\n' + dated : dated;
-                await fetch('https://n8n.srv1090894.hstgr.cloud/webhook/edit-lead', {
+                const nr = await fetch('https://n8n.srv1090894.hstgr.cloud/webhook/edit-lead', {
                     method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type':'application/json' },
-                    body: JSON.stringify({ id, notes: newNotes })
+                    body: JSON.stringify({ id, venue_name: '', venue_type: '', contact_name: '', email: '', phone: '', website_url: '', notes: newNotes })
                 });
+                await nr.text().catch(() => {});
                 lead.notes = newNotes;
             }
             filterLeads();
@@ -1006,9 +1007,10 @@
             const r = await fetch('https://n8n.srv1090894.hstgr.cloud/webhook/edit-lead', {
                 method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type':'application/json' }, body: JSON.stringify(payload)
             });
-            const data = await r.json();
+            const text = await r.text();
+            const data = text ? JSON.parse(text) : { success: true };
             if (data.success !== false) {
-                const updated = data.lead || data;
+                const updated = (data.lead && typeof data.lead === 'object') ? data.lead : {};
                 const idx = allLeads.findIndex(l => l.id === id);
                 if (idx !== -1) allLeads[idx] = { ...allLeads[idx], ...updated, ...payload };
                 filterLeads();
@@ -1017,7 +1019,7 @@
                 closeEditModal();
                 showToast('Lead updated successfully', 'success');
             } else {
-                throw new Error('Update failed');
+                throw new Error(data.message || 'Update failed');
             }
         } catch(e) {
             showToast('Error saving lead: ' + e.message, 'error');
