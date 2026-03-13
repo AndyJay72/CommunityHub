@@ -999,7 +999,7 @@
         <header>
             <div class="header-left">
                 <button class="menu-toggle" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></button>
-                <div class="header-title"><h1>Overview</h1><p>Welcome back, Staff Manager</p></div>
+                <div class="header-title"><h1>Overview</h1><p>Welcome back, <span id="hdr-username">Staff Manager</span> &mdash; <span id="hdr-venue" style="color:var(--primary-hi,#a5b4fc);font-weight:600"></span></p></div>
             </div>
             <div class="header-right">
                 <div class="live-clock"><i class="far fa-clock"></i> <span id="clock-text">--:--</span></div>
@@ -1379,6 +1379,16 @@
         function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
         const STAFF_NAME = "Manager";
+        // Populate header welcome text from localStorage
+        (function() {
+            const user = JSON.parse(localStorage.getItem('vp_user') || '{}');
+            const name = user.name || user.username || localStorage.getItem('vp_user_name') || 'Staff Manager';
+            const venue = localStorage.getItem('vp_venue_name') || '';
+            const nameEl  = document.getElementById('hdr-username');
+            const venueEl = document.getElementById('hdr-venue');
+            if (nameEl)  nameEl.textContent  = name;
+            if (venueEl) venueEl.textContent = venue;
+        })();
         const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
         let revenueMonth = new Date().getMonth() + 1;
         let revenueYear  = new Date().getFullYear();
