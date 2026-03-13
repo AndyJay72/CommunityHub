@@ -150,10 +150,10 @@
         // Load tenants into venue selector
         (async function loadVenues() {
             try {
-                const r = await fetch('tenants.json');
-                const { tenants } = await r.json();
+                const r = await fetch('https://n8n.srv1090894.hstgr.cloud/webhook/get-tenants');
+                const { data } = await r.json();
                 const sel = document.getElementById('venueSelect');
-                tenants.filter(t => t.active).forEach(t => {
+                data.filter(t => t.active).forEach(t => {
                     const o = document.createElement('option');
                     o.value  = t.tenant_id;
                     o.dataset.name = t.name;

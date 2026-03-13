@@ -1100,18 +1100,19 @@ async function init() {
 // ─────────────────────────────────────────────
 // TENANTS
 // ─────────────────────────────────────────────
+const TENANT_BASE = 'https://n8n.srv1090894.hstgr.cloud/webhook';
 let tenantsData = [];
 
 async function loadTenants() {
     try {
-        const r = await fetch('tenants.json?_=' + Date.now());
+        const r = await fetch(TENANT_BASE + '/get-all-tenants');
         const json = await r.json();
-        tenantsData = json.tenants || [];
+        tenantsData = json.data || [];
         renderTenantsTable();
         renderActiveTenant();
     } catch(e) {
         document.getElementById('tenantsTable').innerHTML =
-            '<tr><td colspan="5" style="text-align:center;color:var(--danger)">Failed to load tenants.json</td></tr>';
+            '<tr><td colspan="5" style="text-align:center;color:var(--danger)">Failed to load tenants</td></tr>';
     }
 }
 
@@ -1127,7 +1128,7 @@ function renderTenantsTable() {
             <td>${esc(t.name)}</td>
             <td style="color:var(--text-muted);font-size:0.85rem">${esc(t.slug)}</td>
             <td>${t.active ? '<span style="color:#10b981"><i class="fa-solid fa-circle-check"></i> Active</span>' : '<span style="color:var(--text-muted)">Inactive</span>'}</td>
-            <td><button class="btn" style="font-size:0.78rem;padding:4px 10px;background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3)" onclick="removeTenant(${t.tenant_id})"><i class="fa-solid fa-trash"></i></button></td>
+            <td><button class="btn" style="font-size:0.78rem;padding:4px 10px;background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3)" onclick="removeTenant(${t.tenant_id}, '${esc(t.name)}')"><i class="fa-solid fa-trash"></i></button></td>
         </tr>`).join('');
 }
 
@@ -1142,29 +1143,48 @@ function renderActiveTenant() {
     }
 }
 
-function addTenant() {
+async function addTenant() {
     const id   = parseInt(document.getElementById('tId').value, 10);
     const name = document.getElementById('tName').value.trim();
     const slug = document.getElementById('tSlug').value.trim() ||
                  name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
-    if (!id || id < 1000 || id > 9999) { showToast('Tenant ID must be 1000–9999', 'error'); return; }
+    if (!id || id < 1000) { showToast('Tenant ID must be >= 1000', 'error'); return; }
     if (!name) { showToast('Venue name is required', 'error'); return; }
-    if (tenantsData.find(t => t.tenant_id === id)) { showToast('Tenant ID already exists', 'error'); return; }
 
-    tenantsData.push({ tenant_id: id, venue_id: id, name, slug, active: true });
-    document.getElementById('tId').value = '';
-    document.getElementById('tName').value = '';
-    document.getElementById('tSlug').value = '';
-    renderTenantsTable();
-    showToast(`Tenant #${id} "${name}" added. Remember to update tenants.json on the server.`);
+    try {
+        const res = await fetch(TENANT_BASE + '/create-tenant', {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ tenant_id: id, name, slug })
+        });
+        const json = await res.json();
+        if (!json.ok) throw new Error(json.message || 'Failed');
+        document.getElementById('tId').value = '';
+        document.getElementById('tName').value = '';
+        document.getElementById('tSlug').value = '';
+        await loadTenants();
+        showToast(`Tenant #${id} "${name}" saved to database.`);
+    } catch(e) {
+        showToast('Error: ' + e.message, 'error');
+    }
 }
 
-function removeTenant(id) {
-    if (!confirm(`Remove tenant #${id}?`)) return;
-    tenantsData = tenantsData.filter(t => t.tenant_id !== id);
-    renderTenantsTable();
-    showToast(`Tenant #${id} removed. Remember to update tenants.json on the server.`, 'error');
+async function removeTenant(id, name) {
+    if (!confirm(`Deactivate tenant #${id} "${name}"?\n\nThis will hide it from the login venue list.`)) return;
+    try {
+        const res = await fetch(TENANT_BASE + '/delete-tenant', {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ tenant_id: id })
+        });
+        const json = await res.json();
+        if (!json.ok) throw new Error(json.message || 'Failed');
+        await loadTenants();
+        showToast(`Tenant #${id} deactivated.`, 'error');
+    } catch(e) {
+        showToast('Error: ' + e.message, 'error');
+    }
 }
 
 init();
