@@ -488,5 +488,33 @@
         loadTheme();
         loadUsers();
 </script>
+    <!-- FinTech Revamp -->
+    <style>
+    :root { --bg-dark:#06101f; --bg-card:rgba(13,21,46,0.80); --border:rgba(99,120,186,0.14); --border-accent:rgba(99,120,186,0.34); --text-main:#eef2ff; --text-muted:#8b9cc8; }
+    body { background-color:var(--bg-dark) !important; background-image:radial-gradient(ellipse 90% 55% at 18% -10%,rgba(99,102,241,0.17) 0%,transparent 54%),radial-gradient(ellipse 70% 50% at 83% 110%,rgba(6,182,212,0.10) 0%,transparent 52%),radial-gradient(ellipse 60% 70% at 50% 50%,rgba(10,16,40,0.65) 0%,transparent 100%) !important; }
+    aside { background:rgba(4,9,22,0.98) !important; backdrop-filter:blur(20px) !important; -webkit-backdrop-filter:blur(20px) !important; border-right:1px solid var(--border) !important; }
+    .brand { font-size:1.22rem !important; font-weight:800 !important; margin-bottom:2rem !important; letter-spacing:-0.01em; }
+    .nav-link { border-radius:10px !important; padding:10px 14px !important; font-size:0.88rem !important; margin-bottom:2px !important; }
+    .nav-link:not(.active):hover { color:#c7d2fe !important; background:rgba(99,102,241,0.09) !important; }
+    .nav-link.active { background:linear-gradient(135deg,rgba(99,102,241,0.22) 0%,rgba(99,102,241,0.09) 100%) !important; color:#a5b4fc !important; border-left:3px solid var(--primary) !important; padding-left:11px !important; }
+    header { padding-bottom:1.5rem !important; border-bottom:1px solid var(--border) !important; margin-bottom:1.75rem !important; justify-content:space-between !important; }
+    header h1 { font-size:1.75rem !important; font-weight:800 !important; letter-spacing:-0.03em !important; background:linear-gradient(135deg,#eef2ff 0%,#a5b4fc 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .card { border-radius:18px !important; backdrop-filter:blur(16px) !important; background:var(--bg-card) !important; border:1px solid var(--border) !important; transition:transform 0.22s ease,border-color 0.22s ease,box-shadow 0.22s ease !important; }
+    .card:hover { transform:translateY(-3px) !important; border-color:var(--border-accent) !important; box-shadow:0 16px 44px rgba(0,0,0,0.5) !important; }
+    .filter-btn { border-radius:50px !important; padding:8px 18px !important; font-size:0.82rem !important; backdrop-filter:blur(8px) !important; transition:all 0.2s ease !important; }
+    .filter-btn:not(.active):hover { transform:translateY(-1px) !important; background:rgba(255,255,255,0.08) !important; color:white !important; border-color:rgba(99,120,186,0.34) !important; }
+    .table-container { border-radius:18px !important; backdrop-filter:blur(14px) !important; border:1px solid var(--border) !important; }
+    .table-header { background:rgba(13,21,46,0.55) !important; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+    main > * { animation:fadeUp 0.38s ease both; }
+    @media (max-width:768px) { main { padding:1rem !important; } header { flex-direction:column !important; align-items:flex-start !important; } header h1 { font-size:1.4rem !important; } }
+    @media (max-width:480px) { main { padding:0.75rem !important; } }
+    body.light-mode { background-color:#f0f4fb !important; background-image:none !important; }
+    body.light-mode .card { background:rgba(255,255,255,0.96) !important; border-color:rgba(0,0,0,0.07) !important; }
+    body.light-mode header { border-bottom-color:rgba(0,0,0,0.08) !important; }
+    body.light-mode header h1 { background:linear-gradient(135deg,#0f172a 0%,#4338ca 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    body.light-mode .table-container { background:rgba(255,255,255,0.96) !important; border-color:rgba(0,0,0,0.08) !important; }
+    body.light-mode aside { background:rgba(255,255,255,1) !important; border-right-color:rgba(0,0,0,0.09) !important; }
+    </style>
 </body>
 </html>

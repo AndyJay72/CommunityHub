@@ -372,8 +372,8 @@
         body.light-mode .fc-list-event-title a { color:#0f172a !important; }
         body.light-mode .fc-toolbar-title { color:#0f172a; }
         body.light-mode .search-bar input { color: #0f172a; }
-        body.light-mode .filter-btn { background: rgba(255,255,255,0.8); border-color: rgba(0,0,0,0.12); color: #475569; }
-        body.light-mode .filter-btn:hover, body.light-mode .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        body.light-mode .filter-btn { background: #FFFFFF; border: 1px solid #D1D5DB; color: #374151; font-weight: 600; }
+        body.light-mode .filter-btn:hover { background: #F3F4F6; border-color: #9CA3AF; color: #111827; }
         body.light-mode .pay-modal-card, body.light-mode .modal-card,
         body.light-mode .receipt-card { background: #ffffff; border-color: rgba(0,0,0,0.12); color: #0f172a; }
         body.light-mode .detail-value { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.1); color: #0f172a; }
@@ -444,11 +444,11 @@
         body.light-mode .log-tbody tr:hover, body.light-mode tbody tr:hover { background: rgba(0,0,0,0.03) !important; }
         .theme-toggle { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; transition: 0.2s; flex-shrink: 0; }
         .theme-toggle:hover { color: white; border-color: white; }
-        body.light-mode .theme-toggle { background: rgba(255,255,255,0.8); border-color: rgba(0,0,0,0.15); color: #475569; }
-        body.light-mode .theme-toggle:hover { color: #0f172a; border-color: #94a3b8; }
+        body.light-mode .theme-toggle { background: #F3F4F6; border-color: #D1D5DB; color: #4F46E5; }
+        body.light-mode .theme-toggle:hover { background: #EEF2FF; border-color: #4F46E5; color: #3730A3; }
     
         /* ============================================================
-           RESPONSIVE DESIGN — VenuePro Full Coverage
+           RESPONSIVE DESIGN — VenueDesk Full Coverage
            Breakpoints: 1200 / 1024 / 900 / 768 / 480 / 360
         ============================================================ */
 
@@ -630,11 +630,358 @@
         body.light-mode.sidebar-collapsed .nav-link:hover::after { background: #fff; color: #1e293b; border-color: rgba(0,0,0,0.1); }
         @media (max-width: 768px) { body.sidebar-collapsed aside { width: var(--sidebar-width); padding: 2rem; } body.sidebar-collapsed main { margin-left: 0; } body.sidebar-collapsed .brand-text { opacity: 1; width: auto; } body.sidebar-collapsed .nav-label { opacity: 1; width: auto; } body.sidebar-collapsed .nav-link { justify-content: flex-start; gap: 12px; padding: 12px 16px; font-size: inherit; } }
         </style>
+
+    <!-- ═══════════════════════════════════════════════════
+         FINTECH REVAMP  ·  CSS Grid & Flexbox overrides
+         Applied via cascade — all JS bindings unchanged
+    ═══════════════════════════════════════════════════ -->
+    <style>
+    /* ── ENHANCED TOKENS ── */
+    :root {
+        --bg-dark:       #06101f;
+        --bg-card:       rgba(13, 21, 46, 0.80);
+        --border:        rgba(99, 120, 186, 0.14);
+        --border-accent: rgba(99, 120, 186, 0.34);
+        --text-main:     #eef2ff;
+        --text-muted:    #8b9cc8;
+    }
+
+    /* ── ATMOSPHERIC BACKGROUND ── */
+    body {
+        background-color: var(--bg-dark) !important;
+        background-image:
+            radial-gradient(ellipse 90% 55% at 18% -10%, rgba(99,102,241,0.17) 0%, transparent 54%),
+            radial-gradient(ellipse 70% 50% at 83% 110%,  rgba(6,182,212,0.10) 0%, transparent 52%),
+            radial-gradient(ellipse 60% 70% at 50%  50%,  rgba(10,16,40,0.65) 0%, transparent 100%)
+            !important;
+    }
+
+    /* ── SIDEBAR ── */
+    aside {
+        background: rgba(4, 9, 22, 0.98) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        border-right: 1px solid var(--border) !important;
+    }
+    .brand { font-size: 1.22rem !important; font-weight: 800 !important; margin-bottom: 2rem !important; letter-spacing: -0.01em; }
+    .nav-link { border-radius: 10px !important; padding: 10px 14px !important; font-size: 0.88rem !important; margin-bottom: 2px !important; }
+    .nav-link:not(.active):hover { color: #c7d2fe !important; background: rgba(99,102,241,0.09) !important; }
+    .nav-link.active {
+        background: linear-gradient(135deg, rgba(99,102,241,0.22) 0%, rgba(99,102,241,0.09) 100%) !important;
+        color: #a5b4fc !important;
+        border-left: 3px solid var(--primary) !important;
+        padding-left: 11px !important;
+    }
+
+    /* ── PAGE HEADER ── */
+    header {
+        padding-bottom: 1.5rem !important;
+        border-bottom: 1px solid var(--border) !important;
+        margin-bottom: 1.75rem !important;
+    }
+    .header-title h1 {
+        font-size: 1.75rem !important;
+        font-weight: 800 !important;
+        letter-spacing: -0.03em !important;
+        background: linear-gradient(135deg, #eef2ff 0%, #a5b4fc 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .header-title p { font-size: 0.82rem !important; margin-top: 5px !important; }
+    .live-clock { border-radius: 10px !important; font-size: 0.82rem !important; }
+    .refresh-btn { border-radius: 10px !important; }
+    .refresh-label { display: none; }
+    @media (min-width: 600px) { .refresh-label { display: inline; } }
+
+    /* ── KPI STAT CARDS ── */
+    .stats-grid { gap: 1.2rem !important; margin-bottom: 1.75rem !important; }
+    .card {
+        border-radius: 18px !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border) !important;
+        transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease !important;
+    }
+    .card:hover {
+        transform: translateY(-3px) !important;
+        border-color: var(--border-accent) !important;
+        box-shadow: 0 16px 44px rgba(0,0,0,0.5), 0 0 0 1px rgba(99,120,186,0.22) !important;
+    }
+    .card::before { height: 2px !important; background: linear-gradient(90deg, var(--primary), #06b6d4 50%, transparent) !important; }
+    .card::after {
+        content: '';
+        position: absolute; inset: 0;
+        background: radial-gradient(ellipse at top, rgba(99,102,241,0.05) 0%, transparent 68%);
+        pointer-events: none;
+    }
+    .stat-label { font-size: 0.71rem !important; font-weight: 700 !important; letter-spacing: 0.08em !important; text-transform: uppercase !important; }
+    .stat-value {
+        font-size: 2.85rem !important;
+        font-weight: 800 !important;
+        letter-spacing: -0.03em !important;
+        line-height: 1 !important;
+        font-family: 'JetBrains Mono', monospace !important;
+    }
+    .stat-icon {
+        width: 44px !important; height: 44px !important;
+        border-radius: 12px !important;
+        display: flex !important; align-items: center !important; justify-content: center !important;
+        font-size: 1.05rem !important;
+    }
+
+    /* ── FILTER TABS ── */
+    .filter-bar { gap: 8px !important; flex-wrap: wrap !important; margin-bottom: 1.5rem !important; }
+    .filter-btn {
+        border-radius: 50px !important;
+        padding: 8px 18px !important;
+        font-size: 0.82rem !important;
+        min-height: 38px !important;
+        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important;
+        transition: all 0.2s ease !important;
+    }
+    .filter-btn:not(.active):hover {
+        transform: translateY(-1px) !important;
+        background: rgba(255,255,255,0.08) !important;
+        color: white !important;
+        border-color: var(--border-accent) !important;
+    }
+    .filter-btn.active { transform: translateY(-1px) !important; box-shadow: 0 4px 18px rgba(0,0,0,0.35) !important; }
+
+    /* ── PANELS ── */
+    .table-container {
+        border-radius: 18px !important;
+        backdrop-filter: blur(14px) !important;
+        -webkit-backdrop-filter: blur(14px) !important;
+        border: 1px solid var(--border) !important;
+    }
+    .table-header { background: rgba(13,21,46,0.55) !important; }
+    .outstanding-panel {
+        border-radius: 18px !important;
+        backdrop-filter: blur(14px) !important;
+        -webkit-backdrop-filter: blur(14px) !important;
+    }
+    .outstanding-panel-header { background: rgba(245,158,11,0.04) !important; }
+    .outstanding-panel-title { font-size: 0.97rem !important; }
+    .act-feed { border-radius: 18px !important; backdrop-filter: blur(14px) !important; -webkit-backdrop-filter: blur(14px) !important; }
+    .section-container { border-radius: 18px !important; }
+    .prebooked-card { border-radius: 12px !important; }
+
+    /* ── BOOKING CARDS (fintech accent stripe) ── */
+    .booking-card {
+        border-radius: 14px !important;
+        margin-bottom: 0.7rem !important;
+        padding: 1rem 1.15rem !important;
+        position: relative !important;
+        overflow: hidden !important;
+        transition: transform 0.2s ease, border-color 0.2s ease !important;
+    }
+    .booking-card::before {
+        content: '' !important;
+        position: absolute !important;
+        left: 0; top: 0 !important;
+        width: 3px !important;
+        height: 100% !important;
+        background: var(--primary) !important;
+        opacity: 0.55 !important;
+        transition: opacity 0.2s !important;
+    }
+    .booking-card:hover { transform: translateY(-2px) !important; border-color: var(--border-accent) !important; }
+    .booking-card:hover::before { opacity: 1 !important; }
+
+    /* ── PAGE-LOAD FADE-UP ── */
+    @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+    main > * { animation: fadeUp 0.38s ease both; }
+    main > *:nth-child(1) { animation-delay:.05s; }
+    main > *:nth-child(2) { animation-delay:.10s; }
+    main > *:nth-child(3) { animation-delay:.15s; }
+    main > *:nth-child(4) { animation-delay:.20s; }
+    main > *:nth-child(5) { animation-delay:.25s; }
+
+    /* ── RESPONSIVE GRID FIXES ── */
+    @media (max-width: 900px) {
+        .pend-out-grid { grid-template-columns: 1fr !important; }
+    }
+    @media (max-width: 768px) {
+        .stats-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 0.85rem !important; }
+        main { padding: 1rem !important; }
+        header { flex-direction: column !important; align-items: flex-start !important; }
+        .header-right { width: 100% !important; justify-content: flex-start !important; }
+        .header-title h1 { font-size: 1.4rem !important; }
+        .filter-btn { padding: 7px 13px !important; font-size: 0.78rem !important; }
+    }
+    @media (max-width: 480px) {
+        .stats-grid { grid-template-columns: 1fr !important; gap: 0.7rem !important; }
+        .stat-value { font-size: 2.3rem !important; }
+        main { padding: 0.75rem !important; }
+        header { padding-bottom: 1rem !important; }
+        .filter-btn { padding: 6px 12px !important; min-height: 34px !important; }
+    }
+    @media (max-width: 360px) {
+        main { padding: 0.5rem !important; }
+        .stats-grid { grid-template-columns: 1fr !important; }
+    }
+
+    /* ══════════════════════════════════════════
+       LIGHT MODE — clean, bright, fully light
+       White/pale backgrounds · dark readable text
+       Indigo used only on active/brand accents
+       ══════════════════════════════════════════ */
+    body.light-mode {
+        background-color: #F4F6F8 !important;
+        background-image: none !important;
+        color: #1F2937 !important;
+    }
+
+    /* ── Sidebar ── */
+    body.light-mode aside {
+        background: #FFFFFF !important;
+        border-right: 1px solid #E5E7EB !important;
+        box-shadow: 2px 0 8px rgba(0,0,0,0.06) !important;
+    }
+    body.light-mode .brand { color: #111827 !important; }
+    body.light-mode .nav-link { color: #6B7280 !important; font-weight: 500 !important; }
+    body.light-mode .nav-link:hover { background: #F3F4F6 !important; color: #111827 !important; }
+    body.light-mode .nav-link.active {
+        background: #EEF2FF !important;
+        color: #4F46E5 !important;
+        border-left: 3px solid #4F46E5 !important;
+        font-weight: 700 !important;
+    }
+    body.light-mode.sidebar-collapsed .nav-link:hover::after { background: #FFFFFF !important; color: #111827 !important; border-color: #E5E7EB !important; }
+
+    /* ── Header ── */
+    body.light-mode header {
+        background: #FFFFFF !important;
+        border-bottom: 1px solid #E5E7EB !important;
+        border-radius: 0 !important;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
+    }
+    body.light-mode .header-title h1,
+    body.light-mode header h1 {
+        background: none !important;
+        -webkit-text-fill-color: #111827 !important;
+        color: #111827 !important;
+        font-weight: 800 !important;
+    }
+    body.light-mode .live-clock {
+        background: #F3F4F6 !important;
+        border-color: #E5E7EB !important;
+        color: #374151 !important;
+    }
+    body.light-mode .theme-toggle {
+        background: #F3F4F6 !important;
+        border-color: #D1D5DB !important;
+        color: #4F46E5 !important;
+    }
+    body.light-mode .theme-toggle:hover {
+        background: #EEF2FF !important;
+        border-color: #4F46E5 !important;
+        color: #3730A3 !important;
+    }
+
+    /* ── Cards ── */
+    body.light-mode .card {
+        background: #FFFFFF !important;
+        border-color: #E5E7EB !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.07) !important;
+        color: #1F2937 !important;
+    }
+    body.light-mode .card:hover {
+        box-shadow: 0 6px 20px rgba(0,0,0,0.1) !important;
+        border-color: #C7D2FE !important;
+        transform: translateY(-2px) !important;
+    }
+    body.light-mode .card::after { background: none !important; }
+
+    /* ── Stat numbers & labels ── */
+    body.light-mode .stat-value, body.light-mode .glance-val, body.light-mode .sum-val,
+    body.light-mode h2, body.light-mode h3, body.light-mode h4 { color: #111827 !important; }
+    body.light-mode .stat-label, body.light-mode .glance-lbl, body.light-mode .sum-lbl,
+    body.light-mode .b-meta, body.light-mode .db-month, body.light-mode .metric-info p { color: #6B7280 !important; }
+
+    /* ── Tables & feed panels ── */
+    body.light-mode .table-container,
+    body.light-mode .outstanding-panel,
+    body.light-mode .act-feed {
+        background: #FFFFFF !important;
+        border-color: #E5E7EB !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
+    }
+    /* Table header — pale indigo tint, dark indigo text — light but clearly defined */
+    body.light-mode .table-header,
+    body.light-mode thead tr,
+    body.light-mode th {
+        background: #EEF2FF !important;
+        color: #3730A3 !important;
+        font-weight: 700 !important;
+        font-size: 0.78rem !important;
+        letter-spacing: 0.04em !important;
+        text-transform: uppercase !important;
+        border-color: #C7D2FE !important;
+    }
+    body.light-mode td { color: #1F2937 !important; border-color: #F3F4F6 !important; }
+    body.light-mode tbody tr:hover { background: #F9FAFB !important; }
+
+    /* ── Filter / tab buttons ── */
+    body.light-mode .filter-btn {
+        background: #FFFFFF !important;
+        border: 1px solid #D1D5DB !important;
+        color: #374151 !important;
+        font-weight: 600 !important;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+    }
+    body.light-mode .filter-btn:not(.active):hover {
+        background: #F3F4F6 !important;
+        border-color: #9CA3AF !important;
+        color: #111827 !important;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.09) !important;
+        transform: translateY(-1px) !important;
+    }
+    /* Active — vivid fills, white text, coloured glow */
+    body.light-mode .filter-btn.active { border-color: transparent !important; }
+    body.light-mode .filter-requests.active     { background: #F59E0B !important; color: #fff !important; box-shadow: 0 4px 14px rgba(245,158,11,0.4) !important; }
+    body.light-mode .filter-upcoming.active     { background: #10B981 !important; color: #fff !important; box-shadow: 0 4px 14px rgba(16,185,129,0.4) !important; }
+    body.light-mode .filter-outstanding.active  { background: #F59E0B !important; color: #fff !important; box-shadow: 0 4px 14px rgba(245,158,11,0.4) !important; }
+    body.light-mode .filter-interactions.active { background: #4F46E5 !important; color: #fff !important; box-shadow: 0 4px 14px rgba(79,70,229,0.4) !important; }
+    body.light-mode .filter-customers.active    { background: #06B6D4 !important; color: #fff !important; box-shadow: 0 4px 14px rgba(6,182,212,0.4) !important; }
+    body.light-mode .filter-btn:not([class*="filter-r"]):not([class*="filter-o"]):not([class*="filter-u"]):not([class*="filter-i"]):not([class*="filter-c"]).active { background: #4F46E5 !important; color: #fff !important; box-shadow: 0 4px 14px rgba(79,70,229,0.4) !important; }
+
+    /* ── Booking cards ── */
+    body.light-mode .booking-card {
+        background: #FFFFFF !important;
+        border-color: #E5E7EB !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
+    }
+    body.light-mode .b-name, body.light-mode .b-room { color: #111827 !important; }
+    body.light-mode .b-meta { color: #6B7280 !important; }
+
+    /* ── Activity feed ── */
+    body.light-mode .act-name { color: #111827 !important; }
+    body.light-mode .act-detail { color: #6B7280 !important; }
+    body.light-mode .act-time { color: #9CA3AF !important; }
+
+    /* ── Inputs & search ── */
+    body.light-mode .search-bar input,
+    body.light-mode .sf-input, body.light-mode .sf-select,
+    body.light-mode .f-input, body.light-mode .f-select {
+        background: #FFFFFF !important;
+        border-color: #D1D5DB !important;
+        color: #111827 !important;
+    }
+    body.light-mode .menu-toggle {
+        background: #F3F4F6 !important;
+        border-color: #D1D5DB !important;
+        color: #374151 !important;
+    }
+    </style>
 </head>
 <body>
     <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
     <aside id="sidebar">
-        <div class="brand"><span><i class="fa-solid fa-layer-group"></i><span class="brand-text">VenuePro</span></span><div style="display:flex;align-items:center;gap:2px;"><button class="sidebar-collapse-btn" onclick="toggleSidebarCollapse()" title="Collapse sidebar"><i class="fa-solid fa-chevron-left"></i></button><button class="close-sidebar" onclick="toggleMenu()"><i class="fa-solid fa-xmark"></i></button></div></div>
+        <div class="brand"><span><i class="fa-solid fa-layer-group"></i><span class="brand-text">VenueDesk</span></span><div style="display:flex;align-items:center;gap:2px;"><button class="sidebar-collapse-btn" onclick="toggleSidebarCollapse()" title="Collapse sidebar"><i class="fa-solid fa-chevron-left"></i></button><button class="close-sidebar" onclick="toggleMenu()"><i class="fa-solid fa-xmark"></i></button></div></div>
         <nav>
             <a href="index.html" class="nav-link active" data-label="Dashboard"><i class="fa-solid fa-chart-pie"></i><span class="nav-label"> Dashboard</span></a>
             <a href="enquiry-form.html" class="nav-link" target="_blank" data-label="New Booking"><i class="fa-solid fa-file-pen"></i><span class="nav-label"> New Booking</span></a>
@@ -656,14 +1003,15 @@
             </div>
             <div class="header-right">
                 <div class="live-clock"><i class="far fa-clock"></i> <span id="clock-text">--:--</span></div>
-                <button class="refresh-btn" onclick="loadDashboard()"><i class="fa-solid fa-rotate-right" id="refresh-icon"></i> <span style="display:none; @media(min-width:768px){display:inline;}">Refresh</span></button>
+                <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()" title="Toggle theme"><i class="fa-solid fa-moon"></i></button>
+                <button class="refresh-btn" onclick="loadDashboard()"><i class="fa-solid fa-rotate-right" id="refresh-icon"></i> <span class="refresh-label">Refresh</span></button>
             </div>
         </header>
 
        <div class="stats-grid">
-            <div class="card"><div class="stat-header"><span class="stat-label">Monthly Revenue</span><div class="stat-icon" style="color: var(--success);"><i class="fa-solid fa-sterling-sign"></i></div></div><div style="display:flex;align-items:center;gap:8px"><button class="btn-month-nav" onclick="changeRevenueMonth(-1)">&#8249;</button><div style="flex:1;text-align:center"><div class="stat-value" id="val-revenue">--</div><div id="val-revenue-label" style="font-size:0.72rem;color:var(--text-muted);margin-top:3px">-- ----</div></div><button class="btn-month-nav" onclick="changeRevenueMonth(1)">&#8250;</button></div></div>
-            <div class="card"><div class="stat-header"><span class="stat-label">Pending Requests</span><div class="stat-icon" style="color: var(--warning);"><i class="fa-solid fa-clipboard-list"></i></div></div><div class="stat-value" id="val-pending" style="text-align:center;">--</div></div>
-            <div class="card"><div class="stat-header"><span class="stat-label">Monthly Bookings</span><div class="stat-icon" style="color: var(--primary);"><i class="fa-solid fa-calendar-check"></i></div></div><div style="display:flex;align-items:center;gap:8px"><button class="btn-month-nav" onclick="changeBookingsMonth(-1)">&#8249;</button><div style="flex:1;text-align:center"><div class="stat-value" id="val-bookings">--</div><div id="val-bookings-label" style="font-size:0.72rem;color:var(--text-muted);margin-top:3px">-- ----</div></div><button class="btn-month-nav" onclick="changeBookingsMonth(1)">&#8250;</button></div></div>
+            <div class="card"><div class="stat-header"><span class="stat-label">Monthly Revenue</span><div class="stat-icon" style="color:var(--success);background:rgba(16,185,129,0.13);border:1px solid rgba(16,185,129,0.25);"><i class="fa-solid fa-sterling-sign"></i></div></div><div style="display:flex;align-items:center;gap:8px"><button class="btn-month-nav" onclick="changeRevenueMonth(-1)">&#8249;</button><div style="flex:1;text-align:center"><div class="stat-value" id="val-revenue">--</div><div id="val-revenue-label" style="font-size:0.72rem;color:var(--text-muted);margin-top:3px">-- ----</div></div><button class="btn-month-nav" onclick="changeRevenueMonth(1)">&#8250;</button></div></div>
+            <div class="card"><div class="stat-header"><span class="stat-label">Pending Requests</span><div class="stat-icon" style="color:var(--warning);background:rgba(245,158,11,0.13);border:1px solid rgba(245,158,11,0.25);"><i class="fa-solid fa-clipboard-list"></i></div></div><div class="stat-value" id="val-pending" style="text-align:center;">--</div></div>
+            <div class="card"><div class="stat-header"><span class="stat-label">Monthly Bookings</span><div class="stat-icon" style="color:var(--primary);background:rgba(99,102,241,0.13);border:1px solid rgba(99,102,241,0.25);"><i class="fa-solid fa-calendar-check"></i></div></div><div style="display:flex;align-items:center;gap:8px"><button class="btn-month-nav" onclick="changeBookingsMonth(-1)">&#8249;</button><div style="flex:1;text-align:center"><div class="stat-value" id="val-bookings">--</div><div id="val-bookings-label" style="font-size:0.72rem;color:var(--text-muted);margin-top:3px">-- ----</div></div><button class="btn-month-nav" onclick="changeBookingsMonth(1)">&#8250;</button></div></div>
         </div>
 
         <!-- FILTER TABS -->
