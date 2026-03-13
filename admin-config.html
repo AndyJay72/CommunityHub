@@ -677,7 +677,8 @@ function switchTab(name) {
 async function loadRooms() {
     try {
         const res = await fetch(API.getRooms(), { headers: getAuthHeaders() });
-        const json = await res.json();
+        const text = await res.text();
+        const json = text.trim() ? JSON.parse(text) : {};
         rooms = json.data || (Array.isArray(json) ? json : []);
         renderRoomsTable();
     } catch(e) {
@@ -821,7 +822,8 @@ async function restoreRoom(id, name) {
 async function loadEventTypes() {
     try {
         const res = await fetch(API.getEventTypes(), { headers: getAuthHeaders() });
-        const json = await res.json();
+        const text = await res.text();
+        const json = text.trim() ? JSON.parse(text) : {};
         eventTypes = json.data || (Array.isArray(json) ? json : []);
         renderEventTypesTable();
     } catch(e) {
