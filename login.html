@@ -120,9 +120,15 @@
 <body>
 
     <div class="login-card">
-        <div class="brand"><i class="fa-solid fa-layer-group"></i> VenuePro</div>
+        <div class="brand"><i class="fa-solid fa-layer-group"></i> VenueDesk</div>
         
         <form id="loginForm" onsubmit="return false;">
+            <div class="input-group">
+                <label>Venue</label>
+                <select id="venueSelect" required>
+                    <option value="" disabled selected>Select your venue…</option>
+                </select>
+            </div>
             <div class="input-group">
                 <label>Username</label>
                 <input type="text" id="username" placeholder="admin" required>
@@ -141,13 +147,40 @@
         // CONFIG: Add your n8n Login Webhook URL here (No Port if using Proxy)
         const LOGIN_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/login';
 
+        // Load tenants into venue selector
+        (async function loadVenues() {
+            try {
+                const r = await fetch('tenants.json');
+                const { tenants } = await r.json();
+                const sel = document.getElementById('venueSelect');
+                tenants.filter(t => t.active).forEach(t => {
+                    const o = document.createElement('option');
+                    o.value  = t.tenant_id;
+                    o.dataset.name = t.name;
+                    o.textContent  = t.name + ' (ID: ' + t.tenant_id + ')';
+                    sel.appendChild(o);
+                });
+                // Auto-select previously used venue
+                const saved = localStorage.getItem('vp_tenant_id');
+                if (saved) sel.value = saved;
+            } catch (e) { console.warn('Could not load tenants.json', e); }
+        })();
+
         async function login() {
+            const sel  = document.getElementById('venueSelect');
             const user = document.getElementById('username').value;
             const pass = document.getElementById('password').value;
-            const btn = document.querySelector('button');
-            const err = document.getElementById('errorBox');
+            const btn  = document.querySelector('button');
+            const err  = document.getElementById('errorBox');
 
-            if (!user || !pass) return;
+            if (!sel.value || !user || !pass) {
+                err.innerText = 'Please select a venue and enter your credentials.';
+                err.style.display = 'block';
+                return;
+            }
+
+            const tenantId   = parseInt(sel.value, 10);
+            const venueName  = sel.options[sel.selectedIndex].dataset.name || sel.options[sel.selectedIndex].textContent;
 
             btn.disabled = true;
             btn.innerText = "Verifying...";
@@ -157,15 +190,18 @@
                 const res = await fetch(LOGIN_API, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: user, password: pass })
+                    body: JSON.stringify({ username: user, password: pass, tenant_id: tenantId, venue_id: tenantId })
                 });
 
                 const data = await res.json();
 
                 if (data.token) {
-                    // SUCCESS: Save Token & Redirect
-                    localStorage.setItem('vp_token', data.token);
-                    localStorage.setItem('vp_user', JSON.stringify(data.user));
+                    // SUCCESS: Save Token, tenant context & Redirect
+                    localStorage.setItem('vp_token',       data.token);
+                    localStorage.setItem('vp_user',        JSON.stringify(data.user));
+                    localStorage.setItem('vp_tenant_id',   tenantId);
+                    localStorage.setItem('vp_venue_id',    tenantId);   // tenant_id === venue_id
+                    localStorage.setItem('vp_venue_name',  venueName);
                     window.location.href = 'index.html';
                 } else {
                     throw new Error(data.message || 'Login failed');
@@ -186,7 +222,8 @@
     .login-card { border-radius:24px !important; backdrop-filter:blur(28px) !important; -webkit-backdrop-filter:blur(28px) !important; background:rgba(10,17,38,0.82) !important; border:1px solid rgba(99,120,186,0.22) !important; box-shadow:0 32px 64px rgba(0,0,0,0.6),0 0 0 1px rgba(99,120,186,0.12) !important; }
     .brand { background:linear-gradient(135deg,#eef2ff 0%,#a5b4fc 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; font-size:2rem !important; font-weight:800 !important; letter-spacing:-0.02em !important; }
     .brand i { -webkit-text-fill-color:#6366f1; }
-    input { background:rgba(0,0,0,0.38) !important; border:1px solid rgba(99,120,186,0.22) !important; border-radius:12px !important; transition:all 0.2s !important; }
+    input, select { background:rgba(0,0,0,0.38) !important; border:1px solid rgba(99,120,186,0.22) !important; border-radius:12px !important; transition:all 0.2s !important; color: #e2e8f0 !important; }
+    select option { background:#0d1530; color:#e2e8f0; }
     input:focus { border-color:#6366f1 !important; box-shadow:0 0 0 3px rgba(99,102,241,0.18) !important; }
     button { background:linear-gradient(135deg,#6366f1,#4f46e5) !important; border-radius:12px !important; font-weight:700 !important; letter-spacing:-0.01em !important; transition:all 0.22s !important; }
     button:hover:not(:disabled) { transform:translateY(-2px) !important; box-shadow:0 10px 28px rgba(99,102,241,0.4) !important; }

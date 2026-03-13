@@ -1369,7 +1369,12 @@
         const PAY_BALANCE_URL        = 'https://n8n.srv1090894.hstgr.cloud/webhook/pay-balance';
 
         function getAuthHeaders() {
-            return { 'Authorization': 'Bearer ' + (localStorage.getItem('vp_token') || '') };
+            const tid = localStorage.getItem('vp_tenant_id') || '';
+            return {
+                'Authorization': 'Bearer ' + (localStorage.getItem('vp_token') || ''),
+                'X-Tenant-ID': tid,
+                'X-Venue-ID':  tid
+            };
         }
         function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 

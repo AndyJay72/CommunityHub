@@ -356,7 +356,12 @@
         const DELETE_URL = 'https://n8n.srv1090894.hstgr.cloud/webhook/delete-user';
 
         function getAuthHeaders() {
-            return { 'Authorization': 'Bearer ' + (localStorage.getItem('vp_token') || '') };
+            const tid = localStorage.getItem('vp_tenant_id') || '';
+            return {
+                'Authorization': 'Bearer ' + (localStorage.getItem('vp_token') || ''),
+                'X-Tenant-ID': tid,
+                'X-Venue-ID':  tid
+            };
         }
 
 

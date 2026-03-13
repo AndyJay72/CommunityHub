@@ -506,7 +506,12 @@
         let allTransactions = [];
 
         function getAuthHeaders() {
-            return { 'Authorization': 'Bearer ' + (localStorage.getItem('vp_token') || '') };
+            const tid = localStorage.getItem('vp_tenant_id') || '';
+            return {
+                'Authorization': 'Bearer ' + (localStorage.getItem('vp_token') || ''),
+                'X-Tenant-ID': tid,
+                'X-Venue-ID':  tid
+            };
         }
 
         function toggleMenu() {
