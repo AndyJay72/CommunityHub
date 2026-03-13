@@ -724,6 +724,9 @@ function renderVenues() {
           </button>          <button class="btn btn-sm btn-success" onclick="launchVenue(${v.tenant_id},'${esc(v.venue_name)}')" title="Launch VenueDesk as this venue">
             <i class="fa-solid fa-rocket-launch"></i> Launch
           </button>
+          <button class="btn btn-sm" onclick="copyEnquiryLink(${v.tenant_id},'${esc(v.venue_name)}')" title="Copy public enquiry form link" style="background:rgba(16,185,129,0.10);color:#34d399;border-color:rgba(16,185,129,0.28)">
+            <i class="fa-solid fa-link"></i> Enquiry Link
+          </button>
           ${v.username ? `
           <button class="btn btn-sm btn-info" onclick="openPwModal('${esc(v.username)}','${esc(v.venue_name)}')" title="Reset password">
             <i class="fa-solid fa-key"></i>
@@ -804,6 +807,25 @@ async function toggleVenue(tenantId, name, currentlyActive) {
   } catch(e) {
     showToast('Error: ' + e.message, 'error');
   }
+}
+
+// ─── Copy enquiry link ─────────────────────────────────
+function copyEnquiryLink(tenantId, venueName) {
+  const base = window.location.href.split('/').slice(0, -1).join('/');
+  const url  = `${base}/enquiry-form.html?t=${tenantId}`;
+  navigator.clipboard.writeText(url)
+    .then(()  => showToast(`Enquiry link for "${venueName}" copied to clipboard!`, 'success'))
+    .catch(()  => {
+      // Fallback for older browsers
+      const el = document.createElement('textarea');
+      el.value = url;
+      el.style.position = 'fixed'; el.style.opacity = '0';
+      document.body.appendChild(el);
+      el.select();
+      try { document.execCommand('copy'); showToast(`Link copied: ${url}`, 'success'); }
+      catch(e) { showToast('Copy failed. URL: ' + url, 'error'); }
+      document.body.removeChild(el);
+    });
 }
 
 // ─── Launch as venue ──────────────────────────────────

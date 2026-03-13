@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Event Enquiry | VenuePro</title>
+    <title>Event Enquiry | VenueDesk</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -145,18 +145,44 @@
             .form-grid { grid-template-columns: 1fr; }
             .full-width { grid-column: span 1; }
         }
-        @media (max-width: 480px) {
-            body { padding: 1rem 0.5rem; }
-            .form-card { padding: 1.25rem; }
-            .page-header h1 { font-size: 1.4rem; }
+        .venue-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 5px 14px;
+            background: rgba(99,102,241,0.13);
+            border: 1px solid rgba(99,102,241,0.3);
+            border-radius: 20px;
+            font-size: 0.8rem; font-weight: 700;
+            color: #a5b4fc;
+            letter-spacing: 0.03em;
+            margin-bottom: 0.75rem;
         }
-    </style>
+        .venue-badge i { font-size: 0.75rem; }
+        .error-banner {
+            background: rgba(239,68,68,0.12);
+            border: 1px solid rgba(239,68,68,0.3);
+            border-radius: 12px;
+            padding: 1.5rem 2rem;
+            text-align: center;
+            margin-top: 2rem;
+        }
+        .error-banner i { font-size: 2rem; color: #ef4444; display: block; margin-bottom: 0.75rem; }
+        .error-banner h2 { font-size: 1.2rem; color: #f8fafc; margin-bottom: 0.5rem; }
+        .error-banner p { color: #94a3b8; font-size: 0.9rem; }
 </head>
 <body>
     <div class="page-wrap">
         <div class="page-header">
-            <h1>Event Enquiry</h1>
+            <div class="venue-badge" id="venueBadge" style="display:none">
+                <i class="fa-solid fa-building"></i>
+                <span id="venueNameDisplay"></span>
+            </div>
+            <h1 id="pageTitle">Event Enquiry</h1>
             <p>Check availability instantly and secure your date.</p>
+        </div>
+        <div id="errorBanner" style="display:none" class="error-banner">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <h2>Invalid Venue Link</h2>
+            <p>This enquiry form link is missing a venue identifier. Please use the link provided by your venue.</p>
         </div>
         <form id="enquiryForm" class="form-card" onsubmit="return false;">
 
@@ -295,6 +321,35 @@
         const BASE_API    = 'https://n8n.srv1090894.hstgr.cloud/webhook';
         const BLOCKED_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/blocked-dates';
 
+        // ── Read tenant from URL: enquiry-form.html?t=1001 ──────────
+        const TENANT_ID = (function() {
+            const p = new URLSearchParams(window.location.search);
+            return parseInt(p.get('t') || p.get('tenant') || '0', 10) || null;
+        })();
+
+        // Show error or load venue name
+        (async function initTenant() {
+            if (!TENANT_ID) {
+                document.getElementById('errorBanner').style.display = 'block';
+                document.getElementById('enquiryForm').style.display = 'none';
+                return;
+            }
+            // Try to load venue name for header
+            try {
+                const r = await fetch('https://n8n.srv1090894.hstgr.cloud/webhook/get-tenants');
+                const d = await r.json();
+                const venues = d.data || d || [];
+                const venue  = venues.find(v => (v.tenant_id || v.id) === TENANT_ID);
+                if (venue) {
+                    const name = venue.venue_name || venue.name || 'Your Venue';
+                    document.getElementById('venueNameDisplay').textContent = name;
+                    document.getElementById('venueBadge').style.display     = 'inline-flex';
+                    document.getElementById('pageTitle').textContent         = 'Event Enquiry — ' + name;
+                    document.title = 'Event Enquiry | ' + name;
+                }
+            } catch(e) { /* non-critical — form still usable */ }
+        })();
+
         let isAvailable = false, isSubmitting = false, enquiryBlockedRules = [], enquiryRoomsData = [];
 
         function isDateBlocked(dateStr) {
@@ -310,10 +365,11 @@
 
         async function loadRoomsAndTypes() {
             try {
+                const tenantParam = TENANT_ID ? `?tenant_id=${TENANT_ID}` : '';
                 const [rooms, types, bRes] = await Promise.all([
-                    fetch(BASE_API + '/get-rooms').then(r => r.ok ? r.json().then(j => j.data || (Array.isArray(j) ? j : [])) : []).catch(() => []),
-                    fetch(BASE_API + '/get-event-types').then(r => r.ok ? r.json().then(j => j.data || (Array.isArray(j) ? j : [])) : []).catch(() => []),
-                    fetch(BLOCKED_API).catch(() => null)
+                    fetch(BASE_API + '/get-rooms' + tenantParam).then(r => r.ok ? r.json().then(j => j.data || (Array.isArray(j) ? j : [])) : []).catch(() => []),
+                    fetch(BASE_API + '/get-event-types' + tenantParam).then(r => r.ok ? r.json().then(j => j.data || (Array.isArray(j) ? j : [])) : []).catch(() => []),
+                    fetch(BLOCKED_API + tenantParam).catch(() => null)
                 ]);
                 if (bRes) { try { enquiryBlockedRules = (await bRes.json()).data || []; } catch(e){} }
                 const activeRooms = (rooms || []).filter(r => r.is_active || r.is_active === undefined);
@@ -398,7 +454,7 @@
                 try {
                     const data = await (await fetch(CHECK_API, {
                         method:'POST', headers:{'Content-Type':'application/json'},
-                        body: JSON.stringify({ roomName:room, eventDate:dateFrom, timeFrom:start, timeTo:end })
+                        body: JSON.stringify({ roomName:room, eventDate:dateFrom, timeFrom:start, timeTo:end, tenant_id: TENANT_ID })
                     })).json();
                     if (data.available) {
                         setAvailStatus('available', numDays > 1 ? 'Available for your ' + numDays + '-day booking! You can submit.' : 'Date is available - you can submit your enquiry.');
@@ -435,7 +491,8 @@
                 dateTo:document.getElementById('multiDayToggle').dataset.active === 'true'   ? g('dateTo')   : g('eventDate'),
                 eventDate:document.getElementById('multiDayToggle').dataset.active === 'true' ? g('dateFrom') : g('eventDate'),
                 timeFrom:g('timeFrom'), timeTo:g('timeTo'),
-                numPeople:g('numPeople'), guest_count:g('numPeople'), notes:g('notes')||''
+                numPeople:g('numPeople'), guest_count:g('numPeople'), notes:g('notes')||'',
+                tenant_id: TENANT_ID, venue_id: TENANT_ID
             };
             try {
                 const res = await fetch(SUBMIT_API, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
