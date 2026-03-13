@@ -691,16 +691,22 @@ tbody tr:last-child td { border-bottom: none; }
 <!-- ── Reset Password Modal ───────────────────────────── -->
 <div class="ob-modal-overlay" id="pwModal">
   <div class="ob-modal">
-    <h3><i class="fa-solid fa-key" style="color:var(--warning)"></i> Reset Password</h3>
+    <h3><i class="fa-solid fa-key" style="color:var(--warning)"></i> <span id="pwModalTitle">Reset Password</span></h3>
     <p class="modal-sub" id="pwModalLabel">Set a new password for this user.</p>
     <input type="hidden" id="pwModalUsername">
+    <input type="hidden" id="pwModalTenantId">
+    <input type="hidden" id="pwModalVenueName">
+    <div class="input-group" id="pwUsernameRow" style="display:none">
+      <label>Username</label>
+      <input type="text" id="newPwUsernameInput" placeholder="e.g. venue-name" autocomplete="username">
+    </div>
     <div class="input-group" style="margin-bottom:0">
-      <label>New Password</label>
+      <label>Password</label>
       <input type="password" id="newPwInput" placeholder="Min 6 characters" onkeydown="if(event.key==='Enter')confirmResetPw()">
     </div>
     <div class="ob-modal-actions">
       <button class="btn" onclick="closePwModal()"><i class="fa-solid fa-xmark"></i> Cancel</button>
-      <button class="btn btn-primary" style="background:linear-gradient(135deg,#f59e0b,#d97706)" onclick="confirmResetPw()"><i class="fa-solid fa-key"></i> Reset Password</button>
+      <button class="btn btn-primary" id="pwModalConfirmBtn" style="background:linear-gradient(135deg,#f59e0b,#d97706)" onclick="confirmResetPw()"><i class="fa-solid fa-key"></i> Reset Password</button>
     </div>
   </div>
 </div>
@@ -866,10 +872,9 @@ function renderVenues() {
           <button class="btn btn-sm" onclick="event.stopPropagation();copyEnquiryLink(${v.tenant_id},'${esc(v.venue_name)}')" title="Copy public enquiry form link" style="background:rgba(16,185,129,0.10);color:#34d399;border-color:rgba(16,185,129,0.28)">
             <i class="fa-solid fa-link"></i> Enquiry Link
           </button>
-          ${v.username ? `
-          <button class="btn btn-sm btn-info" onclick="event.stopPropagation();openPwModal('${esc(v.username)}','${esc(v.venue_name)}')" title="Reset password">
-            <i class="fa-solid fa-key"></i>
-          </button>` : ''}
+          <button class="btn btn-sm btn-info" onclick="event.stopPropagation();openPwModal('${esc(v.username||'')}','${esc(v.venue_name)}',${v.tenant_id})" title="${v.username ? 'Reset password' : 'Set login'}">
+            <i class="fa-solid fa-key"></i>${v.username ? '' : '<span style="font-size:0.75rem;margin-left:4px">Set Login</span>'}
+          </button>
           <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();toggleVenue(${v.tenant_id},'${esc(v.venue_name)}',${v.active})" title="${v.active ? 'Deactivate' : 'Reactivate'}">
             <i class="fa-solid fa-${v.active ? 'pause' : 'play'}"></i>
           </button>
@@ -992,9 +997,9 @@ function openVenueDetail(tenantId) {
     <button class="btn btn-sm" onclick="closeVenueDetail();openEditModal(${v.tenant_id})" style="background:rgba(99,102,241,0.12);color:#a5b4fc;border-color:rgba(99,102,241,0.3)">
       <i class="fa-solid fa-pen-to-square"></i> Edit Details
     </button>
-    ${v.username ? `<button class="btn btn-sm btn-info" onclick="closeVenueDetail();openPwModal('${esc(v.username)}','${esc(v.venue_name)}')">
-      <i class="fa-solid fa-key"></i> Reset Password
-    </button>` : ''}
+    <button class="btn btn-sm btn-info" onclick="closeVenueDetail();openPwModal('${esc(v.username||'')}','${esc(v.venue_name)}',${v.tenant_id})">
+      <i class="fa-solid fa-key"></i> ${v.username ? 'Reset Password' : 'Set Login'}
+    </button>
     <button class="btn btn-sm" onclick="copyEnquiryLink(${v.tenant_id},'${esc(v.venue_name)}')" style="background:rgba(16,185,129,0.10);color:#34d399;border-color:rgba(16,185,129,0.28)">
       <i class="fa-solid fa-link"></i> Copy Enquiry Link
     </button>
@@ -1093,34 +1098,74 @@ async function confirmEditVenue() {
   }
 }
 
-// ─── Reset password modal ─────────────────────────────
-function openPwModal(username, venueName) {
-  document.getElementById('pwModalUsername').value = username;
-  document.getElementById('pwModalLabel').textContent = `Set a new password for ${venueName} (${username})`;
+// ─── Reset / Set-login password modal ───────────────────
+// username = existing username (reset), or '' (new login setup)
+function openPwModal(username, venueName, tenantId) {
+  const isNew = !username;
+  document.getElementById('pwModalUsername').value  = username || '';
+  document.getElementById('pwModalTenantId').value  = tenantId || '';
+  document.getElementById('pwModalVenueName').value = venueName || '';
+  document.getElementById('pwModalTitle').textContent = isNew ? 'Set Login' : 'Reset Password';
+  document.getElementById('pwModalLabel').textContent = isNew
+    ? `Create a username and password for ${venueName}`
+    : `Set a new password for ${venueName} (${username})`;
+  document.getElementById('pwUsernameRow').style.display = isNew ? '' : 'none';
+  document.getElementById('newPwUsernameInput').value = '';
   document.getElementById('newPwInput').value = '';
+  document.getElementById('pwModalConfirmBtn').innerHTML = isNew
+    ? '<i class="fa-solid fa-user-plus"></i> Set Login'
+    : '<i class="fa-solid fa-key"></i> Reset Password';
   document.getElementById('pwModal').classList.add('open');
-  setTimeout(() => document.getElementById('newPwInput').focus(), 100);
+  setTimeout(() => document.getElementById(isNew ? 'newPwUsernameInput' : 'newPwInput').focus(), 100);
 }
 function closePwModal() {
   document.getElementById('pwModal').classList.remove('open');
 }
 
 async function confirmResetPw() {
-  const username = document.getElementById('pwModalUsername').value;
-  const password = document.getElementById('newPwInput').value;
+  const existingUsername = document.getElementById('pwModalUsername').value;
+  const tenantId         = document.getElementById('pwModalTenantId').value;
+  const venueName        = document.getElementById('pwModalVenueName').value;
+  const password         = document.getElementById('newPwInput').value;
+  const isNew            = !existingUsername;
+  const username         = isNew ? document.getElementById('newPwUsernameInput').value.trim().toLowerCase() : existingUsername;
+
+  if (isNew && !username) { showToast('Username is required', 'error'); return; }
   if (!password || password.length < 6) { showToast('Password must be at least 6 characters', 'error'); return; }
+
+  const btn = document.getElementById('pwModalConfirmBtn');
+  btn.disabled = true;
   try {
-    const r = await fetch(N8N + '/onboarding/reset-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AUTH },
-      body: JSON.stringify({ username, password })
-    });
-    const d = await r.json();
-    if (!d.ok) throw new Error('Failed');
-    closePwModal();
-    showToast(`Password reset for ${username}.`, 'success');
+    let r, d;
+    if (isNew) {
+      // Create staff user for existing tenant
+      r = await fetch(N8N + '/onboarding/create-venue', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AUTH },
+        body: JSON.stringify({ tenant_id: parseInt(tenantId, 10), venue_name: venueName, username, password, full_name: venueName, slug: venueName.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') })
+      });
+      const t = await r.text();
+      d = t.trim() ? JSON.parse(t) : {};
+      if (!d.ok) throw new Error(d.message || 'Failed to set login');
+      closePwModal();
+      await loadVenues();
+      showToast(`Login created for ${venueName} (${username}).`, 'success');
+    } else {
+      r = await fetch(N8N + '/onboarding/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AUTH },
+        body: JSON.stringify({ username, password })
+      });
+      const t = await r.text();
+      d = t.trim() ? JSON.parse(t) : {};
+      if (!d.ok) throw new Error('Failed');
+      closePwModal();
+      showToast(`Password reset for ${username}.`, 'success');
+    }
   } catch(e) {
     showToast('Error: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
   }
 }
 
