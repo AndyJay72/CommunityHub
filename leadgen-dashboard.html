@@ -105,7 +105,7 @@
         .stat-delta.down { color: var(--danger); }
 
         /* ── PANELS ─────────────────────────────────────────────── */
-        .panels { display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; margin-bottom: 1.5rem; }
+        .panels { display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
         .panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
         .panel-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
         .panel-title { font-size: .9rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
@@ -165,19 +165,7 @@
         .empty-state i { font-size: 2.5rem; margin-bottom: .75rem; display: block; opacity: .3; }
         .empty-state p { font-size: .88rem; }
 
-        /* ── ACTIVITY PANEL ─────────────────────────────────────── */
-        .activity-list { padding: .5rem 0; }
-        .activity-item { display: flex; align-items: flex-start; gap: .75rem; padding: .75rem 1.25rem; border-bottom: 1px solid var(--border); }
-        .activity-item:last-child { border-bottom: none; }
-        .act-icon { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .75rem; flex-shrink: 0; margin-top: 2px; }
-        .ai-email  { background: rgba(99,102,241,.2); color: #818cf8; }
-        .ai-reply  { background: rgba(16,185,129,.2); color: #34d399; }
-        .ai-new    { background: rgba(245,158,11,.2); color: #fbbf24; }
-        .ai-conv   { background: rgba(16,185,129,.3); color: #10b981; }
-        .ai-bounce { background: rgba(239,68,68,.2);  color: #f87171; }
-        .act-body p { font-size: .8rem; color: var(--text-main); line-height: 1.4; }
-        .act-body p strong { font-weight: 600; }
-        .act-time { font-size: .7rem; color: var(--text-muted); margin-top: 2px; }
+
 
         /* ── PAGINATION ─────────────────────────────────────── */
         .pagination { display:flex;align-items:center;justify-content:center;gap:.5rem;padding:.65rem 1.25rem;border-top:1px solid var(--border); }
@@ -239,7 +227,6 @@
         @keyframes slideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
 
         /* ── RESPONSIVE ─────────────────────────────────────────── */
-        @media (max-width: 1100px) { .panels { grid-template-columns: 1fr; } }
         @media (max-width: 900px) {
             .sidebar { display: none; }
             .main { margin-left: 0; }
@@ -432,17 +419,6 @@
                 <div id="leadsPagination" class="pagination" style="display:none;"></div>
             </div>
 
-            <!-- Activity Feed -->
-            <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title"><i class="fa-solid fa-bolt"></i> Live Activity</div>
-                    <button class="tb-btn" onclick="loadActivity()" style="padding:.35rem .7rem;font-size:.72rem;"><i class="fa-solid fa-rotate"></i></button>
-                </div>
-                <div class="activity-list" id="activityList">
-                    <div style="padding:2rem;text-align:center;color:var(--text-muted);font-size:.82rem;"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>
-                </div>
-                <div id="activityPagination" class="pagination" style="display:none;"></div>
-            </div>
         </div>
 
     </div><!-- /content -->
@@ -586,9 +562,7 @@
     }
 
     let allLeads = [];
-    let allActivity = [];
     let leadsPage = 1;
-    let activityPage = 1;
     let filteredLeadsCache = [];
     const PAGE_SIZE = 15;
 
@@ -614,20 +588,7 @@
         }
     }
 
-    // ─── Load activity ──────────────────────────────────────────────
-    async function loadActivity() {
-        try {
-            const res = await fetch(BASE_API + '/leads-activity', { headers: getAuthHeaders() });
-            if (!res.ok) throw new Error();
-            const data = await res.json();
-            allActivity = Array.isArray(data) ? data : (data.data || []);
-            renderActivity(allActivity);
-        } catch(e) {
-            renderActivity(getDemoActivity());
-        }
-    }
-
-    // ─── Render leads table ────────────────────────────────────────
+    // ─── Render leads table ──────────────────────────────────────────────
     function renderLeads(leads) {
         filteredLeadsCache = leads;
         const totalPages = Math.max(1, Math.ceil(leads.length / PAGE_SIZE));
@@ -737,34 +698,7 @@
         renderLeads(filtered);
     }
 
-    // ─── Render activity ───────────────────────────────────────────
-    function renderActivity(items) {
-        const el = document.getElementById('activityList');
-        if (!items.length) { el.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text-muted);font-size:.82rem;">No activity yet</div>'; document.getElementById('activityPagination').style.display='none'; return; }
-        const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
-        if (activityPage > totalPages) activityPage = totalPages;
-        const pageItems = items.slice((activityPage - 1) * PAGE_SIZE, activityPage * PAGE_SIZE);
-        const iconMap = { email_sent:'ai-email fa-envelope', reply_received:'ai-reply fa-reply', lead_added:'ai-new fa-plus', converted:'ai-conv fa-trophy', bounce:'ai-bounce fa-exclamation' };
-        el.innerHTML = pageItems.map(a => {
-            const [cls, icon] = (iconMap[a.type] || 'ai-email fa-bolt').split(' ');
-            return `<div class="activity-item">
-                <div class="act-icon ${cls}"><i class="fa-solid ${icon}"></i></div>
-                <div class="act-body">
-                    <p>${esc(a.message || a.description || '')}</p>
-                    <div class="act-time">${a.created_at ? fmtDate(a.created_at) : '—'}</div>
-                </div>
-            </div>`;
-        }).join('');
-        const pgEl = document.getElementById('activityPagination');
-        if (totalPages <= 1) { pgEl.style.display = 'none'; return; }
-        pgEl.style.display = 'flex';
-        pgEl.innerHTML = `
-            <button class="pg-btn" onclick="activityPage--;renderActivity(allActivity)" ${activityPage <= 1 ? 'disabled' : ''}><i class="fa-solid fa-chevron-left"></i></button>
-            <span class="pg-info">Page ${activityPage} of ${totalPages}</span>
-            <button class="pg-btn" onclick="activityPage++;renderActivity(allActivity)" ${activityPage >= totalPages ? 'disabled' : ''}><i class="fa-solid fa-chevron-right"></i></button>`;
-    }
-
-    // ─── Add lead ──────────────────────────────────────────────────
+    // ─── Add lead ──────────────────────────────────────────────────────
     function openAddModal()  { document.getElementById('addModal').classList.add('open'); }
     function closeAddModal() { document.getElementById('addModal').classList.remove('open'); }
 
@@ -1092,7 +1026,7 @@
             });
             if (res.ok) {
                 showToast('⚡ Lead gen triggered — leads will be scored & refreshed in ~35s', 'success');
-                setTimeout(() => { loadLeads(); loadActivity(); }, 35000);
+                setTimeout(() => { loadLeads(); }, 35000);
             } else {
                 const txt = await res.text().catch(() => String(res.status));
                 showToast('Trigger failed (HTTP ' + res.status + '): ' + txt.substring(0, 80), 'error');
@@ -1127,26 +1061,12 @@
         ];
     }
 
-    function getDemoActivity() {
-        return [
-            { type:'reply_received', message:'<strong>The Grange Centre</strong> replied to your outreach email', created_at:'2026-03-08T09:14:00Z' },
-            { type:'email_sent', message:'Personalised email sent to <strong>Meridian Sports Club</strong>', created_at:'2026-03-08T08:30:00Z' },
-            { type:'converted', message:'<strong>The Grange Centre</strong> booked a demo — converted!', created_at:'2026-03-07T16:45:00Z' },
-            { type:'email_sent', message:'Follow-up email sent to <strong>Fairview Hotel & Events</strong>', created_at:'2026-03-07T14:00:00Z' },
-            { type:'reply_received', message:'<strong>The Manor Event Space</strong> replied — interested in pricing', created_at:'2026-03-07T08:45:00Z' },
-            { type:'email_sent', message:'AI email sent to <strong>Greenleaf Community Centre</strong>', created_at:'2026-03-06T11:20:00Z' },
-            { type:'lead_added', message:'6 new leads discovered and added to database', created_at:'2026-03-06T08:00:00Z' },
-            { type:'email_sent', message:'Initial outreach sent to <strong>Alton Athletic Club</strong>', created_at:'2026-03-05T09:30:00Z' },
-        ];
-    }
 
     // ─── Init ───────────────────────────────────────────────────────
     loadLeads();
-    loadActivity();
 
     // Auto-refresh every 2 minutes
     setInterval(loadLeads, 120000);
-    setInterval(loadActivity, 60000);
 
     // Demo workflow animation after 2s
     setTimeout(animateWorkflow, 2000);
