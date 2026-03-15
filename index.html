@@ -1761,7 +1761,15 @@
 
                 // REQUESTS - Store in global array
                 let requests = data.recent_customers || [];
-                requests = requests.filter(c => c.status === 'pending');
+                // Exclude customers who already have a booking (has_booking) or whose status has moved on
+                requests = requests.filter(c =>
+                    (c.status === 'pending' || c.status === 'contacted') &&
+                    !c.has_booking &&
+                    c.has_booking !== true &&
+                    c.has_booking !== 'true' &&
+                    c.has_booking !== 1 &&
+                    c.has_booking !== '1'
+                );
 
                 // SAFE DEDUPLICATION FOR REQUESTS
                 const uniqueRequests = [];
