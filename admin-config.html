@@ -377,7 +377,6 @@
         <button class="tab-btn"        onclick="switchTab('pricing')"><i class="fa-solid fa-sterling-sign"></i> Pricing Grid</button>
         <button class="tab-btn"        onclick="switchTab('services')"><i class="fa-solid fa-concierge-bell"></i> Services</button>
         <button class="tab-btn"        onclick="switchTab('settings')"><i class="fa-solid fa-gear"></i> Settings</button>
-        <button class="tab-btn"        onclick="switchTab('tenants')"><i class="fa-solid fa-building"></i> Tenants</button>
     </div>
 
     <!-- ═══════════════════════════════════════ -->
@@ -598,58 +597,6 @@
         </div>
     </div>
 
-    <!-- ═══════════════════════════════════════════ -->
-    <!-- TAB: TENANTS                            -->
-    <!-- ═══════════════════════════════════════════ -->
-    <div class="tab-panel" id="tab-tenants">
-        <div class="grid-split">
-            <!-- ADD TENANT -->
-            <div class="card">
-                <div class="card-title"><i class="fa-solid fa-plus"></i> Add Venue / Tenant</div>
-                <form onsubmit="return false;">
-                    <div class="input-group">
-                        <label>Tenant ID <span style="color:var(--text-muted);font-weight:400">(= Venue ID)</span></label>
-                        <input type="number" id="tId" placeholder="e.g. 1004" min="1000" max="9999">
-                    </div>
-                    <div class="input-group">
-                        <label>Venue Name</label>
-                        <input type="text" id="tName" placeholder="e.g. Community Hall D">
-                    </div>
-                    <div class="input-group">
-                        <label>Slug (URL-safe)</label>
-                        <input type="text" id="tSlug" placeholder="e.g. community-hall-d">
-                    </div>
-                    <button class="btn btn-primary" onclick="addTenant()">
-                        <i class="fa-solid fa-floppy-disk"></i> Save Tenant
-                    </button>
-                </form>
-            </div>
-            <!-- TENANT LIST -->
-            <div class="card">
-                <div class="card-title"><i class="fa-solid fa-list"></i> Registered Venues</div>
-                <div class="table-wrap">
-                    <table>
-                        <thead><tr>
-                            <th>Tenant / Venue ID</th>
-                            <th>Venue Name</th>
-                            <th>Slug</th>
-                            <th>Active</th>
-                            <th></th>
-                        </tr></thead>
-                        <tbody id="tenantsTable"><tr><td colspan="5" style="color:var(--text-muted);text-align:center;padding:1.5rem">Loading…</td></tr></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <!-- Active tenant badge -->
-        <div class="card" style="margin-top:1.5rem;max-width:480px">
-            <div class="card-title"><i class="fa-solid fa-circle-check" style="color:#10b981"></i> Your Active Session</div>
-            <p style="color:var(--text-muted);font-size:0.88rem;margin-bottom:1rem">
-                This is the venue context stored in your current browser session.
-            </p>
-            <div id="activeTenantInfo" style="background:rgba(0,0,0,0.25);border-radius:10px;padding:1rem 1.25rem;font-size:0.92rem">Loading…</div>
-        </div>
-    </div>
 </main>
 
 <script>
@@ -729,7 +676,6 @@ function switchTab(name) {
     if (name === 'pricing')  renderPricingGrid();
     if (name === 'services') renderServicesTable();
     if (name === 'settings') loadSettings();
-    if (name === 'tenants')  loadTenants();
 }
 
 // ─────────────────────────────────────────────
@@ -1416,96 +1362,6 @@ async function init() {
     document.getElementById('rOpenTime').innerHTML = timeOpts;
     document.getElementById('rCloseTime').innerHTML = timeOpts;
     await Promise.all([loadRooms(), loadEventTypes(), loadPricing(), loadSettings()]);
-}
-
-// ─────────────────────────────────────────────
-// TENANTS
-// ─────────────────────────────────────────────
-const TENANT_BASE = 'https://n8n.srv1090894.hstgr.cloud/webhook';
-let tenantsData = [];
-
-async function loadTenants() {
-    try {
-        const r = await fetch(TENANT_BASE + '/get-all-tenants');
-        const json = await r.json();
-        tenantsData = json.data || [];
-        renderTenantsTable();
-        renderActiveTenant();
-    } catch(e) {
-        document.getElementById('tenantsTable').innerHTML =
-            '<tr><td colspan="5" style="text-align:center;color:var(--danger)">Failed to load tenants</td></tr>';
-    }
-}
-
-function renderTenantsTable() {
-    const tb = document.getElementById('tenantsTable');
-    if (!tenantsData.length) {
-        tb.innerHTML = '<tr><td colspan="5" style="color:var(--text-muted);text-align:center;padding:1.5rem">No tenants registered yet.</td></tr>';
-        return;
-    }
-    tb.innerHTML = tenantsData.map(t => `
-        <tr>
-            <td><span class="badge" style="background:rgba(99,102,241,0.18);color:#a5b4fc;border-radius:6px;padding:3px 10px;font-weight:700">#${t.tenant_id}</span></td>
-            <td>${esc(t.name)}</td>
-            <td style="color:var(--text-muted);font-size:0.85rem">${esc(t.slug)}</td>
-            <td>${t.active ? '<span style="color:#10b981"><i class="fa-solid fa-circle-check"></i> Active</span>' : '<span style="color:var(--text-muted)">Inactive</span>'}</td>
-            <td><button class="btn" style="font-size:0.78rem;padding:4px 10px;background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3)" onclick="removeTenant(${t.tenant_id}, '${esc(t.name)}')"><i class="fa-solid fa-trash"></i></button></td>
-        </tr>`).join('');
-}
-
-function renderActiveTenant() {
-    const tid = localStorage.getItem('vp_tenant_id');
-    const name = localStorage.getItem('vp_venue_name');
-    const el = document.getElementById('activeTenantInfo');
-    if (tid) {
-        el.innerHTML = `<i class="fa-solid fa-building" style="color:#6366f1"></i>&nbsp; <strong>${esc(name || 'Unknown')}</strong> &nbsp;<span style="color:var(--text-muted)">Tenant ID / Venue ID:</span> <strong style="color:#a5b4fc">${esc(tid)}</strong>`;
-    } else {
-        el.innerHTML = '<span style="color:var(--text-muted)">No active tenant — please log out and log in again to select a venue.</span>';
-    }
-}
-
-async function addTenant() {
-    const id   = parseInt(document.getElementById('tId').value, 10);
-    const name = document.getElementById('tName').value.trim();
-    const slug = document.getElementById('tSlug').value.trim() ||
-                 name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-
-    if (!id || id < 1000) { showToast('Tenant ID must be >= 1000', 'error'); return; }
-    if (!name) { showToast('Venue name is required', 'error'); return; }
-
-    try {
-        const res = await fetch(TENANT_BASE + '/create-tenant', {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ tenant_id: id, name, slug })
-        });
-        const json = await res.json();
-        if (!json.ok) throw new Error(json.message || 'Failed');
-        document.getElementById('tId').value = '';
-        document.getElementById('tName').value = '';
-        document.getElementById('tSlug').value = '';
-        await loadTenants();
-        showToast(`Tenant #${id} "${name}" saved to database.`);
-    } catch(e) {
-        showToast('Error: ' + e.message, 'error');
-    }
-}
-
-async function removeTenant(id, name) {
-    if (!confirm(`Deactivate tenant #${id} "${name}"?\n\nThis will hide it from the login venue list.`)) return;
-    try {
-        const res = await fetch(TENANT_BASE + '/delete-tenant', {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ tenant_id: id })
-        });
-        const json = await res.json();
-        if (!json.ok) throw new Error(json.message || 'Failed');
-        await loadTenants();
-        showToast(`Tenant #${id} deactivated.`, 'error');
-    } catch(e) {
-        showToast('Error: ' + e.message, 'error');
-    }
 }
 
 init();
