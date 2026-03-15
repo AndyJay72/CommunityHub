@@ -487,6 +487,13 @@
                         </tbody>
                     </table>
                 </div>
+                <div id="et-pagination" style="display:none;align-items:center;justify-content:space-between;padding:10px 4px 0;font-size:0.85rem;color:var(--text-muted)">
+                    <span id="et-page-info"></span>
+                    <div style="display:flex;gap:8px">
+                        <button id="et-prev" class="btn" style="padding:5px 14px;font-size:0.82rem" onclick="etChangePage(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                        <button id="et-next" class="btn" style="padding:5px 14px;font-size:0.82rem" onclick="etChangePage(1)"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -640,6 +647,14 @@ function withRole(obj) {
 // STATE
 // ─────────────────────────────────────────────
 let rooms = [], eventTypes = [], pricing = [], settings = [];
+let etPage = 1;
+const ET_PAGE_SIZE = 7;
+
+function etChangePage(dir) {
+    const totalPages = Math.ceil(eventTypes.length / ET_PAGE_SIZE);
+    etPage = Math.max(1, Math.min(etPage + dir, totalPages));
+    renderEventTypesTable();
+}
 let modalMode = null; // { type: 'room'|'event', id, data }
 
 // ─────────────────────────────────────────────
@@ -879,8 +894,11 @@ async function loadEventTypes() {
 
 function renderEventTypesTable() {
     const tbody = document.getElementById('eventTypesTable');
-    if (!eventTypes.length) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">No event types found.</td></tr>'; return; }
-    tbody.innerHTML = eventTypes.map(et => `
+    if (!eventTypes.length) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">No event types found.</td></tr>'; document.getElementById('et-pagination').style.display='none'; return; }
+    const totalPages = Math.ceil(eventTypes.length / ET_PAGE_SIZE);
+    etPage = Math.max(1, Math.min(etPage, totalPages));
+    const slice = eventTypes.slice((etPage - 1) * ET_PAGE_SIZE, etPage * ET_PAGE_SIZE);
+    tbody.innerHTML = slice.map(et => `
         <tr class="${!et.is_active ? 'inactive-row' : ''}">
             <td style="font-weight:600;color:white">${esc(et.name)}</td>
             <td style="color:var(--text-muted);font-size:0.85rem">${esc(et.description || '—')}</td>
@@ -895,6 +913,15 @@ function renderEventTypesTable() {
                 </div>
             </td>
         </tr>`).join('');
+    const pgEl = document.getElementById('et-pagination');
+    if (eventTypes.length > ET_PAGE_SIZE) {
+        pgEl.style.display = 'flex';
+        document.getElementById('et-page-info').textContent = `Page ${etPage} of ${totalPages} (${eventTypes.length} types)`;
+        document.getElementById('et-prev').disabled = etPage === 1;
+        document.getElementById('et-next').disabled = etPage === totalPages;
+    } else {
+        pgEl.style.display = 'none';
+    }
 }
 
 async function addEventType() {
