@@ -878,6 +878,7 @@
             if(room&&room.capacity&&guests>parseInt(room.capacity)){document.getElementById('qb-guestCapMsg').textContent=`Guest count (${guests}) exceeds room capacity (${room.capacity}).`;warn.style.display='block';}
             else{warn.style.display='none';}
             qbCalculateCost();qbCheckAvailability();renderQbExtraRooms();
+        }
         function qbCalculateCost(){
             const roomName=document.getElementById('qb-roomSelect').value;
             const eventType=document.getElementById('qb-eventType').value;
