@@ -375,6 +375,7 @@
         <button class="tab-btn active" onclick="switchTab('rooms')"><i class="fa-solid fa-door-open"></i> Rooms</button>
         <button class="tab-btn"        onclick="switchTab('events')"><i class="fa-solid fa-calendar-star"></i> Event Types</button>
         <button class="tab-btn"        onclick="switchTab('pricing')"><i class="fa-solid fa-sterling-sign"></i> Pricing Grid</button>
+        <button class="tab-btn"        onclick="switchTab('services')"><i class="fa-solid fa-concierge-bell"></i> Services</button>
         <button class="tab-btn"        onclick="switchTab('settings')"><i class="fa-solid fa-gear"></i> Settings</button>
         <button class="tab-btn"        onclick="switchTab('tenants')"><i class="fa-solid fa-building"></i> Tenants</button>
     </div>
@@ -398,13 +399,19 @@
                             <input type="number" id="rCapacity" placeholder="e.g. 80" min="1">
                         </div>
                         <div class="input-group">
-                            <label>Day Rate (£)</label>
-                            <input type="number" id="rDayRate" placeholder="e.g. 950" min="0" step="0.01">
+                            <label>Hourly Rate (£)</label>
+                            <input type="number" id="rDayRate" placeholder="e.g. 45" min="0" step="0.01">
                         </div>
                     </div>
-                    <div class="input-group">
-                        <label>Half-Day Rate (£) <span style="font-size:0.75rem;opacity:0.6">optional</span></label>
-                        <input type="number" id="rHalfRate" placeholder="e.g. 600" min="0" step="0.01">
+                    <div class="row2">
+                        <div class="input-group">
+                            <label>Open Time <span style="font-size:0.75rem;opacity:0.6">optional</span></label>
+                            <select id="rOpenTime"></select>
+                        </div>
+                        <div class="input-group">
+                            <label>Close Time <span style="font-size:0.75rem;opacity:0.6">optional</span></label>
+                            <select id="rCloseTime"></select>
+                        </div>
                     </div>
                     <div class="input-group">
                         <label>Description</label>
@@ -425,8 +432,8 @@
                             <tr>
                                 <th>Name</th>
                                 <th>Cap.</th>
-                                <th>Day Rate</th>
-                                <th>Half-Day</th>
+                                <th>Hourly Rate</th>
+                                <th>Hours</th>
                                 <th>Status</th>
                                 <th style="text-align:right">Actions</th>
                             </tr>
@@ -493,11 +500,64 @@
             <div class="card-title">
                 <i class="fa-solid fa-sterling-sign"></i> Price Override Grid
                 <span style="font-size:0.78rem;font-weight:400;color:var(--text-muted);margin-left:auto">
-                    Set custom day rates per room + event type. Blank = uses room default rate.
+                    Set custom hourly rates per room + event type. Blank = uses room default hourly rate.
                 </span>
             </div>
             <div class="pricing-table-wrap" id="pricingGridWrap">
                 <p style="color:var(--text-muted);text-align:center;padding:2rem">Loading...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- TAB: SERVICES                               -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="tab-panel" id="tab-services">
+        <div class="grid-split">
+            <div class="card">
+                <div class="card-title"><i class="fa-solid fa-plus"></i> Add Service</div>
+                <form onsubmit="return false;">
+                    <div class="input-group">
+                        <label>Service Name</label>
+                        <input type="text" id="svcName" placeholder="e.g. OHP / Projector, DJ, Catering">
+                    </div>
+                    <div class="row2">
+                        <div class="input-group">
+                            <label>Pricing Type</label>
+                            <select id="svcType">
+                                <option value="flat">Flat Rate</option>
+                                <option value="hourly">Per Hour</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Price (£)</label>
+                            <input type="number" id="svcPrice" placeholder="e.g. 50" min="0" step="0.01">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" id="addSvcBtn" onclick="addService()">
+                        <i class="fa-solid fa-plus"></i> Add Service
+                    </button>
+                </form>
+            </div>
+            <div class="card">
+                <div class="card-title"><i class="fa-solid fa-concierge-bell"></i> Services</div>
+                <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem;line-height:1.6">Services appear as optional add-ons when confirming bookings in the Calendar and Dashboard.</p>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th>Type</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                <th style="text-align:right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="servicesTable">
+                            <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--text-muted)">No services defined yet.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -667,6 +727,7 @@ function switchTab(name) {
     document.getElementById('tab-' + name).classList.add('active');
     event.target.closest('.tab-btn').classList.add('active');
     if (name === 'pricing')  renderPricingGrid();
+    if (name === 'services') renderServicesTable();
     if (name === 'settings') loadSettings();
     if (name === 'tenants')  loadTenants();
 }
@@ -690,12 +751,16 @@ async function loadRooms() {
 function renderRoomsTable() {
     const tbody = document.getElementById('roomsTable');
     if (!rooms.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">No rooms found.</td></tr>'; return; }
-    tbody.innerHTML = rooms.map(r => `
+    const rHours = loadRoomHours();
+    tbody.innerHTML = rooms.map(r => {
+        const rh = rHours[r.id] || {};
+        const hoursStr = (rh.open && rh.close) ? `${rh.open}–${rh.close}` : '—';
+        return `
         <tr class="${!r.is_active ? 'inactive-row' : ''}">
             <td style="font-weight:600;color:white">${esc(r.name)}</td>
             <td style="color:var(--text-muted)">${r.capacity || '—'}</td>
-            <td>${fmt(r.day_rate)}</td>
-            <td style="color:var(--text-muted)">${r.half_rate ? fmt(r.half_rate) : '—'}</td>
+            <td>${fmt(r.day_rate)}<span style="font-size:0.72rem;color:var(--text-muted)">/hr</span></td>
+            <td style="color:var(--text-muted);font-size:0.85rem">${hoursStr}</td>
             <td><span class="status-badge ${r.is_active ? 'status-active' : 'status-inactive'}">${r.is_active ? 'Active' : 'Inactive'}</span></td>
             <td>
                 <div class="action-btns">
@@ -706,30 +771,41 @@ function renderRoomsTable() {
                     }
                 </div>
             </td>
-        </tr>`).join('');
+        </tr>`;
+    }).join('');
 }
 
 async function addRoom() {
-    const btn = document.getElementById('addRoomBtn');
-    const name = document.getElementById('rName').value.trim();
-    const cap  = document.getElementById('rCapacity').value;
-    const dr   = document.getElementById('rDayRate').value;
-    const hr   = document.getElementById('rHalfRate').value;
-    const desc = document.getElementById('rDesc').value.trim();
+    const btn      = document.getElementById('addRoomBtn');
+    const name     = document.getElementById('rName').value.trim();
+    const cap      = document.getElementById('rCapacity').value;
+    const dr       = document.getElementById('rDayRate').value;
+    const desc     = document.getElementById('rDesc').value.trim();
+    const openTime  = document.getElementById('rOpenTime').value;
+    const closeTime = document.getElementById('rCloseTime').value;
 
     if (!name) { showToast('Room name is required', 'error'); return; }
-    if (!dr || isNaN(parseFloat(dr))) { showToast('Day rate is required', 'error'); return; }
+    if (!dr || isNaN(parseFloat(dr))) { showToast('Hourly rate is required', 'error'); return; }
 
     btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Adding...';
     try {
         const res = await fetch(API.createRoom, {
             method: 'POST', headers: getAuthHeaders(),
-            body: JSON.stringify(withRole({ name, capacity: cap || null, day_rate: dr, half_rate: hr || null, description: desc || null }))
+            body: JSON.stringify(withRole({ name, capacity: cap || null, day_rate: dr, description: desc || null }))
         });
         if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error || 'Failed'); }
         showToast('Room added!');
-        ['rName','rCapacity','rDayRate','rHalfRate','rDesc'].forEach(id => document.getElementById(id).value = '');
+        ['rName','rCapacity','rDayRate','rDesc'].forEach(id => document.getElementById(id).value = '');
         await loadRooms();
+        if (openTime || closeTime) {
+            const newRoom = rooms.find(r => r.name === name);
+            if (newRoom) {
+                const rh = loadRoomHours();
+                rh[newRoom.id] = { open: openTime, close: closeTime };
+                saveRoomHours(rh);
+                renderRoomsTable();
+            }
+        }
     } catch(e) { showToast(e.message || 'Error adding room', 'error'); }
     finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-plus"></i> Add Room'; }
 }
@@ -739,18 +815,25 @@ function editRoom(id) {
     if (!r) return;
     modalMode = { type: 'room', id, data: r };
     document.getElementById('modalTitle').textContent = 'Edit Room — ' + r.name;
+    const rh2 = loadRoomHours()[r.id] || {};
+    const timeOpts = generateTimeOptions();
     document.getElementById('modalBody').innerHTML = `
         <div class="input-group"><label>Room Name</label><input type="text" id="me_name" value="${esc(r.name)}"></div>
         <div class="row2">
             <div class="input-group"><label>Capacity</label><input type="number" id="me_cap" value="${r.capacity || ''}" min="1"></div>
-            <div class="input-group"><label>Day Rate (£)</label><input type="number" id="me_dr" value="${r.day_rate}" min="0" step="0.01"></div>
+            <div class="input-group"><label>Hourly Rate (£)</label><input type="number" id="me_dr" value="${r.day_rate}" min="0" step="0.01"></div>
         </div>
-        <div class="input-group"><label>Half-Day Rate (£)</label><input type="number" id="me_hr" value="${r.half_rate || ''}" min="0" step="0.01"></div>
+        <div class="row2">
+            <div class="input-group"><label>Open Time</label><select id="me_open">${timeOpts}</select></div>
+            <div class="input-group"><label>Close Time</label><select id="me_close">${timeOpts}</select></div>
+        </div>
         <div class="input-group"><label>Description</label><textarea id="me_desc">${esc(r.description || '')}</textarea></div>
         <div class="toggle-row">
             <span class="toggle-label">Room Active</span>
             <button class="toggle ${r.is_active ? 'on' : ''}" id="me_active" onclick="this.classList.toggle('on')"></button>
         </div>`;
+    if (rh2.open)  document.getElementById('me_open').value  = rh2.open;
+    if (rh2.close) document.getElementById('me_close').value = rh2.close;
     document.getElementById('editModal').classList.add('open');
 }
 
@@ -766,13 +849,17 @@ async function saveModal() {
                 name:        document.getElementById('me_name').value.trim(),
                 capacity:    document.getElementById('me_cap').value || null,
                 day_rate:    document.getElementById('me_dr').value,
-                half_rate:   document.getElementById('me_hr').value || null,
                 description: document.getElementById('me_desc').value.trim() || null,
                 is_active:   document.getElementById('me_active').classList.contains('on')
             };
             if (!payload.name) throw new Error('Room name is required');
             const res = await fetch(API.updateRoom, { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(withRole(payload)) });
             if (!res.ok) throw new Error('Update failed');
+            const openTime  = (document.getElementById('me_open')  || {}).value || '';
+            const closeTime = (document.getElementById('me_close') || {}).value || '';
+            const rh = loadRoomHours();
+            rh[modalMode.id] = { open: openTime, close: closeTime };
+            saveRoomHours(rh);
             showToast('Room updated!');
             await loadRooms();
         } else if (modalMode.type === 'event') {
@@ -787,6 +874,18 @@ async function saveModal() {
             if (!res.ok) throw new Error('Update failed');
             showToast('Event type updated!');
             await loadEventTypes();
+        } else if (modalMode.type === 'service') {
+            const svcs = loadServicesData();
+            const s = svcs.find(x => x.id === modalMode.id);
+            if (!s) throw new Error('Service not found');
+            s.name   = document.getElementById('me_svc_name').value.trim();
+            s.type   = document.getElementById('me_svc_type').value;
+            s.price  = parseFloat(document.getElementById('me_svc_price').value) || 0;
+            s.active = document.getElementById('me_svc_active').classList.contains('on');
+            if (!s.name) throw new Error('Service name is required');
+            saveServicesData(svcs);
+            showToast('Service updated!');
+            renderServicesTable();
         }
         closeModal();
     } catch(e) { showToast(e.message || 'Error saving', 'error'); }
@@ -1086,6 +1185,222 @@ async function saveBufferSetting() {
 }
 
 // ─────────────────────────────────────────────
+// ROOM HOURS (localStorage per tenant)
+// ─────────────────────────────────────────────
+function roomHoursKey()   { return 'vp_room_hours_' + (_TID() || '0'); }
+function loadRoomHours()  { try { return JSON.parse(localStorage.getItem(roomHoursKey()) || '{}'); } catch(e) { return {}; } }
+function saveRoomHours(d) { localStorage.setItem(roomHoursKey(), JSON.stringify(d)); }
+
+// ─────────────────────────────────────────────
+// SERVICES (localStorage per tenant)
+// ─────────────────────────────────────────────
+function servicesKey()         { return 'vp_services_' + (_TID() || '0'); }
+function loadServicesData()    { try { return JSON.parse(localStorage.getItem(servicesKey()) || '[]'); } catch(e) { return []; } }
+function saveServicesData(d)   { localStorage.setItem(servicesKey(), JSON.stringify(d)); }
+
+function generateTimeOptions() {
+    const opts = ['<option value="">— Not set —</option>'];
+    for (let h = 0; h < 24; h++) {
+        for (let m = 0; m < 60; m += 30) {
+            const t = `${String(h).padStart(2,'0')}:${m === 0 ? '00' : '30'}`;
+            opts.push(`<option value="${t}">${t}</option>`);
+        }
+    }
+    return opts.join('');
+}
+
+function renderServicesTable() {
+    const svcs  = loadServicesData();
+    const tbody = document.getElementById('servicesTable');
+    if (!tbody) return;
+    if (!svcs.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--text-muted)">No services defined yet.</td></tr>';
+        return;
+    }
+    tbody.innerHTML = svcs.map(s => `
+        <tr class="${s.active === false ? 'inactive-row' : ''}">
+            <td style="font-weight:600;color:white">${esc(s.name)}</td>
+            <td style="color:var(--text-muted)">${s.type === 'hourly' ? 'Per Hour' : 'Flat Rate'}</td>
+            <td>${fmt(s.price)}${s.type === 'hourly' ? '<span style="font-size:0.72rem;color:var(--text-muted)">/hr</span>' : ''}</td>
+            <td><span class="status-badge ${s.active !== false ? 'status-active' : 'status-inactive'}">${s.active !== false ? 'Active' : 'Inactive'}</span></td>
+            <td>
+                <div class="action-btns">
+                    <button class="btn-sm btn-edit"    onclick="editServiceItem('${s.id}')"><i class="fa-solid fa-pen"></i></button>
+                    ${s.active !== false
+                        ? `<button class="btn-sm btn-delete"  onclick="toggleService('${s.id}',false)"><i class="fa-solid fa-eye-slash"></i></button>`
+                        : `<button class="btn-sm btn-restore" onclick="toggleService('${s.id}',true)"><i class="fa-solid fa-eye"></i></button>`
+                    }
+                    <button class="btn-sm btn-delete" onclick="deleteSvc('${s.id}')" title="Delete permanently"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </td>
+        </tr>`).join('');
+}
+
+function addService() {
+    const name  = document.getElementById('svcName').value.trim();
+    const type  = document.getElementById('svcType').value;
+    const price = parseFloat(document.getElementById('svcPrice').value);
+    if (!name)                    { showToast('Service name is required', 'error'); return; }
+    if (isNaN(price) || price < 0){ showToast('Valid price is required', 'error'); return; }
+    const svcs = loadServicesData();
+    svcs.push({ id: 'svc_' + Date.now(), name, type, price, active: true });
+    saveServicesData(svcs);
+    showToast('Service added!');
+    document.getElementById('svcName').value  = '';
+    document.getElementById('svcPrice').value = '';
+    renderServicesTable();
+}
+
+function editServiceItem(id) {
+    const svcs = loadServicesData();
+    const s = svcs.find(x => x.id === id);
+    if (!s) return;
+    modalMode = { type: 'service', id };
+    document.getElementById('modalTitle').textContent = 'Edit Service — ' + s.name;
+    document.getElementById('modalBody').innerHTML = `
+        <div class="input-group"><label>Service Name</label><input type="text" id="me_svc_name" value="${esc(s.name)}"></div>
+        <div class="row2">
+            <div class="input-group">
+                <label>Pricing Type</label>
+                <select id="me_svc_type">
+                    <option value="flat"   ${s.type === 'flat'   ? 'selected' : ''}>Flat Rate</option>
+                    <option value="hourly" ${s.type === 'hourly' ? 'selected' : ''}>Per Hour</option>
+                </select>
+            </div>
+            <div class="input-group"><label>Price (£)</label><input type="number" id="me_svc_price" value="${s.price}" min="0" step="0.01"></div>
+        </div>
+        <div class="toggle-row">
+            <span class="toggle-label">Active</span>
+            <button class="toggle ${s.active !== false ? 'on' : ''}" id="me_svc_active" onclick="this.classList.toggle('on')"></button>
+        </div>`;
+    document.getElementById('editModal').classList.add('open');
+}
+
+function toggleService(id, active) {
+    const svcs = loadServicesData();
+    const s = svcs.find(x => x.id === id);
+    if (s) s.active = active;
+    saveServicesData(svcs);
+    showToast(active ? 'Service activated' : 'Service deactivated');
+    renderServicesTable();
+}
+
+function deleteSvc(id) {
+    if (!confirm('Permanently delete this service?')) return;
+    saveServicesData(loadServicesData().filter(x => x.id !== id));
+    showToast('Service deleted');
+    renderServicesTable();
+}
+
+// ─────────────────────────────────────────────
+// ROOM HOURS (localStorage per tenant)
+// ─────────────────────────────────────────────
+function roomHoursKey()   { return 'vp_room_hours_' + (_TID() || '0'); }
+function loadRoomHours()  { try { return JSON.parse(localStorage.getItem(roomHoursKey()) || '{}'); } catch(e) { return {}; } }
+function saveRoomHours(d) { localStorage.setItem(roomHoursKey(), JSON.stringify(d)); }
+
+// ─────────────────────────────────────────────
+// SERVICES (localStorage per tenant)
+// ─────────────────────────────────────────────
+function servicesKey()       { return 'vp_services_' + (_TID() || '0'); }
+function loadServicesData()  { try { return JSON.parse(localStorage.getItem(servicesKey()) || '[]'); } catch(e) { return []; } }
+function saveServicesData(d) { localStorage.setItem(servicesKey(), JSON.stringify(d)); }
+
+function generateTimeOptions() {
+    const opts = ['<option value="">— Not set —</option>'];
+    for (let h = 0; h < 24; h++) {
+        for (let m = 0; m < 60; m += 30) {
+            const t = `${String(h).padStart(2,'0')}:${m === 0 ? '00' : '30'}`;
+            opts.push(`<option value="${t}">${t}</option>`);
+        }
+    }
+    return opts.join('');
+}
+
+function renderServicesTable() {
+    const svcs  = loadServicesData();
+    const tbody = document.getElementById('servicesTable');
+    if (!tbody) return;
+    if (!svcs.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--text-muted)">No services defined yet.</td></tr>';
+        return;
+    }
+    tbody.innerHTML = svcs.map(s => `
+        <tr class="${s.active === false ? 'inactive-row' : ''}">
+            <td style="font-weight:600;color:white">${esc(s.name)}</td>
+            <td style="color:var(--text-muted)">${s.type === 'hourly' ? 'Per Hour' : 'Flat Rate'}</td>
+            <td>${fmt(s.price)}${s.type === 'hourly' ? '<span style="font-size:0.72rem;color:var(--text-muted)">/hr</span>' : ''}</td>
+            <td><span class="status-badge ${s.active !== false ? 'status-active' : 'status-inactive'}">${s.active !== false ? 'Active' : 'Inactive'}</span></td>
+            <td>
+                <div class="action-btns">
+                    <button class="btn-sm btn-edit"    onclick="editServiceItem('${s.id}')"><i class="fa-solid fa-pen"></i></button>
+                    ${s.active !== false
+                        ? `<button class="btn-sm btn-delete"  onclick="toggleService('${s.id}',false)"><i class="fa-solid fa-eye-slash"></i></button>`
+                        : `<button class="btn-sm btn-restore" onclick="toggleService('${s.id}',true)"><i class="fa-solid fa-eye"></i></button>`
+                    }
+                    <button class="btn-sm btn-delete" onclick="deleteSvc('${s.id}')" title="Delete permanently"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </td>
+        </tr>`).join('');
+}
+
+function addService() {
+    const name  = document.getElementById('svcName').value.trim();
+    const type  = document.getElementById('svcType').value;
+    const price = parseFloat(document.getElementById('svcPrice').value);
+    if (!name)                     { showToast('Service name is required', 'error'); return; }
+    if (isNaN(price) || price < 0) { showToast('Valid price is required', 'error'); return; }
+    const svcs = loadServicesData();
+    svcs.push({ id: 'svc_' + Date.now(), name, type, price, active: true });
+    saveServicesData(svcs);
+    showToast('Service added!');
+    document.getElementById('svcName').value  = '';
+    document.getElementById('svcPrice').value = '';
+    renderServicesTable();
+}
+
+function editServiceItem(id) {
+    const svcs = loadServicesData();
+    const s = svcs.find(x => x.id === id);
+    if (!s) return;
+    modalMode = { type: 'service', id };
+    document.getElementById('modalTitle').textContent = 'Edit Service — ' + s.name;
+    document.getElementById('modalBody').innerHTML = `
+        <div class="input-group"><label>Service Name</label><input type="text" id="me_svc_name" value="${esc(s.name)}"></div>
+        <div class="row2">
+            <div class="input-group">
+                <label>Pricing Type</label>
+                <select id="me_svc_type">
+                    <option value="flat"   ${s.type === 'flat'   ? 'selected' : ''}>Flat Rate</option>
+                    <option value="hourly" ${s.type === 'hourly' ? 'selected' : ''}>Per Hour</option>
+                </select>
+            </div>
+            <div class="input-group"><label>Price (£)</label><input type="number" id="me_svc_price" value="${s.price}" min="0" step="0.01"></div>
+        </div>
+        <div class="toggle-row">
+            <span class="toggle-label">Active</span>
+            <button class="toggle ${s.active !== false ? 'on' : ''}" id="me_svc_active" onclick="this.classList.toggle('on')"></button>
+        </div>`;
+    document.getElementById('editModal').classList.add('open');
+}
+
+function toggleService(id, active) {
+    const svcs = loadServicesData();
+    const s = svcs.find(x => x.id === id);
+    if (s) s.active = active;
+    saveServicesData(svcs);
+    showToast(active ? 'Service activated' : 'Service deactivated');
+    renderServicesTable();
+}
+
+function deleteSvc(id) {
+    if (!confirm('Permanently delete this service?')) return;
+    saveServicesData(loadServicesData().filter(x => x.id !== id));
+    showToast('Service deleted');
+    renderServicesTable();
+}
+
+// ─────────────────────────────────────────────
 // ESCAPE HELPER
 // ─────────────────────────────────────────────
 function esc(str) {
@@ -1097,6 +1412,9 @@ function esc(str) {
 // INIT
 // ─────────────────────────────────────────────
 async function init() {
+    const timeOpts = generateTimeOptions();
+    document.getElementById('rOpenTime').innerHTML = timeOpts;
+    document.getElementById('rCloseTime').innerHTML = timeOpts;
     await Promise.all([loadRooms(), loadEventTypes(), loadPricing(), loadSettings()]);
 }
 

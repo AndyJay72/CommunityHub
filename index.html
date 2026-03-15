@@ -1189,6 +1189,41 @@
                 <div id="modal-int-none" class="no-interactions" style="display:none;">No interactions logged yet — click a booking row above to log one</div>
             </div>
 
+            <!-- INLINE CONFIRM SECTION (shown for pending requests) -->
+            <div id="m-confirm-section" style="display:none;margin-top:1rem;background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.28);border-radius:12px;padding:1.25rem">
+                <div style="font-size:0.8rem;font-weight:700;color:#f59e0b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px"><i class="fa-solid fa-calendar-check" style="margin-right:6px"></i>Confirm Booking &amp; Take Deposit</div>
+                <div id="m-confirm-services-wrap">
+                    <div style="font-size:0.73rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px">Add-on Services</div>
+                    <div id="m-confirm-services-list"></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+                    <div>
+                        <label style="font-size:0.73rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px">Total Price (£) *</label>
+                        <input id="m-confirm-total" type="number" min="0" step="0.01" placeholder="e.g. 450.00" style="width:100%;padding:9px 12px;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:8px;color:white;font-size:0.88rem;outline:none" oninput="mConfirmCalcDeposit()">
+                    </div>
+                    <div>
+                        <label style="font-size:0.73rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px">Deposit Taken (£)</label>
+                        <input id="m-confirm-deposit" type="number" min="0" step="0.01" placeholder="0.00" style="width:100%;padding:9px 12px;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:8px;color:white;font-size:0.88rem;outline:none">
+                    </div>
+                    <div style="grid-column:1/-1">
+                        <label style="font-size:0.73rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px">Payment Method</label>
+                        <select id="m-confirm-method" style="width:100%;padding:9px 12px;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:8px;color:white;font-size:0.88rem;outline:none">
+                            <option value="cash">Cash</option>
+                            <option value="card">Card</option>
+                            <option value="bank_transfer">Bank Transfer</option>
+                            <option value="bacs">BACS</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display:flex;gap:10px;margin-top:12px">
+                    <button id="m-confirm-btn" onclick="submitConfirmFromDashboard()" style="flex:1;padding:10px;background:#f59e0b;color:#0f172a;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.88rem">
+                        <i class="fa-solid fa-check"></i> Confirm &amp; Record Deposit
+                    </button>
+                    <button onclick="submitConfirmNoDepositDashboard()" style="flex:1;padding:10px;background:transparent;border:1px solid var(--border);color:var(--text-muted);border-radius:8px;font-weight:600;cursor:pointer;font-size:0.82rem">
+                        Confirm Without Deposit
+                    </button>
+                </div>
+            </div>
             <div class="modal-actions" id="modal-buttons">
                 <button class="btn-modal btn-close" onclick="closeModal()">Close</button>
             </div>
@@ -1362,6 +1397,7 @@
         const DASHBOARD_WEBHOOK_URL  = 'https://n8n.srv1090894.hstgr.cloud/webhook/staff-dashboard';
         const UPDATE_STATUS_URL      = 'https://n8n.srv1090894.hstgr.cloud/webhook/update-status';
         const CANCEL_PENDING_URL     = 'https://n8n.srv1090894.hstgr.cloud/webhook/cancel-pending';
+        let currentPendingData       = null;
         const EXPIRY_WARNING_URL     = 'https://n8n.srv1090894.hstgr.cloud/webhook/send-expiry-warning';
         const MONTHLY_REVENUE_URL    = 'https://n8n.srv1090894.hstgr.cloud/webhook/get-monthly-revenue';
         const ALL_BOOKINGS_URL       = 'https://n8n.srv1090894.hstgr.cloud/webhook/all-bookings';
@@ -1688,9 +1724,10 @@
                 const hasBooking = data.has_booking === true || data.has_booking === 'true';
                 const bookBtn    = `<a href="venuepro_booking.html?cid=${data.id}" class="btn-modal btn-book"><i class="fa-solid fa-calendar-check"></i> Book Now</a>`;
                 const cancelBtn  = `<button class="btn-modal btn-cancel" onclick="cancelRequest('${data.id}','${(data.full_name||'').replace(/'/g,"\\'")}')"><i class="fa-solid fa-ban"></i> Cancel</button>`;
+                const confirmBtn = `<button class="btn-modal" style="background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);display:flex;align-items:center;gap:8px" onclick="toggleConfirmSection()"><i class="fa-solid fa-calendar-check"></i> Confirm</button>`;
                 btnContainer.innerHTML = countdownHtml
                     + `<div style="display:flex;gap:10px;justify-content:flex-end;align-items:center;flex-wrap:wrap;margin-top:1rem">`
-                    + bookBtn + cancelBtn
+                    + bookBtn + confirmBtn + cancelBtn
                     + `<button class="btn-modal btn-close" onclick="closeModal()">Close</button></div>`;
             } else if (data.status === 'deposit_paid') {
                 btnContainer.innerHTML = `<a href="final-payment.html" class="btn-modal btn-pay"><i class="fa-solid fa-credit-card"></i> Pay Balance</a><button class="btn-modal btn-close" onclick="closeModal()">Close</button>`;
@@ -1698,6 +1735,10 @@
                 btnContainer.innerHTML = `<button class="btn-modal btn-close" onclick="closeModal()">Close</button>`;
             }
             // Hide history/interactions — not needed for Pending Request view
+            // Store pending data for inline confirm panel
+            currentPendingData = data;
+            const mcs = document.getElementById('m-confirm-section');
+            if (mcs) mcs.style.display = 'none';
             document.getElementById('bh-section').style.display = 'none';
             const _mis1 = document.getElementById('modal-int-section'); if (_mis1) _mis1.style.display = 'none';
             document.getElementById('custModal').classList.add('open');
@@ -1854,6 +1895,129 @@
             
             document.getElementById('val-bookings').innerText = count;
             document.getElementById('val-bookings-label').innerText = `${MONTHS[month-1]} ${year}`;
+        }
+
+        function toggleConfirmSection() {
+            const sec = document.getElementById('m-confirm-section');
+            if (!sec) return;
+            const isOpen = sec.style.display !== 'none';
+            sec.style.display = isOpen ? 'none' : 'block';
+            if (!isOpen) renderDashboardServices();
+        }
+
+        function renderDashboardServices() {
+            const tid = localStorage.getItem('vp_tenant_id') || '';
+            let svcs = [];
+            try { svcs = JSON.parse(localStorage.getItem('vp_services_' + tid) || '[]').filter(s => s.active !== false); } catch(e) {}
+            const wrap = document.getElementById('m-confirm-services-wrap');
+            const c    = document.getElementById('m-confirm-services-list');
+            if (!c) return;
+            if (!svcs.length) { if (wrap) wrap.style.display = 'none'; return; }
+            if (wrap) wrap.style.display = 'block';
+            c.innerHTML = svcs.map(s => `
+                <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+                    <input type="checkbox" id="ms-svc-${esc(s.id)}" style="width:auto;margin:0;min-height:unset;cursor:pointer" onchange="mUpdateServicesTotal()">
+                    <label for="ms-svc-${esc(s.id)}" style="flex:1;cursor:pointer;font-size:0.87rem">${esc(s.name)}<span style="color:var(--text-muted);font-size:0.77rem"> — ${s.type === 'hourly' ? '£' + s.price + '/hr' : '£' + s.price + ' flat'}</span></label>
+                    ${s.type === 'hourly' ? `<input type="number" id="ms-svc-hrs-${esc(s.id)}" style="width:64px;padding:4px 8px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:6px;color:white;font-size:0.82rem;min-height:unset;text-align:center" placeholder="hrs" min="0.5" step="0.5" oninput="mUpdateServicesTotal()">` : ''}
+                </div>`).join('');
+        }
+
+        function mUpdateServicesTotal() {
+            const tid = localStorage.getItem('vp_tenant_id') || '';
+            let svcs = [];
+            try { svcs = JSON.parse(localStorage.getItem('vp_services_' + tid) || '[]').filter(s => s.active !== false); } catch(e) {}
+            let svcTotal = 0;
+            svcs.forEach(s => {
+                const cb = document.getElementById('ms-svc-' + s.id);
+                if (!cb || !cb.checked) return;
+                if (s.type === 'hourly') {
+                    const hEl = document.getElementById('ms-svc-hrs-' + s.id);
+                    svcTotal += (parseFloat(s.price) || 0) * (parseFloat(hEl ? hEl.value : '') || 0);
+                } else {
+                    svcTotal += parseFloat(s.price) || 0;
+                }
+            });
+            if (svcTotal > 0) {
+                const tot = document.getElementById('m-confirm-total');
+                if (tot) { tot.value = svcTotal.toFixed(2); mConfirmCalcDeposit(); }
+            }
+        }
+
+        function mConfirmCalcDeposit() {
+            const total = parseFloat(document.getElementById('m-confirm-total').value || 0);
+            if (total > 0) document.getElementById('m-confirm-deposit').value = (Math.round(total * 30) / 100).toFixed(2);
+        }
+
+        function mGetServicesPayload() {
+            const tid = localStorage.getItem('vp_tenant_id') || '';
+            let svcs = [];
+            try { svcs = JSON.parse(localStorage.getItem('vp_services_' + tid) || '[]').filter(s => s.active !== false); } catch(e) {}
+            const sel = [];
+            svcs.forEach(s => {
+                const cb = document.getElementById('ms-svc-' + s.id);
+                if (!cb || !cb.checked) return;
+                const h = s.type === 'hourly' ? parseFloat((document.getElementById('ms-svc-hrs-' + s.id) || {}).value || 0) || 0 : null;
+                sel.push({ name: s.name, type: s.type, price: s.price, hours: h, subtotal: s.type === 'hourly' ? s.price * h : s.price });
+            });
+            return sel;
+        }
+
+        async function submitConfirmFromDashboard() {
+            if (!currentPendingData) return;
+            const total   = parseFloat(document.getElementById('m-confirm-total').value || 0);
+            const deposit = parseFloat(document.getElementById('m-confirm-deposit').value || 0);
+            const method  = document.getElementById('m-confirm-method').value;
+            if (!total || total <= 0) { showToast('Please enter the total booking price', 'error'); return; }
+            const balance = Math.max(0, total - deposit);
+            const btn = document.getElementById('m-confirm-btn');
+            btn.disabled = true;
+            try {
+                const p = currentPendingData;
+                const res = await fetch('https://n8n.srv1090894.hstgr.cloud/webhook/confirm-booking', {
+                    method: 'POST', headers: getAuthHeaders(),
+                    body: JSON.stringify({
+                        request_id: p.request_id || p.id,
+                        customer_id: p.id,
+                        total_amount: total,
+                        balance_due: balance,
+                        deposit_amount: deposit,
+                        payment_method: method,
+                        services: mGetServicesPayload(),
+                        tenant_id: parseInt(localStorage.getItem('vp_tenant_id') || '0')
+                    })
+                });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                showToast('Booking confirmed!', 'success');
+                document.getElementById('custModal').classList.remove('open');
+                setTimeout(() => loadDashboard(), 1500);
+            } catch(e) { showToast('Error confirming: ' + e.message, 'error'); }
+            finally { btn.disabled = false; }
+        }
+
+        async function submitConfirmNoDepositDashboard() {
+            if (!currentPendingData) return;
+            const total = parseFloat(document.getElementById('m-confirm-total').value || 0);
+            const btn   = document.getElementById('m-confirm-btn');
+            if (btn) btn.disabled = true;
+            try {
+                const p = currentPendingData;
+                const res = await fetch('https://n8n.srv1090894.hstgr.cloud/webhook/confirm-booking', {
+                    method: 'POST', headers: getAuthHeaders(),
+                    body: JSON.stringify({
+                        request_id: p.request_id || p.id,
+                        customer_id: p.id,
+                        total_amount: total || 0,
+                        balance_due: total || 0,
+                        services: mGetServicesPayload(),
+                        tenant_id: parseInt(localStorage.getItem('vp_tenant_id') || '0')
+                    })
+                });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                showToast('Booking confirmed!', 'success');
+                document.getElementById('custModal').classList.remove('open');
+                setTimeout(() => loadDashboard(), 1500);
+            } catch(e) { showToast('Error confirming: ' + e.message, 'error'); }
+            finally { if (btn) btn.disabled = false; }
         }
 
         async function cancelRequest(id, name) {

@@ -54,7 +54,7 @@
         /* ── Quick Booking Modal ── */
         .qb-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.72);backdrop-filter:blur(6px);z-index:4000;display:none;justify-content:center;align-items:flex-start;padding-top:2.5rem;overflow-y:auto}
         .qb-overlay.open{display:flex}
-        .qb-card{background:#1e293b;border:1px solid var(--border);width:92%;max-width:640px;border-radius:20px;padding:2rem;box-shadow:0 30px 60px rgba(0,0,0,0.5);animation:slideUp 0.25s ease;margin-bottom:2rem}
+        .qb-card{background:#1e293b;border:1px solid var(--border);width:96%;max-width:900px;border-radius:20px;padding:2rem;box-shadow:0 30px 60px rgba(0,0,0,0.5);animation:slideUp 0.25s ease;margin-bottom:2rem}
         .qb-title{font-size:1.1rem;font-weight:700;display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border)}
         .qb-section-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin:1rem 0 0.5rem;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.06)}
         .qb-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem}
@@ -107,9 +107,9 @@
         body.light-mode .bd-item-label{color:#0f172a}
         .modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.72);backdrop-filter:blur(6px);z-index:2000;display:none;justify-content:center;align-items:center}
         .modal-overlay.open{display:flex}
-        .modal-card{background:#1e293b;border:1px solid var(--border);width:96%;max-width:1100px;border-radius:20px;padding:2rem;box-shadow:0 30px 60px rgba(0,0,0,0.5);animation:slideUp 0.25s ease;max-height:92vh;overflow-y:auto}
+        .modal-card{background:#1e293b;border:1px solid var(--border);width:97%;max-width:1340px;border-radius:20px;padding:2rem;box-shadow:0 30px 60px rgba(0,0,0,0.5);animation:slideUp 0.25s ease;max-height:92vh;overflow-y:auto}
         .modal-body-cols{display:flex;gap:0;align-items:flex-start}
-        .modal-col-info{flex:0 0 auto;width:380px;min-width:0}
+        .modal-col-info{flex:0 0 auto;width:420px;min-width:0}
         .modal-col-divider{width:1px;background:var(--border);margin:0 1.5rem;align-self:stretch;flex-shrink:0}
         .modal-col-action{flex:1;min-width:200px;display:flex;flex-direction:column}
         .modal-col-placeholder{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text-muted);font-size:0.82rem;gap:10px;padding:2.5rem 1rem;border:1px dashed rgba(148,163,184,0.18);border-radius:12px;text-align:center;min-height:200px}
@@ -552,6 +552,10 @@
                         <div class="e-cs-title"><i class="fa-solid fa-calendar-check" style="margin-right:6px"></i>Confirm Booking &amp; Take Deposit</div>
                         <div class="e-cs-hint">Set the total price and record the deposit collected at confirmation.</div>
                         <div id="e-cs-breakdown" style="font-size:0.78rem;color:#f59e0b;background:rgba(245,158,11,0.08);border-radius:6px;padding:7px 10px;margin-bottom:10px;display:none"></div>
+                        <div id="cs-services-wrap" style="margin-bottom:10px">
+                            <div style="font-size:0.73rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px">Add-on Services</div>
+                            <div id="cs-services-list"></div>
+                        </div>
                         <div class="e-cs-grid">
                             <div><label class="e-pay-lbl">Total Price (£) *</label><input id="e-cs-total" type="number" min="0" step="0.01" class="qb-input" placeholder="e.g. 450.00" oninput="csOnTotalChange()"></div>
                             <div><label class="e-pay-lbl">Deposit Taken (£)</label><input id="e-cs-deposit" type="number" min="0" step="0.01" class="qb-input" placeholder="0.00"></div>
@@ -640,6 +644,7 @@
             </div>
             <div id="qb-availStatus" class="qb-avail-box qb-avail-idle"><span id="qb-availText">Fill in room, date &amp; times to check availability.</span></div>
             <div id="qb-guestCapWarning" class="qb-cap-warning" style="display:none"><i class="fa-solid fa-triangle-exclamation"></i> <span id="qb-guestCapMsg"></span></div>
+            <div id="qb-services-wrap" style="margin:0.6rem 0"></div>
             <div class="qb-payment-box">
                 <div class="qb-section-label" style="margin-top:0">Payment</div>
                 <div class="qb-total-display">
@@ -845,7 +850,10 @@
             document.getElementById('qb-guestCapWarning').style.display='none';
             qbSetButtons(false);
             const activeRoom=document.getElementById('roomFilter').value;
-            qbInit().then(()=>{if(activeRoom){document.getElementById('qb-roomSelect').value=activeRoom;qbOnRoomChange();}});
+            qbInit().then(()=>{
+                renderQbServices();
+                if(activeRoom){document.getElementById('qb-roomSelect').value=activeRoom;qbOnRoomChange();}
+            });
             document.getElementById('qbModal').classList.add('open');
             if(startStr)setTimeout(qbCheckAvailability,350);
         }
@@ -871,24 +879,22 @@
             const room=qbRoomsData.find(r=>(r.name||r.room_name||String(r.id))===roomName);
             if(!room){document.getElementById('qb-costBreakdown').textContent='No pricing found for this room.';return;}
             const days=qbDayCount(from,to);
-            const fullRate=parseFloat(room.day_rate||0);
-            const halfRate=parseFloat(room.half_rate||0);
+            const hourlyRate=parseFloat(room.day_rate||0);
             const startT=document.getElementById('qb-startTime').value||'09:00';
             const endT=document.getElementById('qb-endTime').value||'17:00';
             const[sh,sm]=startT.split(':').map(Number);const[eh,em]=endT.split(':').map(Number);
             const hrs=(eh*60+em-sh*60-sm)/60;
             if(hrs<=0){document.getElementById('qb-costBreakdown').textContent='End time must be after start time';return;}
-            let perDayCost,rateLabel;
-            if(hrs>=6){perDayCost=fullRate;rateLabel=`Full-day: ${fmt(fullRate)}`;}
-            else if(halfRate&&hrs>=3){perDayCost=halfRate;rateLabel=`Half-day: ${fmt(halfRate)}`;}
-            else{perDayCost=(hrs/8)*fullRate;rateLabel=`Pro-rated ${hrs.toFixed(1)}h: ${fmt(perDayCost)}`;}
+            const perDayCost=hourlyRate*hrs;
             let total=perDayCost*days;
-            let breakdown=rateLabel;
+            let breakdown=`${hrs.toFixed(1)}h × ${fmt(hourlyRate)}/hr`;
             if(days>1)breakdown+=` × ${days} days`;
             if(eventType&&room.id){
                 const sur=qbPricingData.find(p=>String(p.room_id)===String(room.id)&&(p.event_type_name||p.event_type||'').toLowerCase()===eventType.toLowerCase());
-                if(sur&&parseFloat(sur.day_rate)>0){const s=parseFloat(sur.day_rate)*days;total+=s;breakdown+=` + ${fmt(s)} surcharge`;}
+                if(sur&&parseFloat(sur.day_rate)>0){const s=parseFloat(sur.day_rate)*hrs*days;total+=s;breakdown+=` + ${fmt(s)} surcharge`;}
             }
+            const svcRes=qbGetServicesTotal();
+            if(svcRes.total>0){total+=svcRes.total;breakdown+=` + services ${fmt(svcRes.total)}`;}
             qbTotalAmount=total;qbDepositAmount=Math.round(total*QBR_DEPOSIT_PCT)/100;
             document.getElementById('qb-totalDisplay').textContent=fmt(total);
             document.getElementById('qb-costBreakdown').textContent=breakdown;
@@ -956,7 +962,7 @@
             if(type!=='pending'){
                 try{const cr=await fetch(CHECK_API,{method:'POST',headers:{...getAuthHeaders(),'Content-Type':'application/json'},body:JSON.stringify({roomName,eventDate:from,timeFrom:startT,timeTo:endT})});const cj=await cr.json();const avail=cj.available===true||cj.available==='true'||cj.status==='available';if(!avail){qbShowConflictModal();return;}}catch(e){}
             }
-            const payload={customer_name:name,customer_email:email||null,customer_phone:phone,room_id:roomId||null,room_name:roomName,booking_date:from,date_from:from,date_to:to,start_time:startT,end_time:endT,guest_count:parseInt(guests)||null,event_type:eventType||null,notes:notes||null,total_amount:qbTotalAmount,payment_amount:payAmt,balance_due:balance,payment_type:paymentType,payment_method:payMethod,booking_source:'walk_in',status};
+            const payload={customer_name:name,customer_email:email||null,customer_phone:phone,room_id:roomId||null,room_name:roomName,booking_date:from,date_from:from,date_to:to,start_time:startT,end_time:endT,guest_count:parseInt(guests)||null,event_type:eventType||null,notes:notes||null,total_amount:qbTotalAmount,payment_amount:payAmt,balance_due:balance,payment_type:paymentType,payment_method:payMethod,booking_source:'walk_in',status,services:qbGetServicesPayload()};
             ['qb-btn-deposit','qb-btn-full','qb-btn-pending'].forEach(id=>document.getElementById(id).disabled=true);
             try{
                 const res=await fetch(BOOKING_API,{method:'POST',headers:{...getAuthHeaders(),'Content-Type':'application/json'},body:JSON.stringify(payload)});
@@ -964,6 +970,41 @@
                 closeQbModal();showToast('Booking created!','success');setTimeout(()=>location.reload(),1500);
             }catch(err){showToast('Failed to submit: '+err.message,'error');}
             finally{['qb-btn-deposit','qb-btn-full','qb-btn-pending'].forEach(id=>document.getElementById(id).disabled=false);qbSetButtons(true);}
+        }
+        function svcEsc(s){if(!s)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+        function getServicesForTenant(){const tid=localStorage.getItem('vp_tenant_id')||'';try{return JSON.parse(localStorage.getItem('vp_services_'+tid)||'[]').filter(s=>s.active!==false);}catch(e){return [];}}
+        function renderQbServices(){
+            const svcs=getServicesForTenant();const c=document.getElementById('qb-services-wrap');
+            if(!c)return;
+            if(!svcs.length){c.innerHTML='';return;}
+            c.innerHTML='<div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:4px">Add-on Services</div>'
+                +svcs.map(s=>`<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><input type="checkbox" id="qb-svc-${s.id}" style="width:auto;margin:0;min-height:unset;cursor:pointer" onchange="qbCalculateCost()"><label for="qb-svc-${s.id}" style="flex:1;cursor:pointer;font-size:0.87rem">${svcEsc(s.name)}<span style="color:var(--text-muted);font-size:0.76rem"> — ${s.type==='hourly'?fmt(s.price)+'/hr':fmt(s.price)+' flat'}</span></label>${s.type==='hourly'?`<input type="number" id="qb-svc-hrs-${s.id}" style="width:64px;padding:4px 8px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:6px;color:white;font-size:0.82rem;min-height:unset;text-align:center" placeholder="hrs" min="0.5" step="0.5" oninput="qbCalculateCost()">`:''}</div>`).join('');
+        }
+        function qbGetServicesTotal(){
+            const svcs=getServicesForTenant();let total=0;
+            svcs.forEach(s=>{const cb=document.getElementById('qb-svc-'+s.id);if(!cb||!cb.checked)return;if(s.type==='hourly'){const h=parseFloat((document.getElementById('qb-svc-hrs-'+s.id)||{}).value||0)||0;total+=parseFloat(s.price)*h;}else{total+=parseFloat(s.price)||0;}});
+            return{total};
+        }
+        function qbGetServicesPayload(){
+            const svcs=getServicesForTenant();const sel=[];
+            svcs.forEach(s=>{const cb=document.getElementById('qb-svc-'+s.id);if(!cb||!cb.checked)return;const h=s.type==='hourly'?parseFloat((document.getElementById('qb-svc-hrs-'+s.id)||{}).value||0)||0:null;sel.push({name:s.name,type:s.type,price:s.price,hours:h,subtotal:s.type==='hourly'?s.price*h:s.price});});
+            return sel;
+        }
+        function renderCsServices(){
+            const svcs=getServicesForTenant();const c=document.getElementById('cs-services-list');
+            if(!c)return;
+            if(!svcs.length){c.innerHTML='<div style="color:var(--text-muted);font-size:0.82rem;padding:4px 0">No services configured. <a href="admin-config.html" style="color:var(--primary)">Add in Config →</a></div>';return;}
+            c.innerHTML=svcs.map(s=>`<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><input type="checkbox" id="cs-svc-${s.id}" style="width:auto;margin:0;min-height:unset;cursor:pointer" onchange="csCalcCost()"><label for="cs-svc-${s.id}" style="flex:1;cursor:pointer;font-size:0.87rem">${svcEsc(s.name)}<span style="color:var(--text-muted);font-size:0.76rem"> — ${s.type==='hourly'?fmt(s.price)+'/hr':fmt(s.price)+' flat'}</span></label>${s.type==='hourly'?`<input type="number" id="cs-svc-hrs-${s.id}" style="width:64px;padding:4px 8px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:6px;color:white;font-size:0.82rem;min-height:unset;text-align:center" placeholder="hrs" min="0.5" step="0.5" oninput="csCalcCost()">`:''}</div>`).join('');
+        }
+        function csGetServicesTotal(){
+            const svcs=getServicesForTenant();let total=0;
+            svcs.forEach(s=>{const cb=document.getElementById('cs-svc-'+s.id);if(!cb||!cb.checked)return;if(s.type==='hourly'){const h=parseFloat((document.getElementById('cs-svc-hrs-'+s.id)||{}).value||0)||0;total+=parseFloat(s.price)*h;}else{total+=parseFloat(s.price)||0;}});
+            return{total};
+        }
+        function csGetServicesPayload(){
+            const svcs=getServicesForTenant();const sel=[];
+            svcs.forEach(s=>{const cb=document.getElementById('cs-svc-'+s.id);if(!cb||!cb.checked)return;const h=s.type==='hourly'?parseFloat((document.getElementById('cs-svc-hrs-'+s.id)||{}).value||0)||0:null;sel.push({name:s.name,type:s.type,price:s.price,hours:h,subtotal:s.type==='hourly'?s.price*h:s.price});});
+            return sel;
         }
         let allEvents=[],calendarInstance=null,dateStatusMap={},currentModalBookingId=null,currentModalProps=null;
         const CAL_CANCEL_URL='https://n8n.srv1090894.hstgr.cloud/webhook/cancel-booking';
@@ -1026,10 +1067,10 @@
             const opening=cs.style.display==='none'||cs.style.display==='';
             cs.style.display=opening?'block':'none';
             if(ep)ep.style.display=opening?'none':'';
-            if(opening)csCalcCost();
+            if(opening){renderCsServices();csCalcCost();}
         }
         function csCalcCost(){
-            // Auto-calculate cost using same logic as qbCalculateCost
+            // Auto-calculate cost using hourly rate
             const p=currentModalProps;
             if(!p||!qbRoomsData.length)return;
             const roomName=p.room_name;
@@ -1037,7 +1078,6 @@
             if(!room){document.getElementById('e-cs-breakdown').style.display='none';return;}
             const from=(p.date_from||p.booking_date||'').split('T')[0];
             const to=(p.date_to||p.date_from||p.booking_date||'').split('T')[0];
-            // Parse start/end times from the stored "HH:MM – HH:MM" string
             const timeParts=(p.time||'09:00 – 17:00').split(/–|-/).map(s=>s.trim());
             const startT=timeParts[0]||'09:00';
             const endT=timeParts[1]||'17:00';
@@ -1046,21 +1086,18 @@
             const hrs=(eh*60+em-sh*60-sm)/60;
             if(hrs<=0)return;
             const days=qbDayCount(from,to);
-            const fullRate=parseFloat(room.day_rate||0);
-            const halfRate=parseFloat(room.half_rate||0);
-            let perDayCost,rateLabel;
-            if(hrs>=6){perDayCost=fullRate;rateLabel=`Full-day: ${fmt(fullRate)}`;}
-            else if(halfRate&&hrs>=3){perDayCost=halfRate;rateLabel=`Half-day: ${fmt(halfRate)}`;}
-            else{perDayCost=(hrs/8)*fullRate;rateLabel=`Pro-rated ${hrs.toFixed(1)}h: ${fmt(perDayCost)}`;}
+            const hourlyRate=parseFloat(room.day_rate||0);
+            const perDayCost=hourlyRate*hrs;
             let total=perDayCost*days;
-            let breakdown=rateLabel;
+            let breakdown=`${hrs.toFixed(1)}h × ${fmt(hourlyRate)}/hr`;
             if(days>1)breakdown+=` × ${days} days`;
+            const svcRes=csGetServicesTotal();
+            if(svcRes.total>0){total+=svcRes.total;breakdown+=` + services ${fmt(svcRes.total)}`;}
             const deposit=Math.round(total*QBR_DEPOSIT_PCT)/100;
             breakdown+=` = ${fmt(total)} (${QBR_DEPOSIT_PCT}% deposit = ${fmt(deposit)})`;
             const bd=document.getElementById('e-cs-breakdown');
             bd.textContent='ℹ️ Calculated: '+breakdown;
             bd.style.display='block';
-            // Pre-fill the fields
             document.getElementById('e-cs-total').value=total.toFixed(2);
             document.getElementById('e-cs-deposit').value=deposit.toFixed(2);
         }
@@ -1081,11 +1118,11 @@
                 const p=currentModalProps;
                 if(p.request_id&&!p.has_booking){
                     // Pending request with no confirmed booking yet — create + confirm in one call
-                    const r1=await fetch(CAL_CONFIRM_URL,{method:'POST',headers:{...getAuthHeaders(),'Content-Type':'application/json'},body:JSON.stringify({request_id:p.request_id,customer_id:p.customer_id,total_amount:total,balance_due:balance})});
+                    const r1=await fetch(CAL_CONFIRM_URL,{method:'POST',headers:{...getAuthHeaders(),'Content-Type':'application/json'},body:JSON.stringify({request_id:p.request_id,customer_id:p.customer_id,total_amount:total,balance_due:balance,services:csGetServicesPayload()})});
                     if(!r1.ok)throw new Error('Convert failed: HTTP '+r1.status);
                 }else{
                     // Existing booking — update status + record deposit separately
-                    const r1=await fetch(CAL_CONFIRM_URL,{method:'POST',headers:{...getAuthHeaders(),'Content-Type':'application/json'},body:JSON.stringify({booking_id:currentModalBookingId,total_amount:total,balance_due:balance})});
+                    const r1=await fetch(CAL_CONFIRM_URL,{method:'POST',headers:{...getAuthHeaders(),'Content-Type':'application/json'},body:JSON.stringify({booking_id:currentModalBookingId,total_amount:total,balance_due:balance,services:csGetServicesPayload()})});
                     if(!r1.ok)throw new Error('Confirm failed: HTTP '+r1.status);
                     if(deposit>0){
                         const r2=await fetch(CAL_PAY_URL,{method:'POST',headers:{...getAuthHeaders(),'Content-Type':'application/json'},body:JSON.stringify({booking_id:currentModalBookingId,customer_id:p.customer_id,amount:deposit,payment_method:method,payment_type:deposit>=total?'full':'deposit'})});
