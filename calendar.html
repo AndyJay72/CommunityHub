@@ -704,7 +704,7 @@
         </div>
     </div>
     <script>
-        const API_URL='https://n8n.srv1090894.hstgr.cloud/webhook/all-bookings';
+        const API_URL='https://n8n.srv1090894.hstgr.cloud/webhook/all-bookings?tenant_id='+(localStorage.getItem('vp_tenant_id')||'');
         const _CAL_TID=()=>localStorage.getItem('vp_tenant_id')||'';
         const BLOCKED_API='https://n8n.srv1090894.hstgr.cloud/webhook/blocked-dates?tenant_id='+_CAL_TID();
         const ROOMS_API='https://n8n.srv1090894.hstgr.cloud/webhook/get-rooms?tenant_id='+_CAL_TID();
@@ -1054,7 +1054,7 @@
         }
         let allEvents=[],calendarInstance=null,dateStatusMap={},currentModalBookingId=null,currentModalProps=null;
         const CAL_CANCEL_URL='https://n8n.srv1090894.hstgr.cloud/webhook/cancel-booking';
-        const CAL_PENDING_URL='https://n8n.srv1090894.hstgr.cloud/webhook/get-pending-requests';
+        const CAL_PENDING_URL='https://n8n.srv1090894.hstgr.cloud/webhook/get-pending-requests?tenant_id='+_CAL_TID();
         const CAL_PAY_URL='https://n8n.srv1090894.hstgr.cloud/webhook/pay-balance';
         const CAL_CONFIRM_URL='https://n8n.srv1090894.hstgr.cloud/webhook/confirm-booking';
         function openEventModal(ev){
