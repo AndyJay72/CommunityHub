@@ -98,6 +98,9 @@
         .btn-delete:hover { background: var(--danger); color: white; }
         .btn-restore { background: rgba(16,185,129,0.2); color: var(--success); }
         .btn-restore:hover { background: var(--success); color: white; }
+        .btn-page { background: none; border: 1px solid var(--border); color: var(--text-muted); padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: 0.2s; }
+        .btn-page:hover:not(:disabled) { color: white; border-color: white; }
+        .btn-page:disabled { opacity: 0.3; cursor: not-allowed; }
 
         /* PRICING GRID */
         .pricing-table-wrap { overflow-x: auto; }
@@ -487,12 +490,10 @@
                         </tbody>
                     </table>
                 </div>
-                <div id="et-pagination" style="display:none;align-items:center;justify-content:space-between;padding:10px 4px 0;font-size:0.85rem;color:var(--text-muted)">
-                    <span id="et-page-info"></span>
-                    <div style="display:flex;gap:8px">
-                        <button id="et-prev" class="btn" style="padding:5px 14px;font-size:0.82rem" onclick="etChangePage(-1)"><i class="fa-solid fa-chevron-left"></i></button>
-                        <button id="et-next" class="btn" style="padding:5px 14px;font-size:0.82rem" onclick="etChangePage(1)"><i class="fa-solid fa-chevron-right"></i></button>
-                    </div>
+                <div id="et-pagination" style="display:none;align-items:center;justify-content:space-between;padding:10px 4px 0">
+                    <button class="btn-page" id="et-prev" onclick="etChangePage(-1)">&#8249; Prev</button>
+                    <span id="et-page-info" style="font-size:0.85rem;color:var(--text-muted)"></span>
+                    <button class="btn-page" id="et-next" onclick="etChangePage(1)">Next &#8250;</button>
                 </div>
             </div>
         </div>
