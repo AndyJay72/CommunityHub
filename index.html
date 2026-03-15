@@ -1142,7 +1142,7 @@
 
     <!-- MODAL -->
     <div id="custModal" class="modal-overlay" onclick="closeModal(event)">
-        <div class="modal-card" onclick="event.stopPropagation()" style="max-width:780px;">
+        <div class="modal-card" onclick="event.stopPropagation()" style="max-width:900px;">
             <div class="modal-header">
                 <div class="modal-title"><i class="fa-solid fa-id-card" style="color:var(--primary)"></i> Customer Details</div>
                 <button class="modal-close" onclick="closeModal()">&times;</button>
@@ -1195,6 +1195,10 @@
                 <div id="m-confirm-services-wrap">
                     <div style="font-size:0.73rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px">Add-on Services</div>
                     <div id="m-confirm-services-list"></div>
+                </div>
+                <div id="m-confirm-rooms-wrap">
+                    <div style="font-size:0.73rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px">Rooms <span style="font-weight:400;text-transform:none;letter-spacing:0;opacity:0.7">(select all rooms for this booking)</span></div>
+                    <div id="m-confirm-rooms-list"><span style="color:var(--text-muted);font-size:0.82rem">Loading rooms…</span></div>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
                     <div>
@@ -1910,7 +1914,7 @@
             if (!sec) return;
             const isOpen = sec.style.display !== 'none';
             sec.style.display = isOpen ? 'none' : 'block';
-            if (!isOpen) renderDashboardServices();
+            if (!isOpen) { renderDashboardServices(); renderDashboardRooms(); }
         }
 
         function renderDashboardServices() {
@@ -1970,6 +1974,43 @@
             return sel;
         }
 
+        const ROOMS_API_BASE = 'https://n8n.srv1090894.hstgr.cloud/webhook/get-rooms';
+        let _dashRoomsData = [];
+
+        async function renderDashboardRooms() {
+            const wrap = document.getElementById('m-confirm-rooms-wrap');
+            const list = document.getElementById('m-confirm-rooms-list');
+            if (!list) return;
+            const tid = localStorage.getItem('vp_tenant_id') || '';
+            try {
+                if (!_dashRoomsData.length) {
+                    const r = await fetch(ROOMS_API_BASE + '?tenant_id=' + tid, { headers: getAuthHeaders() });
+                    const j = await r.json();
+                    _dashRoomsData = (j.data || (Array.isArray(j) ? j : [])).filter(x => x.is_active || x.is_active === undefined);
+                }
+                if (!_dashRoomsData.length) { if (wrap) wrap.style.display = 'none'; return; }
+                const primaryRoom = currentPendingData ? (currentPendingData.room_name || '') : '';
+                list.innerHTML = _dashRoomsData.map(r => {
+                    const rName = r.name || r.room_name || r.id;
+                    const rate  = parseFloat(r.day_rate || 0);
+                    const chk   = rName === primaryRoom ? 'checked' : '';
+                    return `<div style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.05)">`
+                        + `<input type="checkbox" id="mdr-${esc(String(r.id))}" ${chk} style="width:auto;margin:0;min-height:unset;cursor:pointer">`
+                        + `<label for="mdr-${esc(String(r.id))}" style="flex:1;cursor:pointer;font-size:0.87rem">${esc(rName)}`
+                        + `<span style="color:var(--text-muted);font-size:0.76rem"> — £${rate.toFixed(2)}/hr</span></label></div>`;
+                }).join('');
+            } catch(e) {
+                if (list) list.innerHTML = '<div style="color:var(--text-muted);font-size:0.82rem">Could not load rooms</div>';
+            }
+        }
+
+        function mGetRoomsPayload() {
+            return _dashRoomsData.filter(r => {
+                const cb = document.getElementById('mdr-' + r.id);
+                return cb && cb.checked;
+            }).map(r => ({ room_id: r.id, room_name: r.name || r.room_name || r.id }));
+        }
+
         async function submitConfirmFromDashboard() {
             if (!currentPendingData) return;
             const total   = parseFloat(document.getElementById('m-confirm-total').value || 0);
@@ -1991,6 +2032,7 @@
                         deposit_amount: deposit,
                         payment_method: method,
                         services: mGetServicesPayload(),
+                        rooms: mGetRoomsPayload(),
                         tenant_id: parseInt(localStorage.getItem('vp_tenant_id') || '0')
                     })
                 });
@@ -2017,6 +2059,7 @@
                         total_amount: total || 0,
                         balance_due: total || 0,
                         services: mGetServicesPayload(),
+                        rooms: mGetRoomsPayload(),
                         tenant_id: parseInt(localStorage.getItem('vp_tenant_id') || '0')
                     })
                 });

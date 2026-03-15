@@ -556,6 +556,10 @@
                             <div style="font-size:0.73rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px">Add-on Services</div>
                             <div id="cs-services-list"></div>
                         </div>
+                        <div id="cs-rooms-wrap" style="margin-bottom:10px">
+                            <div style="font-size:0.73rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px">Rooms <span style="font-weight:400;text-transform:none;letter-spacing:0;opacity:0.7">(check all rooms for this booking)</span></div>
+                            <div id="cs-rooms-list"></div>
+                        </div>
                         <div class="e-cs-grid">
                             <div><label class="e-pay-lbl">Total Price (£) *</label><input id="e-cs-total" type="number" min="0" step="0.01" class="qb-input" placeholder="e.g. 450.00" oninput="csOnTotalChange()"></div>
                             <div><label class="e-pay-lbl">Deposit Taken (£)</label><input id="e-cs-deposit" type="number" min="0" step="0.01" class="qb-input" placeholder="0.00"></div>
@@ -604,6 +608,10 @@
                     <select id="qb-eventType" class="qb-select" onchange="qbCalculateCost()">
                         <option value="">Select type...</option>
                     </select>
+                </div>
+                <div class="qb-full" id="qb-extra-rooms-outer" style="display:none">
+                    <div style="font-size:0.73rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px">Additional Rooms <span style="font-weight:400;text-transform:none;letter-spacing:0;opacity:0.7">(optional — select any extra rooms for this booking)</span></div>
+                    <div id="qb-extra-rooms-list" style="background:rgba(0,0,0,0.15);border:1px solid var(--border);border-radius:8px;padding:6px 10px"></div>
                 </div>
                 <div class="qb-full">
                     <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.83rem;color:var(--text-muted);margin-bottom:8px">
@@ -825,7 +833,7 @@
         let qbRoomsData=[],qbPricingData=[],_qbAvailTimeout=null,qbInitDone=false,qbTotalAmount=0,qbDepositAmount=0;
         async function qbInit(){
             if(qbInitDone)return;qbInitDone=true;
-            try{const r=await fetch(ROOMS_API,{headers:getAuthHeaders()});const rj=await r.json();qbRoomsData=(rj.data||(Array.isArray(rj)?rj:[])).filter(x=>x.is_active||x.is_active===undefined);const s=document.getElementById('qb-roomSelect');s.innerHTML='<option value="">Select room...</option>';qbRoomsData.forEach(r=>{const o=document.createElement('option');o.value=r.name||r.room_name||r.id;o.textContent=r.name||r.room_name||r.id;s.appendChild(o);});}catch(e){}
+            try{const r=await fetch(ROOMS_API,{headers:getAuthHeaders()});const rj=await r.json();qbRoomsData=(rj.data||(Array.isArray(rj)?rj:[])).filter(x=>x.is_active||x.is_active===undefined);const s=document.getElementById('qb-roomSelect');s.innerHTML='<option value="">Select room...</option>';qbRoomsData.forEach(r=>{const o=document.createElement('option');o.value=r.name||r.room_name||r.id;o.textContent=r.name||r.room_name||r.id;s.appendChild(o);});renderQbExtraRooms();}catch(e){}
             try{const p=await fetch(PRICING_API,{headers:getAuthHeaders()});const pj=await p.json();qbPricingData=pj.data||(Array.isArray(pj)?pj:[]);}catch(e){}
             try{const t=await fetch(TYPES_API,{headers:getAuthHeaders()});const tj=await t.json();const types=tj.data||(Array.isArray(tj)?tj:[]);const es=document.getElementById('qb-eventType');es.innerHTML='<option value="">Select type...</option>';types.forEach(t=>{const o=document.createElement('option');o.value=t.name||t.type_name||t;o.textContent=t.name||t.type_name||t;es.appendChild(o);});}catch(e){}
             const times=[];for(let h=8;h<24;h++)for(let m=0;m<60;m+=30)times.push(`${String(h).padStart(2,'0')}:${m===0?'00':'30'}`);
@@ -869,8 +877,7 @@
             const warn=document.getElementById('qb-guestCapWarning');
             if(room&&room.capacity&&guests>parseInt(room.capacity)){document.getElementById('qb-guestCapMsg').textContent=`Guest count (${guests}) exceeds room capacity (${room.capacity}).`;warn.style.display='block';}
             else{warn.style.display='none';}
-            qbCalculateCost();qbCheckAvailability();
-        }
+            qbCalculateCost();qbCheckAvailability();renderQbExtraRooms();
         function qbCalculateCost(){
             const roomName=document.getElementById('qb-roomSelect').value;
             const eventType=document.getElementById('qb-eventType').value;
@@ -893,6 +900,8 @@
                 const sur=qbPricingData.find(p=>String(p.room_id)===String(room.id)&&(p.event_type_name||p.event_type||'').toLowerCase()===eventType.toLowerCase());
                 if(sur&&parseFloat(sur.day_rate)>0){const s=parseFloat(sur.day_rate)*hrs*days;total+=s;breakdown+=` + ${fmt(s)} surcharge`;}
             }
+            const extraRoomsRes=qbGetExtraRoomsTotal(hrs,days);
+            if(extraRoomsRes.total>0){total+=extraRoomsRes.total;breakdown+=` + extra rooms ${fmt(extraRoomsRes.total)}`;}
             const svcRes=qbGetServicesTotal();
             if(svcRes.total>0){total+=svcRes.total;breakdown+=` + services ${fmt(svcRes.total)}`;}
             qbTotalAmount=total;qbDepositAmount=Math.round(total*QBR_DEPOSIT_PCT)/100;
@@ -962,7 +971,7 @@
             if(type!=='pending'){
                 try{const cr=await fetch(CHECK_API,{method:'POST',headers:{...getAuthHeaders(),'Content-Type':'application/json'},body:JSON.stringify({roomName,eventDate:from,timeFrom:startT,timeTo:endT})});const cj=await cr.json();const avail=cj.available===true||cj.available==='true'||cj.status==='available';if(!avail){qbShowConflictModal();return;}}catch(e){}
             }
-            const payload={customer_name:name,customer_email:email||null,customer_phone:phone,room_id:roomId||null,room_name:roomName,booking_date:from,date_from:from,date_to:to,start_time:startT,end_time:endT,guest_count:parseInt(guests)||null,event_type:eventType||null,notes:notes||null,total_amount:qbTotalAmount,payment_amount:payAmt,balance_due:balance,payment_type:paymentType,payment_method:payMethod,booking_source:'walk_in',status,services:qbGetServicesPayload()};
+            const payload={customer_name:name,customer_email:email||null,customer_phone:phone,room_id:roomId||null,room_name:roomName,booking_date:from,date_from:from,date_to:to,start_time:startT,end_time:endT,guest_count:parseInt(guests)||null,event_type:eventType||null,notes:notes||null,total_amount:qbTotalAmount,payment_amount:payAmt,balance_due:balance,payment_type:paymentType,payment_method:payMethod,booking_source:'walk_in',status,services:qbGetServicesPayload(),rooms:qbGetRoomsPayload()};
             ['qb-btn-deposit','qb-btn-full','qb-btn-pending'].forEach(id=>document.getElementById(id).disabled=true);
             try{
                 const res=await fetch(BOOKING_API,{method:'POST',headers:{...getAuthHeaders(),'Content-Type':'application/json'},body:JSON.stringify(payload)});
@@ -971,6 +980,42 @@
             }catch(err){showToast('Failed to submit: '+err.message,'error');}
             finally{['qb-btn-deposit','qb-btn-full','qb-btn-pending'].forEach(id=>document.getElementById(id).disabled=false);qbSetButtons(true);}
         }
+        // ── MULTI-ROOM HELPERS ──────────────────────────────────────────────
+        function renderQbExtraRooms(){
+            const outer=document.getElementById('qb-extra-rooms-outer');
+            const list=document.getElementById('qb-extra-rooms-list');
+            if(!outer||!list||!qbRoomsData.length){if(outer)outer.style.display='none';return;}
+            const primaryName=document.getElementById('qb-roomSelect').value;
+            const others=qbRoomsData.filter(r=>(r.name||r.room_name||r.id)!==primaryName);
+            if(!others.length){outer.style.display='none';return;}
+            outer.style.display='block';
+            list.innerHTML=others.map(r=>{const rName=r.name||r.room_name||r.id;const rate=parseFloat(r.day_rate||0);return `<div style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><input type="checkbox" id="qb-xr-${r.id}" style="width:auto;margin:0;min-height:unset;cursor:pointer" onchange="qbCalculateCost()"><label for="qb-xr-${r.id}" style="flex:1;cursor:pointer;font-size:0.87rem">${svcEsc(rName)}<span style="color:var(--text-muted);font-size:0.76rem"> &mdash; ${fmt(rate)}/hr</span></label></div>`;}).join('');
+        }
+        function qbGetExtraRoomsTotal(hrs,days){
+            let total=0;
+            qbRoomsData.forEach(r=>{const cb=document.getElementById('qb-xr-'+r.id);if(!cb||!cb.checked)return;total+=parseFloat(r.day_rate||0)*hrs*days;});
+            return{total};
+        }
+        function qbGetRoomsPayload(){
+            const primaryName=document.getElementById('qb-roomSelect').value;
+            const rooms=[];
+            const pr=qbRoomsData.find(r=>(r.name||r.room_name||r.id)===primaryName);
+            if(pr)rooms.push({room_id:pr.id,room_name:primaryName});
+            qbRoomsData.forEach(r=>{const cb=document.getElementById('qb-xr-'+r.id);if(!cb||!cb.checked)return;rooms.push({room_id:r.id,room_name:r.name||r.room_name||r.id});});
+            return rooms;
+        }
+        function renderCsRooms(p){
+            const list=document.getElementById('cs-rooms-list');
+            if(!list||!qbRoomsData.length)return;
+            const primary=p?(p.room_name||''):'';  
+            list.innerHTML=qbRoomsData.map(r=>{const rName=r.name||r.room_name||r.id;const rate=parseFloat(r.day_rate||0);const chk=rName===primary?'checked':'';return `<div style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><input type="checkbox" id="csr-${r.id}" ${chk} style="width:auto;margin:0;min-height:unset;cursor:pointer" onchange="csCalcCost()"><label for="csr-${r.id}" style="flex:1;cursor:pointer;font-size:0.87rem">${svcEsc(rName)}<span style="color:var(--text-muted);font-size:0.76rem"> &mdash; ${fmt(rate)}/hr</span></label></div>`;}).join('');
+        }
+        function csGetRoomsPayload(){
+            const rooms=[];
+            qbRoomsData.forEach(r=>{const cb=document.getElementById('csr-'+r.id);if(cb&&cb.checked)rooms.push({room_id:r.id,room_name:r.name||r.room_name||r.id});});
+            return rooms;
+        }
+        // ── END MULTI-ROOM HELPERS ──────────────────────────────────────────
         function svcEsc(s){if(!s)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
         function getServicesForTenant(){const tid=localStorage.getItem('vp_tenant_id')||'';try{return JSON.parse(localStorage.getItem('vp_services_'+tid)||'[]').filter(s=>s.active!==false);}catch(e){return [];}}
         function renderQbServices(){
@@ -1067,15 +1112,11 @@
             const opening=cs.style.display==='none'||cs.style.display==='';
             cs.style.display=opening?'block':'none';
             if(ep)ep.style.display=opening?'none':'';
-            if(opening){renderCsServices();csCalcCost();}
+            if(opening){renderCsServices();renderCsRooms(currentModalProps);csCalcCost();}
         }
         function csCalcCost(){
-            // Auto-calculate cost using hourly rate
             const p=currentModalProps;
             if(!p||!qbRoomsData.length)return;
-            const roomName=p.room_name;
-            const room=qbRoomsData.find(r=>(r.name||r.room_name||String(r.id))===roomName);
-            if(!room){document.getElementById('e-cs-breakdown').style.display='none';return;}
             const from=(p.date_from||p.booking_date||'').split('T')[0];
             const to=(p.date_to||p.date_from||p.booking_date||'').split('T')[0];
             const timeParts=(p.time||'09:00 – 17:00').split(/–|-/).map(s=>s.trim());
@@ -1086,11 +1127,14 @@
             const hrs=(eh*60+em-sh*60-sm)/60;
             if(hrs<=0)return;
             const days=qbDayCount(from,to);
-            const hourlyRate=parseFloat(room.day_rate||0);
-            const perDayCost=hourlyRate*hrs;
-            let total=perDayCost*days;
-            let breakdown=`${hrs.toFixed(1)}h × ${fmt(hourlyRate)}/hr`;
-            if(days>1)breakdown+=` × ${days} days`;
+            // Sum all checked rooms; fall back to booking's room_name if none checked
+            let roomTotal=0;const checkedRooms=[];
+            qbRoomsData.forEach(r=>{const cb=document.getElementById('csr-'+r.id);if(!cb||!cb.checked)return;const rate=parseFloat(r.day_rate||0);roomTotal+=rate*hrs*days;checkedRooms.push(r.name||r.room_name||r.id);});
+            if(roomTotal===0){const room=qbRoomsData.find(r=>(r.name||r.room_name||String(r.id))===(p.room_name||''));if(room){roomTotal=parseFloat(room.day_rate||0)*hrs*days;checkedRooms.push(p.room_name);}}
+            let total=roomTotal;
+            let breakdown=checkedRooms.length>1
+                ?`${checkedRooms.join(' + ')} × ${hrs.toFixed(1)}h${days>1?` × ${days} days`:''}`
+                :`${hrs.toFixed(1)}h${days>1?` × ${days} days`:''}`;
             const svcRes=csGetServicesTotal();
             if(svcRes.total>0){total+=svcRes.total;breakdown+=` + services ${fmt(svcRes.total)}`;}
             const deposit=Math.round(total*QBR_DEPOSIT_PCT)/100;
@@ -1118,11 +1162,11 @@
                 const p=currentModalProps;
                 if(p.request_id&&!p.has_booking){
                     // Pending request with no confirmed booking yet — create + confirm in one call
-                    const r1=await fetch(CAL_CONFIRM_URL,{method:'POST',headers:{...getAuthHeaders(),'Content-Type':'application/json'},body:JSON.stringify({request_id:p.request_id,customer_id:p.customer_id,total_amount:total,balance_due:balance,services:csGetServicesPayload()})});
+                    const r1=await fetch(CAL_CONFIRM_URL,{method:'POST',headers:{...getAuthHeaders(),'Content-Type':'application/json'},body:JSON.stringify({request_id:p.request_id,customer_id:p.customer_id,total_amount:total,balance_due:balance,services:csGetServicesPayload(),rooms:csGetRoomsPayload()})});
                     if(!r1.ok)throw new Error('Convert failed: HTTP '+r1.status);
                 }else{
                     // Existing booking — update status + record deposit separately
-                    const r1=await fetch(CAL_CONFIRM_URL,{method:'POST',headers:{...getAuthHeaders(),'Content-Type':'application/json'},body:JSON.stringify({booking_id:currentModalBookingId,total_amount:total,balance_due:balance,services:csGetServicesPayload()})});
+                    const r1=await fetch(CAL_CONFIRM_URL,{method:'POST',headers:{...getAuthHeaders(),'Content-Type':'application/json'},body:JSON.stringify({booking_id:currentModalBookingId,total_amount:total,balance_due:balance,services:csGetServicesPayload(),rooms:csGetRoomsPayload()})});
                     if(!r1.ok)throw new Error('Confirm failed: HTTP '+r1.status);
                     if(deposit>0){
                         const r2=await fetch(CAL_PAY_URL,{method:'POST',headers:{...getAuthHeaders(),'Content-Type':'application/json'},body:JSON.stringify({booking_id:currentModalBookingId,customer_id:p.customer_id,amount:deposit,payment_method:method,payment_type:deposit>=total?'full':'deposit'})});
@@ -1141,10 +1185,10 @@
             const p=currentModalProps;
             try{
                 if(p.request_id&&!p.has_booking){
-                    const r1=await fetch(CAL_CONFIRM_URL,{method:'POST',headers:{...getAuthHeaders(),'Content-Type':'application/json'},body:JSON.stringify({request_id:p.request_id,customer_id:p.customer_id,total_amount:total||0,balance_due:total||0})});
+                    const r1=await fetch(CAL_CONFIRM_URL,{method:'POST',headers:{...getAuthHeaders(),'Content-Type':'application/json'},body:JSON.stringify({request_id:p.request_id,customer_id:p.customer_id,total_amount:total||0,balance_due:total||0,rooms:csGetRoomsPayload()})});
                     if(!r1.ok)throw new Error('HTTP '+r1.status);
                 }else{
-                    const r1=await fetch(CAL_CONFIRM_URL,{method:'POST',headers:{...getAuthHeaders(),'Content-Type':'application/json'},body:JSON.stringify({booking_id:currentModalBookingId,total_amount:total||null,balance_due:total||null})});
+                    const r1=await fetch(CAL_CONFIRM_URL,{method:'POST',headers:{...getAuthHeaders(),'Content-Type':'application/json'},body:JSON.stringify({booking_id:currentModalBookingId,total_amount:total||null,balance_due:total||null,rooms:csGetRoomsPayload()})});
                     if(!r1.ok)throw new Error('HTTP '+r1.status);
                 }
                 showToast('Booking confirmed!','success');
