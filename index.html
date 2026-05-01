@@ -2,13 +2,24 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; connect-src 'self' https://n8n.srv1090894.hstgr.cloud https://api.venuedesk.co.uk; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Dashboard | Venue Manager Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
         // SECURITY CHECK
-        if (!localStorage.getItem('vp_token')) { window.location.href = 'login.html'; }
+        (function() {
+            const _t = sessionStorage.getItem('vp_token');
+            if (!_t) { window.location.href = 'login.html?return=' + encodeURIComponent(location.pathname.split('/').pop()); return; }
+            try {
+                const _p = JSON.parse(atob(_t.split('.')[1]));
+                if (_p.exp && _p.exp * 1000 < Date.now()) {
+                    sessionStorage.clear();
+                    window.location.href = 'login.html';
+                }
+            } catch(e) { /* non-JWT token, skip expiry check */ }
+        })();
     </script>
 
     <style>
@@ -977,6 +988,297 @@
         color: #374151 !important;
     }
     </style>
+  <style>
+    /* ═══════════════════════════════════════════════════════════
+       VENUEDESK BRAND LIGHT THEME  — palette from venuedesk.html
+       Colours: --bg #f8fafc  --white #fff  --text #1e293b
+                --dark #0f172a  --muted #64748b  --border #e2e8f0
+                --indigo #6366f1  --indigo-d #4f46e5  --indigo-l #eef2ff
+                --green #10b981  --amber #f59e0b
+       ═══════════════════════════════════════════════════════════ */
+
+    /* ── Body ── */
+    body.light-mode {
+      background: linear-gradient(135deg, #f0f4ff 0%, #fafbff 60%, #eff6ff 100%) !important;
+      background-attachment: fixed !important;
+      color: #1e293b !important;
+    }
+
+    /* ── Sidebar ── */
+    body.light-mode aside {
+      background: #ffffff !important;
+      border-right: 1px solid #e2e8f0 !important;
+      box-shadow: 2px 0 16px rgba(99,102,241,.07) !important;
+    }
+    body.light-mode .brand { color: #0f172a !important; }
+    body.light-mode .nav-link { color: #64748b !important; font-weight: 500 !important; }
+    body.light-mode .nav-link:hover {
+      background: #eef2ff !important;
+      color: #6366f1 !important;
+    }
+    body.light-mode .nav-link.active {
+      background: #eef2ff !important;
+      color: #6366f1 !important;
+      border-left: 3px solid #6366f1 !important;
+      font-weight: 700 !important;
+    }
+    body.light-mode.sidebar-collapsed .nav-link:hover::after {
+      background: #ffffff !important;
+      color: #1e293b !important;
+      border-color: #e2e8f0 !important;
+    }
+
+    /* ── Top bar / header ── */
+    body.light-mode header,
+    body.light-mode .top-bar {
+      background: rgba(255,255,255,0.92) !important;
+      border-bottom: 1px solid #e2e8f0 !important;
+      backdrop-filter: blur(16px) !important;
+    }
+    body.light-mode .header-title h1,
+    body.light-mode header h1,
+    body.light-mode h1, body.light-mode h2,
+    body.light-mode h3, body.light-mode h4 { color: #0f172a !important; }
+
+    /* ── Cards & containers ── */
+    body.light-mode .card,
+    body.light-mode .table-container,
+    body.light-mode .metric-card,
+    body.light-mode .booking-card,
+    body.light-mode .glance-card,
+    body.light-mode .sum-card,
+    body.light-mode .table-wrap,
+    body.light-mode .section-container,
+    body.light-mode .outstanding-panel,
+    body.light-mode .act-feed,
+    body.light-mode .transaction-container,
+    body.light-mode .chart-card {
+      background: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      box-shadow: 0 2px 12px rgba(99,102,241,.08) !important;
+      color: #1e293b !important;
+    }
+    body.light-mode .card:hover {
+      box-shadow: 0 6px 28px rgba(99,102,241,.14) !important;
+      border-color: rgba(99,102,241,.22) !important;
+    }
+    body.light-mode .card::after { background: none !important; }
+
+    /* ── Stats ── */
+    body.light-mode .stat-value, body.light-mode .glance-val,
+    body.light-mode .sum-val, body.light-mode .metric-value { color: #0f172a !important; }
+    body.light-mode .stat-label, body.light-mode .glance-lbl,
+    body.light-mode .sum-lbl, body.light-mode .b-meta,
+    body.light-mode .db-month, body.light-mode .metric-info p,
+    body.light-mode .metric-label, body.light-mode .table-header-sub { color: #64748b !important; }
+
+    /* ── Tables ── */
+    body.light-mode .table-header,
+    body.light-mode thead tr,
+    body.light-mode th {
+      background: #f1f5f9 !important;
+      color: #64748b !important;
+      border-color: #e2e8f0 !important;
+      font-weight: 600 !important;
+    }
+    body.light-mode td { color: #1e293b !important; border-color: #f1f5f9 !important; }
+    body.light-mode tbody tr:hover,
+    body.light-mode .log-tbody tr:hover { background: #f8fafc !important; }
+    body.light-mode .clickable:hover { background: #eef2ff !important; }
+
+    /* ── Inputs & filters ── */
+    body.light-mode .search-bar,
+    body.light-mode .sf-input, body.light-mode .sf-select,
+    body.light-mode .f-input, body.light-mode .f-select,
+    body.light-mode .menu-toggle {
+      background: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      color: #1e293b !important;
+    }
+    body.light-mode .search-bar input { color: #1e293b !important; }
+    body.light-mode .search-bar input::placeholder,
+    body.light-mode .sf-input::placeholder { color: #94a3b8 !important; }
+
+    body.light-mode .filter-btn {
+      background: #ffffff !important;
+      border: 1px solid #e2e8f0 !important;
+      color: #64748b !important;
+    }
+    body.light-mode .filter-btn:not(.active):hover {
+      background: #eef2ff !important;
+      border-color: rgba(99,102,241,.3) !important;
+      color: #6366f1 !important;
+    }
+    body.light-mode .filter-btn.active { border-color: transparent !important; }
+    body.light-mode .filter-requests.active,
+    body.light-mode .filter-outstanding.active { background: #f59e0b !important; color: #fff !important; box-shadow: 0 4px 14px rgba(245,158,11,.35) !important; }
+    body.light-mode .filter-upcoming.active { background: #10b981 !important; color: #fff !important; box-shadow: 0 4px 14px rgba(16,185,129,.35) !important; }
+    body.light-mode .filter-interactions.active,
+    body.light-mode .filter-customers.active { background: #6366f1 !important; color: #fff !important; box-shadow: 0 4px 14px rgba(99,102,241,.35) !important; }
+
+    /* ── Modals ── */
+    body.light-mode .pay-modal-card,
+    body.light-mode .modal-card,
+    body.light-mode .bd-modal-card,
+    body.light-mode .invoice-modal,
+    body.light-mode .receipt-card,
+    body.light-mode .log-int-card,
+    body.light-mode .qb-card {
+      background: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      box-shadow: 0 16px 48px rgba(99,102,241,.15) !important;
+      color: #1e293b !important;
+    }
+    body.light-mode .invoice-section-title { color: #0f172a !important; }
+    body.light-mode .invoice-header { border-color: #e2e8f0 !important; }
+    body.light-mode .invoice-body { background: transparent !important; }
+    body.light-mode .invoice-row .ilabel { color: #64748b !important; }
+    body.light-mode .invoice-row .ivalue { color: #1e293b !important; }
+    body.light-mode .invoice-total-row { background: #f1f5f9 !important; border-color: #e2e8f0 !important; }
+    body.light-mode .invoice-footer { border-color: #e2e8f0 !important; }
+
+    /* ── Customer / booking detail modal ── */
+    body.light-mode .detail-value {
+      background: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+      color: #1e293b !important;
+    }
+    body.light-mode .modal-edit-input {
+      background: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+      color: #0f172a !important;
+    }
+    body.light-mode .modal-edit-input:focus {
+      background: #ffffff !important;
+      border-color: #6366f1 !important;
+      box-shadow: 0 0 0 3px rgba(99,102,241,.12) !important;
+    }
+    body.light-mode .bh-title,
+    body.light-mode .modal-int-title { color: #0f172a !important; }
+    body.light-mode .bh-stat {
+      background: #f1f5f9 !important;
+      border-color: #e2e8f0 !important;
+    }
+    body.light-mode .bh-table td { color: #1e293b !important; }
+    body.light-mode .interaction-item {
+      background: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+    }
+    body.light-mode .interaction-item-subject,
+    body.light-mode .interaction-item-notes { color: #1e293b !important; }
+
+    /* ── Log interaction form ── */
+    body.light-mode .log-form-input,
+    body.light-mode .log-form-select,
+    body.light-mode .log-form-textarea,
+    body.light-mode .log-int-info-value { 
+      background: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+      color: #1e293b !important;
+    }
+    body.light-mode .log-int-title { color: #0f172a !important; }
+
+    /* ── Pay modal internals ── */
+    body.light-mode .pay-booking-info {
+      background: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+    }
+    body.light-mode .pay-amount-input {
+      background: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      color: #0f172a !important;
+    }
+    body.light-mode .info-row span { color: #64748b !important; }
+    body.light-mode .info-row strong { color: #0f172a !important; }
+
+    /* ── Booking cards ── */
+    body.light-mode .b-name,
+    body.light-mode .b-room { color: #0f172a !important; }
+    body.light-mode .b-meta { color: #64748b !important; }
+
+    /* ── Activity feed ── */
+    body.light-mode .act-name { color: #0f172a !important; }
+    body.light-mode .act-detail { color: #64748b !important; }
+    body.light-mode .act-time { color: #94a3b8 !important; }
+
+    /* ── Outstanding panel ── */
+    body.light-mode .outstanding-panel-header {
+      background: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+    }
+    body.light-mode .outstanding-panel-title { color: #0f172a !important; }
+
+    /* ── Calendar overrides ── */
+    body.light-mode #cal-container {
+      background: #ffffff !important;
+      border-color: #e2e8f0 !important;
+    }
+    body.light-mode .fc-col-header-cell {
+      background: #f1f5f9 !important;
+      color: #64748b !important;
+    }
+    body.light-mode .fc-list-day-cushion { background: #f1f5f9 !important; }
+    body.light-mode .fc-theme-standard td,
+    body.light-mode .fc-theme-standard th { border-color: #e2e8f0 !important; }
+    body.light-mode .fc-list-table td { color: #1e293b !important; border-color: #f1f5f9 !important; }
+    body.light-mode .fc-list-event-title a { color: #1e293b !important; }
+    body.light-mode .fc-toolbar-title { color: #0f172a !important; }
+    body.light-mode .fc-daygrid-day-number { color: #1e293b !important; }
+    body.light-mode .fc-daygrid-day.fc-day-today { background: #eef2ff !important; }
+    body.light-mode .fc-button-primary {
+      background: #6366f1 !important;
+      border-color: #6366f1 !important;
+    }
+    body.light-mode .fc-button-primary:hover { background: #4f46e5 !important; border-color: #4f46e5 !important; }
+    body.light-mode .fc-button-primary:not(.fc-button-active):not(:disabled) {
+      background: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      color: #64748b !important;
+    }
+    body.light-mode .modal-row { border-color: #f1f5f9 !important; }
+    body.light-mode .modal-label { color: #64748b !important; }
+    body.light-mode .modal-val { color: #0f172a !important; }
+    body.light-mode .e-pay-section,
+    body.light-mode .e-confirm-section {
+      background: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+    }
+    body.light-mode .qb-input, body.light-mode .qb-select {
+      background: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      color: #1e293b !important;
+    }
+
+    /* ── Accounts page ── */
+    body.light-mode .acc-metric-card {
+      background: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      box-shadow: 0 2px 12px rgba(99,102,241,.08) !important;
+    }
+    body.light-mode .ref-mono { color: #6366f1 !important; }
+    body.light-mode .linked-ref { color: #6366f1 !important; }
+
+    /* ── Misc UI ── */
+    body.light-mode .theme-toggle {
+      background: #eef2ff !important;
+      border-color: rgba(99,102,241,.25) !important;
+      color: #6366f1 !important;
+    }
+    body.light-mode .theme-toggle:hover {
+      background: #e0e7ff !important;
+      border-color: #6366f1 !important;
+      color: #4f46e5 !important;
+    }
+    body.light-mode .live-clock {
+      background: rgba(255,255,255,.85) !important;
+      border-color: #e2e8f0 !important;
+      color: #64748b !important;
+    }
+    body.light-mode .date-badge { background: #f1f5f9 !important; color: #64748b !important; }
+    body.light-mode ::-webkit-scrollbar-thumb { background: #cbd5e1 !important; }
+    body.light-mode ::-webkit-scrollbar-track { background: #f1f5f9 !important; }
+    /* END VENUEDESK BRAND LIGHT THEME */
+  </style>
 </head>
 <body>
     <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
@@ -986,8 +1288,10 @@
             <a href="index.html" class="nav-link active" data-label="Dashboard"><i class="fa-solid fa-chart-pie"></i><span class="nav-label"> Dashboard</span></a>
             <a href="calendar.html" class="nav-link" data-label="Make Booking"><i class="fa-solid fa-calendar-alt"></i><span class="nav-label"> Calendar</span></a>   
             <a href="bookings.html" class="nav-link" data-label="Booking Stats"><i class="fa-solid fa-chart-line"></i><span class="nav-label"> Booking Stats</span></a>
+            <a href="recurring-bookings.html" class="nav-link" data-label="Recurring"><i class="fa-solid fa-repeat"></i><span class="nav-label"> Recurring</span></a>
             <a href="accounts.html" class="nav-link" data-label="Accounts"><i class="fa-solid fa-file-invoice-dollar"></i><span class="nav-label"> Accounts</span></a>
             <a href="audit-log.html" class="nav-link" data-label="Audit Log"><i class="fa-solid fa-clock-rotate-left"></i><span class="nav-label"> Audit Log</span></a>
+
             <a href="users.html" class="nav-link" data-label="Users"><i class="fa-solid fa-user-shield"></i><span class="nav-label"> Users</span></a>
             <a href="admin-config.html"    class="nav-link" data-label="Config"><i class="fa-solid fa-sliders"></i><span class="nav-label"> Config</span></a>
             <a href="#" onclick="logout()" class="nav-link" style="margin-top: auto; color: #ef4444; border-top: 1px solid rgba(255,255,255,0.05);" data-label="Logout"><i class="fa-solid fa-right-from-bracket"></i><span class="nav-label"> Logout</span></a>
@@ -1142,94 +1446,112 @@
 
     <!-- MODAL -->
     <div id="custModal" class="modal-overlay" onclick="closeModal(event)">
-        <div class="modal-card" onclick="event.stopPropagation()" style="max-width:900px;">
-            <div class="modal-header">
+        <div class="modal-card" onclick="event.stopPropagation()" style="max-width:1100px;padding:0;overflow:hidden;display:flex;flex-direction:column;">
+            <!-- Header -->
+            <div class="modal-header" style="padding:1.25rem 2rem;flex-shrink:0">
                 <div class="modal-title"><i class="fa-solid fa-id-card" style="color:var(--primary)"></i> Customer Details</div>
                 <button class="modal-close" onclick="closeModal()">&times;</button>
             </div>
-            <div class="modal-grid">
-                <div class="detail-group" style="grid-column: span 2;"><label>Customer ID</label><div class="detail-value" id="m-id" style="font-family: monospace; color: var(--warning);">--</div></div>
-                <div class="detail-group"><label>Full Name</label><div class="detail-value" id="m-name">--</div></div>
-                <div class="detail-group"><label>Status</label><div class="detail-value" id="m-status" style="text-transform: uppercase;">--</div></div>
-                <div class="detail-group"><label>Email</label><div class="detail-value" id="m-email">--</div></div>
-                <div class="detail-group"><label>Phone</label><div class="detail-value" id="m-phone">--</div></div>
-                <div class="detail-group"><label>Event Type</label><div class="detail-value" id="m-event">--</div></div>
-                <div class="detail-group"><label>Room</label><div class="detail-value" id="m-room">--</div></div>
-                <div class="detail-group"><label>Date</label><div class="detail-value" id="m-date">--</div></div>
-                <div class="detail-group"><label>Guests</label><div class="detail-value" id="m-guests">--</div></div>
-                <div class="detail-group" style="grid-column:span 2;"><label>Notes</label><div class="detail-value" id="m-notes" style="white-space:pre-wrap;line-height:1.6;">--</div></div>
-            </div>
+            <!-- Two-column body -->
+            <div style="display:flex;flex-wrap:wrap;flex:1;min-height:0">
+                <!-- LEFT: Customer info + history + interactions -->
+                <div style="flex:1.6;min-width:320px;padding:1.75rem 2rem;max-height:78vh;overflow-y:auto;border-right:1px solid var(--border)">
+                    <div class="modal-grid">
+                        <div class="detail-group" style="grid-column: span 2;"><label>Customer ID</label><div class="detail-value" id="m-id" style="font-family: monospace; color: var(--warning);">--</div></div>
+                        <div class="detail-group"><label>Full Name</label><div class="detail-value" id="m-name">--</div></div>
+                        <div class="detail-group"><label>Status</label><div class="detail-value" id="m-status" style="text-transform: uppercase;">--</div></div>
+                        <div class="detail-group"><label>Email</label><div class="detail-value" id="m-email">--</div></div>
+                        <div class="detail-group"><label>Phone</label><div class="detail-value" id="m-phone">--</div></div>
+                        <div class="detail-group"><label>Event Type</label><div class="detail-value" id="m-event">--</div></div>
+                        <div class="detail-group"><label>Room(s)</label><div class="detail-value" id="m-room">--</div></div>
+                        <div class="detail-group"><label>Date</label><div class="detail-value" id="m-date">--</div></div>
+                        <div class="detail-group"><label>Time</label><div class="detail-value" id="m-time">--</div></div>
+                        <div class="detail-group"><label>Guests</label><div class="detail-value" id="m-guests">--</div></div>
+                        <div class="detail-group"><label>Estimated Cost</label><div class="detail-value" id="m-cost">--</div></div>
+                        <div class="detail-group" id="m-services-wrap" style="grid-column:span 2;display:none;"><label>Requested Services</label><div class="detail-value" id="m-services">--</div></div>
+                        <div class="detail-group" style="grid-column:span 2;"><label>Notes</label><div class="detail-value" id="m-notes" style="white-space:pre-wrap;line-height:1.6;">--</div></div>
+                    </div><!-- end .modal-grid -->
 
-            <!-- BOOKING HISTORY -->
-            <div class="bh-section" id="bh-section">
-                <div class="bh-title"><i class="fa-solid fa-history" style="color:var(--primary)"></i> Booking History</div>
-                <div id="modal-bh-loading" class="bh-loading"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</div>
-                <div id="modal-bh-stats" class="bh-stats" style="display:none">
-                    <div class="bh-stat"><div class="bh-stat-val" id="modal-bh-count">0</div><div class="bh-stat-lbl">Total Bookings</div></div>
-                    <div class="bh-stat"><div class="bh-stat-val" id="modal-bh-spend">&pound;0</div><div class="bh-stat-lbl">Total Spend</div></div>
-                    <div class="bh-stat"><div class="bh-stat-val" id="modal-bh-outstanding">&pound;0</div><div class="bh-stat-lbl">Outstanding</div></div>
-                </div>
-                <div id="modal-bh-table-wrap" style="display:none; overflow-x:auto;">
-                    <table class="bh-table">
-                        <thead><tr><th>Date</th><th>Room</th><th>Total</th><th>Balance</th><th>Status</th><th style="width:40px;"></th></tr></thead>
-                        <tbody id="modal-bh-tbody"></tbody>
-                    </table>
-                </div>
-                <div id="modal-bh-empty" style="display:none; text-align:center; padding:1rem; color:var(--text-muted); font-size:0.85rem;">No bookings found — click a booking row above to log an interaction</div>
-            </div>
-
-            <!-- CUSTOMER INTERACTIONS -->
-            <div class="modal-int-section" id="modal-int-section">
-                <div class="modal-int-title" style="justify-content:space-between;">
-                    <span><i class="fa-solid fa-comments" style="color:#8b5cf6;"></i> Customer Interactions</span>
-                    <button class="btn-modal" style="font-size:0.78rem;padding:5px 12px;" onclick="exportCustInteractions()"><i class="fa-solid fa-download"></i> Export</button>
-                </div>
-                <div id="modal-int-loading" class="bh-loading"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</div>
-                <div id="modal-int-list"></div>
-                <div id="modal-int-none" class="no-interactions" style="display:none;">No interactions logged yet — click a booking row above to log one</div>
-            </div>
-
-            <!-- INLINE CONFIRM SECTION (shown for pending requests) -->
-            <div id="m-confirm-section" style="display:none;margin-top:1rem;background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.28);border-radius:12px;padding:1.25rem">
-                <div style="font-size:0.8rem;font-weight:700;color:#f59e0b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px"><i class="fa-solid fa-calendar-check" style="margin-right:6px"></i>Confirm Booking &amp; Take Deposit</div>
-                <div id="m-confirm-services-wrap">
-                    <div style="font-size:0.73rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px">Add-on Services</div>
-                    <div id="m-confirm-services-list"></div>
-                </div>
-                <div id="m-confirm-rooms-wrap">
-                    <div style="font-size:0.73rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px">Rooms <span style="font-weight:400;text-transform:none;letter-spacing:0;opacity:0.7">(select all rooms for this booking)</span></div>
-                    <div id="m-confirm-rooms-list"><span style="color:var(--text-muted);font-size:0.82rem">Loading rooms…</span></div>
-                </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
-                    <div>
-                        <label style="font-size:0.73rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px">Total Price (£) *</label>
-                        <input id="m-confirm-total" type="number" min="0" step="0.01" placeholder="e.g. 450.00" style="width:100%;padding:9px 12px;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:8px;color:white;font-size:0.88rem;outline:none" oninput="mConfirmCalcDeposit()">
+                    <!-- BOOKING HISTORY -->
+                    <div class="bh-section" id="bh-section">
+                        <div class="bh-title"><i class="fa-solid fa-history" style="color:var(--primary)"></i> Booking History</div>
+                        <div id="modal-bh-loading" class="bh-loading"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</div>
+                        <div id="modal-bh-stats" class="bh-stats" style="display:none">
+                            <div class="bh-stat"><div class="bh-stat-val" id="modal-bh-count">0</div><div class="bh-stat-lbl">Total Bookings</div></div>
+                            <div class="bh-stat"><div class="bh-stat-val" id="modal-bh-spend">&pound;0</div><div class="bh-stat-lbl">Total Spend</div></div>
+                            <div class="bh-stat"><div class="bh-stat-val" id="modal-bh-outstanding">&pound;0</div><div class="bh-stat-lbl">Outstanding</div></div>
+                        </div>
+                        <div id="modal-bh-table-wrap" style="display:none; overflow-x:auto;">
+                            <table class="bh-table">
+                                <thead><tr><th>Date</th><th>Room</th><th>Total</th><th>Balance</th><th>Status</th><th style="width:40px;"></th></tr></thead>
+                                <tbody id="modal-bh-tbody"></tbody>
+                            </table>
+                        </div>
+                        <div id="modal-bh-empty" style="display:none; text-align:center; padding:1rem; color:var(--text-muted); font-size:0.85rem;">No bookings found — click a booking row above to log an interaction</div>
                     </div>
-                    <div>
-                        <label style="font-size:0.73rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px">Deposit Taken (£)</label>
-                        <input id="m-confirm-deposit" type="number" min="0" step="0.01" placeholder="0.00" style="width:100%;padding:9px 12px;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:8px;color:white;font-size:0.88rem;outline:none">
+
+                    <!-- CUSTOMER INTERACTIONS -->
+                    <div class="modal-int-section" id="modal-int-section">
+                        <div class="modal-int-title" style="justify-content:space-between;">
+                            <span><i class="fa-solid fa-comments" style="color:#8b5cf6;"></i> Customer Interactions</span>
+                            <button class="btn-modal" style="font-size:0.78rem;padding:5px 12px;" onclick="exportCustInteractions()"><i class="fa-solid fa-download"></i> Export</button>
+                        </div>
+                        <div id="modal-int-loading" class="bh-loading"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</div>
+                        <div id="modal-int-list"></div>
+                        <div id="modal-int-none" class="no-interactions" style="display:none;">No interactions logged yet — click a booking row above to log one</div>
                     </div>
-                    <div style="grid-column:1/-1">
-                        <label style="font-size:0.73rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px">Payment Method</label>
-                        <select id="m-confirm-method" style="width:100%;padding:9px 12px;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:8px;color:white;font-size:0.88rem;outline:none">
-                            <option value="cash">Cash</option>
-                            <option value="card">Card</option>
-                            <option value="bank_transfer">Bank Transfer</option>
-                            <option value="bacs">BACS</option>
-                        </select>
+                    <div class="modal-actions" id="modal-buttons">
+                        <button class="btn-modal btn-close" onclick="closeModal()">Close</button>
                     </div>
                 </div>
-                <div style="display:flex;gap:10px;margin-top:12px">
-                    <button id="m-confirm-btn" onclick="submitConfirmFromDashboard()" style="flex:1;padding:10px;background:#f59e0b;color:#0f172a;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.88rem">
-                        <i class="fa-solid fa-check"></i> Confirm &amp; Record Deposit
-                    </button>
-                    <button onclick="submitConfirmNoDepositDashboard()" style="flex:1;padding:10px;background:transparent;border:1px solid var(--border);color:var(--text-muted);border-radius:8px;font-weight:600;cursor:pointer;font-size:0.82rem">
-                        Confirm Without Deposit
-                    </button>
+
+                <!-- RIGHT: Confirm booking sidebar -->
+                <div style="flex:1;min-width:280px;padding:1.75rem 1.75rem;background:rgba(0,0,0,0.15);max-height:78vh;overflow-y:auto;display:flex;flex-direction:column;gap:1rem">
+                    <!-- Placeholder shown when no pending action -->
+                    <div id="m-confirm-placeholder" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text-muted);font-size:0.82rem;gap:10px;padding:2.5rem 1rem;border:1px dashed rgba(148,163,184,0.18);border-radius:12px;text-align:center">
+                        <i class="fa-solid fa-hand-pointer" style="font-size:2rem;opacity:0.3"></i>
+                        <span>Confirm Booking<br><span style="font-size:0.72rem;opacity:0.65">Opens automatically<br>for pending requests</span></span>
+                    </div>
+                    <!-- CONFIRM SECTION (shown for pending requests) -->
+                    <div id="m-confirm-section" style="display:none">
+                        <div style="font-size:0.8rem;font-weight:700;color:#f59e0b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px"><i class="fa-solid fa-calendar-check" style="margin-right:6px"></i>Confirm Booking &amp; Take Deposit</div>
+                        <div id="m-confirm-services-wrap">
+                            <div style="font-size:0.73rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px">Add-on Services</div>
+                            <div id="m-confirm-services-list"></div>
+                        </div>
+                        <div id="m-confirm-rooms-wrap" style="margin-top:10px">
+                            <div style="font-size:0.73rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px">Rooms &amp; Time Slots <span style="font-weight:400;text-transform:none;letter-spacing:0;opacity:0.7">(tick rooms — set time per room)</span></div>
+                            <div id="m-confirm-rooms-list" style="background:rgba(0,0,0,0.15);border:1px solid var(--border);border-radius:8px;padding:6px 10px"><span style="color:var(--text-muted);font-size:0.82rem">Loading rooms…</span></div>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+                            <div>
+                                <label style="font-size:0.73rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px">Total Price (£) *</label>
+                                <input id="m-confirm-total" type="number" min="0" step="0.01" placeholder="e.g. 450.00" style="width:100%;padding:9px 12px;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:8px;color:white;font-size:0.88rem;outline:none" oninput="mConfirmCalcDeposit()">
+                            </div>
+                            <div>
+                                <label style="font-size:0.73rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px">Deposit Taken (£)</label>
+                                <input id="m-confirm-deposit" type="number" min="0" step="0.01" placeholder="0.00" style="width:100%;padding:9px 12px;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:8px;color:white;font-size:0.88rem;outline:none">
+                            </div>
+                            <div style="grid-column:1/-1">
+                                <label style="font-size:0.73rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px">Payment Method</label>
+                                <select id="m-confirm-method" style="width:100%;padding:9px 12px;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:8px;color:white;font-size:0.88rem;outline:none">
+                                    <option value="cash">Cash</option>
+                                    <option value="card">Card</option>
+                                    <option value="bank_transfer">Bank Transfer</option>
+                                    <option value="bacs">BACS</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+                            <button id="m-confirm-btn" onclick="submitConfirmFromDashboard()" style="width:100%;padding:10px;background:#f59e0b;color:#0f172a;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.88rem">
+                                <i class="fa-solid fa-check"></i> Confirm &amp; Record Deposit
+                            </button>
+                            <button onclick="submitConfirmNoDepositDashboard()" style="width:100%;padding:10px;background:transparent;border:1px solid var(--border);color:var(--text-muted);border-radius:8px;font-weight:600;cursor:pointer;font-size:0.82rem">
+                                Confirm Without Deposit
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="modal-actions" id="modal-buttons">
-                <button class="btn-modal btn-close" onclick="closeModal()">Close</button>
             </div>
         </div>
     </div>
@@ -1353,8 +1675,15 @@
             </div>
             <div class="pay-booking-info" id="pm-info">
                 <div class="info-row"><span>Customer:</span><strong id="pm-customer">—</strong></div>
-                <div class="info-row"><span>Room:</span><strong id="pm-room">—</strong></div>
+                <div class="info-row"><span>Room(s):</span><strong id="pm-room">—</strong></div>
                 <div class="info-row"><span>Date:</span><strong id="pm-date">—</strong></div>
+                <div class="info-row" id="pm-services-row" style="display:none;flex-direction:column;align-items:flex-start;gap:6px;">
+                    <span style="color:var(--text-muted);font-size:0.82rem;">Add-on Services:</span>
+                    <div id="pm-services-list" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
+                </div>
+                <div class="info-row" style="border-top:1px solid rgba(148,163,184,0.1);padding-top:8px;margin-top:4px;">
+                    <span>Total Value:</span><strong id="pm-total" style="color:var(--text-main);">—</strong>
+                </div>
                 <div class="info-row"><span>Balance Due:</span><strong id="pm-balance" style="color:var(--warning)">—</strong></div>
             </div>
             <div class="pay-amount-section">
@@ -1404,29 +1733,26 @@
         let currentPendingData       = null;
         const EXPIRY_WARNING_URL     = 'https://n8n.srv1090894.hstgr.cloud/webhook/send-expiry-warning';
         const MONTHLY_REVENUE_URL    = 'https://n8n.srv1090894.hstgr.cloud/webhook/get-monthly-revenue';
-        const ALL_BOOKINGS_URL       = 'https://n8n.srv1090894.hstgr.cloud/webhook/all-bookings';
-        const PAY_BALANCE_URL        = 'https://n8n.srv1090894.hstgr.cloud/webhook/pay-balance';
+        const ALL_BOOKINGS_URL           = 'https://n8n.srv1090894.hstgr.cloud/webhook/all-bookings';
+        const OUTSTANDING_BOOKINGS_URL   = 'https://n8n.srv1090894.hstgr.cloud/webhook/get-outstanding-bookings';
+        const PAY_BALANCE_URL            = 'https://n8n.srv1090894.hstgr.cloud/webhook/pay-balance';
+        const RECURRING_NEXT_DUE_URL     = 'https://api.venuedesk.co.uk/recurring/next-due';
 
         function getAuthHeaders() {
-            const tid = localStorage.getItem('vp_tenant_id') || '';
-            return {
-                'Authorization': 'Bearer ' + (localStorage.getItem('vp_token') || ''),
-                'X-Tenant-ID': tid,
-                'X-Venue-ID':  tid
-            };
+            // No custom headers — avoid CORS preflight failures.
+            // tenant_id is passed via query param (GET) or request body (POST).
+            return {};
         }
-        function tidParam(sep='?') {
-            const tid = localStorage.getItem('vp_tenant_id') || '';
-            return tid ? `${sep}tenant_id=${encodeURIComponent(tid)}` : '';
-        }
+        function _TID() { return sessionStorage.getItem('vp_tenant_id') || '0'; }
+        function tidParam(sep='?') { return sep + 'tenant_id=' + _TID(); }
         function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
         const STAFF_NAME = "Manager";
-        // Populate header welcome text from localStorage
+        // Populate header welcome text from sessionStorage
         (function() {
-            const user = JSON.parse(localStorage.getItem('vp_user') || '{}');
-            const name = user.name || user.username || localStorage.getItem('vp_user_name') || 'Staff Manager';
-            const venue = localStorage.getItem('vp_venue_name') || '';
+            const user = JSON.parse(sessionStorage.getItem('vp_user') || '{}');
+            const name = user.name || user.username || sessionStorage.getItem('vp_user_name') || 'Staff Manager';
+            const venue = sessionStorage.getItem('vp_venue_name') || '';
             const nameEl  = document.getElementById('hdr-username');
             const venueEl = document.getElementById('hdr-venue');
             if (nameEl)  nameEl.textContent  = name;
@@ -1445,7 +1771,6 @@
         let currentView = 'requests';
         let currentPage = 1;
         const PAGE_SIZE = 6;
-        const UPCOMING_PAGE_SIZE = 4;
         let searchTerm = '';
 
         const formatCurrency = (num) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(num);
@@ -1483,7 +1808,7 @@
             sidebar.classList.remove('active');
             if (overlay) overlay.classList.remove('active');
         }
-        function logout() { if(confirm("Log out?")) { localStorage.removeItem('vp_token'); window.location.href='login.html'; } }
+        function logout() { if(confirm("Log out?")) { sessionStorage.removeItem('vp_token'); window.location.href='login.html'; } }
 
         // ══════════════════════════════════════════════════════════════════
         // TAB FILTERING & PAGINATION FUNCTIONS
@@ -1549,10 +1874,16 @@
                     icon = 'fa-calendar-check';
                     break;
                 default: {
-                    // Deduplicate: a booking may appear in both outstanding and upcoming
+                    // Deduplicate: a booking may appear in both outstanding and upcoming.
+                    // Recurring items must use series_reference as their unique key so that
+                    // different contracts for the same customer are never merged, and a
+                    // recurring row is never collapsed against a single-booking row.
                     const seenIds = new Set();
                     items = [...allRequests, ...allOutstandingPayments, ...allUpcomingEvents].filter(item => {
-                        const key = item.id || item.booking_id || (item.customer_name + item.booking_date);
+                        const key = item.series_reference          // recurring contract — always unique
+                                 || item.id
+                                 || item.booking_id
+                                 || (item.customer_name + '|' + (item.booking_date || item.date_from || ''));
                         if (key && seenIds.has(key)) return false;
                         if (key) seenIds.add(key);
                         return true;
@@ -1604,39 +1935,55 @@
         function renderCard(item) {
             // Determine item type
             const isRequest = item.status === 'pending' || item.status === 'contacted';
-            const isOutstanding = item.balance_due && parseFloat(item.balance_due) > 0 && item.booking_date;
-            const isUpcoming = item.booking_date && !isOutstanding && !isRequest;
-            
-            const date = new Date(item.date_from || item.requested_date || item.event_date || item.booking_date);
-            const isValidDate = !isNaN(date.getTime());
-            const dayNum = isValidDate ? date.getDate() : '—';
-            const monthName = isValidDate ? MONTHS[date.getMonth()] : 'TBC';
-            
+            const isRecurring = item.booking_type === 'recurring';
+
+            // For recurring contracts the endpoint stores the total owed in amount_due
+            // (or balance_due); individual session rows carry balance_due = 0.  Prefer
+            // amount_due for recurring so a zero balance_due never hides the real debt.
+            const balance = isRecurring
+                ? parseFloat(item.amount_due || item.balance_due || item.cycle_price || 0)
+                : parseFloat(item.balance_due || item.amount_due || 0);
+            const isOutstanding = balance > 0;
+            const isUpcoming = (item.booking_date || item.date_from) && !isOutstanding && !isRequest;
+
+            const dateStr = fmtBookingDate(item);
+            // Split for the badge UI
+            const dayNum = dateStr !== 'TBC' ? dateStr.split(' ')[0] : '—';
+            const monthName = dateStr !== 'TBC' ? dateStr.split(' ')[1] : 'TBC';
+
             const name = item.full_name || item.customer_name || 'N/A';
-            const room = item.room_name || 'N/A';
+            const room = item.room_name || (item.series_reference ? 'Recurring Contract' : 'N/A');
             const guests = item.guest_count || item.guests_count || item.num_people || item.numPeople || 0;
-            const balance = parseFloat(item.balance_due || 0);
-            
+
             let statusHtml = '';
             let actionHtml = '';
             let metaHtml = '';
-            
+
             let cardOnclick = '';
 
             if (isRequest) {
                 const daysPassed = item.created_at ? Math.floor((Date.now() - new Date(item.created_at).getTime()) / 86400000) : 0;
                 const daysLeft = Math.max(0, 7 - daysPassed);
-                statusHtml = `<span class="status-pill status-pending">${item.status}</span><br><small style="color:var(--text-muted)">${daysLeft}d left</small>`;
-                actionHtml = '';
+                const overdue = daysPassed >= 7;
+                statusHtml = `<span class="status-pill status-pending">${item.status}</span><br><small style="color:${overdue ? '#f87171' : 'var(--text-muted)'}">${overdue ? 'Overdue' : daysLeft + 'd left'}</small>`;
+                const safeName = (item.full_name || '').replace(/'/g, "\\'");
+                actionHtml = `<button class="pay-btn" style="background:rgba(239,68,68,0.12);color:#f87171;border-color:rgba(239,68,68,0.3)" onclick="event.stopPropagation();removeRequest('${item.id}','${safeName}')"><i class="fa-solid fa-trash-can"></i> Remove</button>`;
                 metaHtml = `<span><i class="fa-solid fa-user"></i> ${item.event_type || 'Event'}</span><span><i class="fa-solid fa-user-group"></i> ${guests > 0 ? guests + ' guests' : '—'}</span>`;
                 const reqDataStr = encodeURIComponent(JSON.stringify(item));
                 cardOnclick = `openModal('${reqDataStr}')`;
             } else if (isOutstanding) {
-                statusHtml = `<span class="status-pill status-outstanding">${formatCurrency(balance)} Due</span>`;
-                actionHtml = `<button class="pay-btn" onclick="event.stopPropagation();payBooking('${item.booking_id || item.id}', '${item.customer_id}', ${balance})"><i class="fa-solid fa-credit-card"></i> Pay</button>`;
-                metaHtml = `<span><i class="fa-solid fa-door-open"></i> ${room}</span><span><i class="fa-solid fa-user-group"></i> ${guests > 0 ? guests + ' guests' : '—'}</span>`;
+                const typeLabel = isRecurring ? 'Cycle' : 'Due';
+                statusHtml = `<span class="status-pill status-outstanding">${formatCurrency(balance)} ${typeLabel}</span>`;
+                
+                if (isRecurring) {
+                    actionHtml = `<a href="recurring-bookings.html" class="pay-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;" onclick="event.stopPropagation()"><i class="fa-solid fa-repeat"></i> Manage</a>`;
+                    metaHtml = `<span><i class="fa-solid fa-rotate"></i> ${item.series_reference || 'Contract'}</span>`;
+                } else {
+                    actionHtml = `<button class="pay-btn" onclick="event.stopPropagation();payBooking('${item.booking_id || item.id}', '${item.customer_id}', ${balance})"><i class="fa-solid fa-credit-card"></i> Pay</button>`;
+                    metaHtml = `<span><i class="fa-solid fa-door-open"></i> ${room}</span><span><i class="fa-solid fa-user-group"></i> ${guests > 0 ? guests + ' guests' : '—'}</span>`;
+                }
                 const outDataStr = encodeURIComponent(JSON.stringify(item));
-                cardOnclick = `openBookingModal('${outDataStr}')`;
+                cardOnclick = isRecurring ? '' : `openBookingModal('${outDataStr}')`;
             } else {
                 statusHtml = `<span class="status-pill status-upcoming">Confirmed</span>`;
                 actionHtml = `<button class="view-btn" onclick="event.stopPropagation();viewBookingDetails('${item.booking_id || item.id}')"><i class="fa-solid fa-eye"></i> View</button>`;
@@ -1654,6 +2001,7 @@
                         </div>
                         <div class="b-details">
                             <h4>${name}</h4>
+                            ${isRecurring && item.series_reference ? `<div style="margin-top:2px;margin-bottom:1px"><span style="font-family:monospace;font-size:0.72rem;font-weight:600;letter-spacing:0.03em;background:rgba(139,92,246,.14);border:1px solid rgba(139,92,246,.35);color:#a78bfa;padding:1px 8px;border-radius:4px;white-space:nowrap;">${item.series_reference}</span></div>` : ''}
                             <div class="b-meta">${metaHtml}</div>
                         </div>
                     </div>
@@ -1686,14 +2034,35 @@
         // END TAB FILTERING & PAGINATION
         // ══════════════════════════════════════════════════════════════════
 
+        // Parse ##ENQUIRY_META## block from customer notes
+        function parseEnquiryMeta(notes) {
+            if (!notes) return null;
+            const idx = notes.indexOf('##ENQUIRY_META##');
+            if (idx === -1) return null;
+            try { return JSON.parse(notes.slice(idx + 16)); } catch(e) { return null; }
+        }
+        function stripEnquiryMeta(notes) {
+            if (!notes) return '—';
+            const idx = notes.indexOf('\n##ENQUIRY_META##');
+            return (idx !== -1 ? notes.slice(0, idx) : notes).trim() || '—';
+        }
+
         function openModal(dataString) {
             const data = JSON.parse(decodeURIComponent(dataString));
+            const meta = parseEnquiryMeta(data.notes);
+
             document.getElementById('m-id').innerText = data.id || 'N/A';
             document.getElementById('m-name').innerText = data.full_name || 'N/A';
             document.getElementById('m-email').innerText = data.email || 'N/A';
             document.getElementById('m-phone').innerText = data.phone || 'N/A';
             document.getElementById('m-event').innerText = data.event_type || 'N/A';
-            document.getElementById('m-room').innerText  = data.room_name || '—';
+
+            // Room(s): use meta rooms array if available, fall back to room_name
+            const metaRooms = meta && meta.rooms && meta.rooms.length ? meta.rooms : null;
+            document.getElementById('m-room').innerText = metaRooms
+                ? metaRooms.map(r => r.room_name).join(', ')
+                : (data.room_name || '—');
+
             (function(){
                 const fmtD = d => { try { return new Date(d+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); } catch(e){ return d; } };
                 const df = data.date_from ? data.date_from.split('T')[0] : null;
@@ -1707,9 +2076,36 @@
                     : ev ? fmtD(ev)
                     : 'N/A';
             })();
+
+            // Time slot
+            const st = data.start_time || '';
+            const et = data.end_time   || '';
+            document.getElementById('m-time').innerText = (st && et) ? st.slice(0,5) + ' – ' + et.slice(0,5) : '—';
+
             document.getElementById('m-status').innerText = data.status || 'N/A';
-            document.getElementById('m-guests').innerText = data.guest_count || data.guests_count || data.num_people || data.numPeople || '0';
-            document.getElementById('m-notes').innerText  = data.notes || '—';
+            document.getElementById('m-guests').innerText = data.guest_count || data.guests_count || '0';
+
+            // Estimated cost
+            const cost = parseFloat(data.total_amount || data.estimated_cost || 0);
+            document.getElementById('m-cost').innerText = cost > 0 ? '£' + cost.toFixed(2) : '—';
+
+            // Services from meta
+            const svcWrap = document.getElementById('m-services-wrap');
+            const svcEl   = document.getElementById('m-services');
+            const metaSvcs = meta && meta.services && meta.services.length ? meta.services : [];
+            if (metaSvcs.length && svcEl) {
+                svcEl.innerHTML = metaSvcs.map(s =>
+                    `<span style="display:inline-block;background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);border-radius:6px;padding:2px 10px;font-size:0.82rem;margin:2px 4px 2px 0">`
+                    + esc(s.name) + (s.type === 'hourly' ? ' (' + (s.hours||0) + 'h)' : '') + ' — £' + parseFloat(s.subtotal||0).toFixed(2)
+                    + `</span>`
+                ).join('');
+                if (svcWrap) svcWrap.style.display = '';
+            } else {
+                if (svcWrap) svcWrap.style.display = 'none';
+            }
+
+            // Notes — strip the meta block before displaying
+            document.getElementById('m-notes').innerText = stripEnquiryMeta(data.notes);
 
             const btnContainer = document.getElementById('modal-buttons');
             const isPendingOrContacted = data.status === 'pending' || data.status === 'contacted';
@@ -1729,20 +2125,20 @@
             }
 
             if (isPendingOrContacted) {
-                const hasBooking = data.has_booking === true || data.has_booking === 'true';
-                const bookBtn    = `<a href="venuepro_booking.html?cid=${data.id}" class="btn-modal btn-book"><i class="fa-solid fa-calendar-check"></i> Book Now</a>`;
-                const cancelBtn  = `<button class="btn-modal btn-cancel" onclick="cancelRequest('${data.id}','${(data.full_name||'').replace(/'/g,"\\'")}')"><i class="fa-solid fa-ban"></i> Cancel</button>`;
-                const confirmBtn = `<button class="btn-modal" style="background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);display:flex;align-items:center;gap:8px" onclick="toggleConfirmSection()"><i class="fa-solid fa-calendar-check"></i> Confirm</button>`;
+                // Book Now removed — Confirm Booking inline is the only booking action
+                const safeName2 = (data.full_name||'').replace(/'/g,"\\'");
+                const cancelBtn  = `<button class="btn-modal btn-cancel" onclick="cancelRequest('${data.id}','${safeName2}')"><i class="fa-solid fa-ban"></i> Cancel</button>`;
+                const removeBtn  = `<button class="btn-modal" style="background:rgba(239,68,68,0.12);color:#f87171;border:1px solid rgba(239,68,68,0.3);display:flex;align-items:center;gap:8px" onclick="removeRequest('${data.id}','${safeName2}')"><i class="fa-solid fa-trash-can"></i> Remove</button>`;
+                const confirmBtn = `<button class="btn-modal" style="background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);display:flex;align-items:center;gap:8px" onclick="toggleConfirmSection()"><i class="fa-solid fa-calendar-check"></i> Confirm Booking</button>`;
                 btnContainer.innerHTML = countdownHtml
                     + `<div style="display:flex;gap:10px;justify-content:flex-end;align-items:center;flex-wrap:wrap;margin-top:1rem">`
-                    + bookBtn + confirmBtn + cancelBtn
+                    + confirmBtn + cancelBtn + removeBtn
                     + `<button class="btn-modal btn-close" onclick="closeModal()">Close</button></div>`;
             } else if (data.status === 'deposit_paid') {
                 btnContainer.innerHTML = `<a href="final-payment.html" class="btn-modal btn-pay"><i class="fa-solid fa-credit-card"></i> Pay Balance</a><button class="btn-modal btn-close" onclick="closeModal()">Close</button>`;
             } else {
                 btnContainer.innerHTML = `<button class="btn-modal btn-close" onclick="closeModal()">Close</button>`;
             }
-            // Hide history/interactions — not needed for Pending Request view
             // Store pending data for inline confirm panel
             currentPendingData = data;
             const mcs = document.getElementById('m-confirm-section');
@@ -1757,7 +2153,7 @@
             const refreshIcon = document.getElementById('refresh-icon');
             refreshIcon.classList.add('fa-spin');
             try {
-                const response = await fetch(DASHBOARD_WEBHOOK_URL + tidParam(), { headers: getAuthHeaders() });
+                const response = await fetch(DASHBOARD_WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jwt: sessionStorage.getItem('vp_token') || '' }) });
                 if (!response.ok) throw new Error(`Request failed`);
                 const json = await response.json();
                 const data = json.data || json;
@@ -1766,6 +2162,17 @@
                 document.getElementById('val-revenue').innerText = formatCurrency(metrics.total_revenue_month || 0);
                 document.getElementById('val-revenue-label').innerText = `${MONTHS[revenueMonth-1]} ${revenueYear}`;
                 document.getElementById('val-pending').innerText = metrics.pending_requests || 0;
+
+                // Outstanding: use API value (includes single bookings + recurring cycle amounts)
+                // This overrides the locally-computed sum that only covered confirmed_bookings.balance_due
+                if (metrics.outstanding !== undefined && metrics.outstanding !== null) {
+                    const outEl = document.getElementById('qs-outstanding');
+                    if (outEl) {
+                        const outstanding = parseFloat(metrics.outstanding) || 0;
+                        outEl.innerText = formatCurrency(outstanding);
+                        outEl.style.color = outstanding > 0 ? 'var(--warning)' : 'var(--success)';
+                    }
+                }
 
                 // REQUESTS - Store in global array
                 let requests = data.recent_customers || [];
@@ -1809,7 +2216,7 @@
                 const daysLeft   = Math.max(0, 7 - daysPassed);
                 if (daysLeft < 1 || daysLeft > 3) return false;  // only 1–3 days left
                 const storageKey = `vp_warn_${c.id}_${today}`;
-                if (localStorage.getItem(storageKey)) return false; // already sent today
+                if (sessionStorage.getItem(storageKey)) return false; // already sent today
                 return true;
             });
             for (const c of toWarn) {
@@ -1826,11 +2233,12 @@
                             days_left:     daysLeft,
                             event_date:    c.event_date,
                             event_type:    c.event_type,
-                            room_name:     c.room_name || ''
+                            room_name:     c.room_name || '',
+                            tenant_id:     parseInt(_TID())
                         })
                     });
-                    localStorage.setItem(`vp_warn_${c.id}_${today}`, '1');
-                    console.log(`Expiry warning sent for ${c.full_name} (${daysLeft}d left)`);
+                    sessionStorage.setItem(`vp_warn_${c.id}_${today}`, '1');
+                    // Expiry warning sent
                 } catch(e) {
                     console.warn('Could not send expiry warning for', c.full_name, e);
                 }
@@ -1847,7 +2255,7 @@
                 const response = await fetch(UPDATE_STATUS_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-                    body: JSON.stringify({ id: id, staff_name: STAFF_NAME })
+                    body: JSON.stringify({ customer_id: id, status: 'contacted', jwt: sessionStorage.getItem('vp_token') || '' })
                 });
 
                 if (response.ok) {
@@ -1879,7 +2287,7 @@
 
         async function fetchMonthlyRevenue(month, year) {
             try {
-                const r = await fetch(`${MONTHLY_REVENUE_URL}?month=${month}&year=${year}` + tidParam('&'), { headers: getAuthHeaders() });
+                const r = await fetch(MONTHLY_REVENUE_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jwt: sessionStorage.getItem('vp_token') || '', month, year }) });
                 if (!r.ok) throw new Error();
                 const d = await r.json();
                 document.getElementById('val-revenue').innerText = formatCurrency(d.total_revenue || 0);
@@ -1921,27 +2329,41 @@
             if (!isOpen) { renderDashboardServices(); renderDashboardRooms(); }
         }
 
+        // Render services list — pre-ticks & pre-fills hours from enquiry meta
         function renderDashboardServices() {
-            const tid = localStorage.getItem('vp_tenant_id') || '';
+            const tid = sessionStorage.getItem('vp_tenant_id') || '';
             let svcs = [];
-            try { svcs = JSON.parse(localStorage.getItem('vp_services_' + tid) || '[]').filter(s => s.active !== false); } catch(e) {}
+            try { svcs = JSON.parse(sessionStorage.getItem('vp_services_' + tid) || '[]').filter(s => s.active !== false); } catch(e) {}
             const wrap = document.getElementById('m-confirm-services-wrap');
             const c    = document.getElementById('m-confirm-services-list');
             if (!c) return;
             if (!svcs.length) { if (wrap) wrap.style.display = 'none'; return; }
             if (wrap) wrap.style.display = 'block';
-            c.innerHTML = svcs.map(s => `
-                <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
-                    <input type="checkbox" id="ms-svc-${esc(s.id)}" style="width:auto;margin:0;min-height:unset;cursor:pointer" onchange="mUpdateServicesTotal()">
+
+            // Get requested services from enquiry meta
+            const meta = currentPendingData ? parseEnquiryMeta(currentPendingData.notes) : null;
+            const reqSvcs = meta && meta.services ? meta.services : [];
+
+            c.innerHTML = svcs.map(s => {
+                // Find if this service was requested in the enquiry
+                const req = reqSvcs.find(rs => rs.name && rs.name.toLowerCase() === s.name.toLowerCase());
+                const chk = req ? 'checked' : '';
+                const preHrs = req && s.type === 'hourly' ? (req.hours || '') : '';
+                return `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+                    <input type="checkbox" id="ms-svc-${esc(s.id)}" ${chk} style="width:auto;margin:0;min-height:unset;cursor:pointer" onchange="mRecalcTotal()">
                     <label for="ms-svc-${esc(s.id)}" style="flex:1;cursor:pointer;font-size:0.87rem">${esc(s.name)}<span style="color:var(--text-muted);font-size:0.77rem"> — ${s.type === 'hourly' ? '£' + s.price + '/hr' : '£' + s.price + ' flat'}</span></label>
-                    ${s.type === 'hourly' ? `<input type="number" id="ms-svc-hrs-${esc(s.id)}" style="width:64px;padding:4px 8px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:6px;color:white;font-size:0.82rem;min-height:unset;text-align:center" placeholder="hrs" min="0.5" step="0.5" oninput="mUpdateServicesTotal()">` : ''}
-                </div>`).join('');
+                    ${s.type === 'hourly' ? `<input type="number" id="ms-svc-hrs-${esc(s.id)}" value="${preHrs}" style="width:64px;padding:4px 8px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:6px;color:white;font-size:0.82rem;min-height:unset;text-align:center" placeholder="hrs" min="0.5" step="0.5" oninput="mRecalcTotal()">` : ''}
+                </div>`;
+            }).join('');
         }
 
-        function mUpdateServicesTotal() {
-            const tid = localStorage.getItem('vp_tenant_id') || '';
+        // Recalculate total = room costs (rate × hours) + selected services
+        function mRecalcTotal() {
+            const tid = sessionStorage.getItem('vp_tenant_id') || '';
             let svcs = [];
-            try { svcs = JSON.parse(localStorage.getItem('vp_services_' + tid) || '[]').filter(s => s.active !== false); } catch(e) {}
+            try { svcs = JSON.parse(sessionStorage.getItem('vp_services_' + tid) || '[]').filter(s => s.active !== false); } catch(e) {}
+
+            // Services total
             let svcTotal = 0;
             svcs.forEach(s => {
                 const cb = document.getElementById('ms-svc-' + s.id);
@@ -1953,11 +2375,29 @@
                     svcTotal += parseFloat(s.price) || 0;
                 }
             });
-            if (svcTotal > 0) {
-                const tot = document.getElementById('m-confirm-total');
-                if (tot) { tot.value = svcTotal.toFixed(2); mConfirmCalcDeposit(); }
-            }
+
+            // Room costs: rate × booking hours for each checked room
+            const meta = currentPendingData ? parseEnquiryMeta(currentPendingData.notes) : null;
+            const bookingHours = meta && meta.hours ? parseFloat(meta.hours) : 0;
+            let roomTotal = 0;
+            _dashRoomsData.forEach(r => {
+                const cb = document.getElementById('mdr-' + r.id);
+                if (!cb || !cb.checked) return;
+                roomTotal += (parseFloat(r.day_rate || 0)) * bookingHours;
+            });
+
+            const total = Math.round((roomTotal + svcTotal) * 100) / 100;
+            const tot = document.getElementById('m-confirm-total');
+            if (tot) { tot.value = total > 0 ? total.toFixed(2) : ''; mConfirmCalcDeposit(); }
+            // Show confirm panel, hide placeholder
+            const ph = document.getElementById('m-confirm-placeholder');
+            const cs = document.getElementById('m-confirm-section');
+            if (ph) ph.style.display = 'none';
+            if (cs) cs.style.display = 'block';
         }
+
+        // Keep old name as alias so any other code calling mUpdateServicesTotal still works
+        function mUpdateServicesTotal() { mRecalcTotal(); }
 
         function mConfirmCalcDeposit() {
             const total = parseFloat(document.getElementById('m-confirm-total').value || 0);
@@ -1965,9 +2405,9 @@
         }
 
         function mGetServicesPayload() {
-            const tid = localStorage.getItem('vp_tenant_id') || '';
+            const tid = sessionStorage.getItem('vp_tenant_id') || '';
             let svcs = [];
-            try { svcs = JSON.parse(localStorage.getItem('vp_services_' + tid) || '[]').filter(s => s.active !== false); } catch(e) {}
+            try { svcs = JSON.parse(sessionStorage.getItem('vp_services_' + tid) || '[]').filter(s => s.active !== false); } catch(e) {}
             const sel = [];
             svcs.forEach(s => {
                 const cb = document.getElementById('ms-svc-' + s.id);
@@ -1985,24 +2425,47 @@
             const wrap = document.getElementById('m-confirm-rooms-wrap');
             const list = document.getElementById('m-confirm-rooms-list');
             if (!list) return;
-            const tid = localStorage.getItem('vp_tenant_id') || '';
             try {
                 if (!_dashRoomsData.length) {
-                    const r = await fetch(ROOMS_API_BASE + '?tenant_id=' + tid, { headers: getAuthHeaders() });
+                    const r = await fetch(ROOMS_API_BASE + tidParam(), { headers: getAuthHeaders() });
                     const j = await r.json();
                     _dashRoomsData = (j.data || (Array.isArray(j) ? j : [])).filter(x => x.is_active || x.is_active === undefined);
                 }
                 if (!_dashRoomsData.length) { if (wrap) wrap.style.display = 'none'; return; }
+
+                // Pre-tick rooms from enquiry meta; fall back to room_name match
+                const meta = currentPendingData ? parseEnquiryMeta(currentPendingData.notes) : null;
+                const reqRoomIds = meta && meta.rooms ? meta.rooms.map(r => String(r.room_id)) : [];
                 const primaryRoom = currentPendingData ? (currentPendingData.room_name || '') : '';
+
+                // Get date/time from the request for defaults
+                const reqDate   = currentPendingData ? (currentPendingData.booking_date || currentPendingData.date_from || '') : '';
+                const reqStart  = currentPendingData ? (currentPendingData.start_time || '09:00') : '09:00';
+                const reqEnd    = currentPendingData ? (currentPendingData.end_time   || '17:00') : '17:00';
+
                 list.innerHTML = _dashRoomsData.map(r => {
                     const rName = r.name || r.room_name || r.id;
                     const rate  = parseFloat(r.day_rate || 0);
-                    const chk   = rName === primaryRoom ? 'checked' : '';
-                    return `<div style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.05)">`
-                        + `<input type="checkbox" id="mdr-${esc(String(r.id))}" ${chk} style="width:auto;margin:0;min-height:unset;cursor:pointer">`
-                        + `<label for="mdr-${esc(String(r.id))}" style="flex:1;cursor:pointer;font-size:0.87rem">${esc(rName)}`
-                        + `<span style="color:var(--text-muted);font-size:0.76rem"> — £${rate.toFixed(2)}/hr</span></label></div>`;
+                    const rid   = esc(String(r.id));
+                    const chk   = reqRoomIds.length
+                        ? (reqRoomIds.includes(String(r.id)) ? 'checked' : '')
+                        : (rName === primaryRoom ? 'checked' : '');
+                    return `<div style="border-bottom:1px solid rgba(255,255,255,0.05);padding:5px 0">
+                        <div style="display:flex;align-items:center;gap:10px">
+                            <input type="checkbox" id="mdr-${rid}" ${chk} style="width:auto;margin:0;min-height:unset;cursor:pointer" onchange="mdrToggleTime('${rid}');mRecalcTotal()">
+                            <label for="mdr-${rid}" style="flex:1;cursor:pointer;font-size:0.87rem">${esc(rName)}<span style="color:var(--text-muted);font-size:0.76rem"> — £${rate.toFixed(2)}/hr</span></label>
+                        </div>
+                        <div id="mdr-times-${rid}" style="display:${chk?'flex':'none'};align-items:center;gap:8px;margin-top:6px;padding:6px 8px 4px 26px;background:rgba(0,0,0,0.15);border-radius:6px">
+                            <span style="font-size:0.75rem;color:var(--text-muted);min-width:54px">Time slot:</span>
+                            <input type="time" id="mdr-start-${rid}" value="${reqStart}" style="flex:1;padding:6px 8px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:6px;color:white;font-size:0.82rem;outline:none;min-height:unset" onchange="mRecalcTotal()">
+                            <span style="color:var(--text-muted);font-size:0.82rem;flex-shrink:0">→</span>
+                            <input type="time" id="mdr-end-${rid}" value="${reqEnd}" style="flex:1;padding:6px 8px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:6px;color:white;font-size:0.82rem;outline:none;min-height:unset" onchange="mRecalcTotal()">
+                        </div>
+                    </div>`;
                 }).join('');
+
+                // Trigger total calc once rooms are rendered
+                mRecalcTotal();
             } catch(e) {
                 if (list) list.innerHTML = '<div style="color:var(--text-muted);font-size:0.82rem">Could not load rooms</div>';
             }
@@ -2012,7 +2475,22 @@
             return _dashRoomsData.filter(r => {
                 const cb = document.getElementById('mdr-' + r.id);
                 return cb && cb.checked;
-            }).map(r => ({ room_id: r.id, room_name: r.name || r.room_name || r.id }));
+            }).map(r => {
+                const rid = String(r.id);
+                const startEl = document.getElementById('mdr-start-' + rid);
+                const endEl   = document.getElementById('mdr-end-'   + rid);
+                return {
+                    room_id:    r.id,
+                    room_name:  r.name || r.room_name || r.id,
+                    start_time: startEl ? startEl.value : (currentPendingData && currentPendingData.start_time) || '09:00',
+                    end_time:   endEl   ? endEl.value   : (currentPendingData && currentPendingData.end_time)   || '17:00'
+                };
+            });
+        }
+        function mdrToggleTime(rid) {
+            const cb    = document.getElementById('mdr-' + rid);
+            const times = document.getElementById('mdr-times-' + rid);
+            if (times) times.style.display = (cb && cb.checked) ? 'flex' : 'none';
         }
 
         async function submitConfirmFromDashboard() {
@@ -2027,7 +2505,7 @@
             try {
                 const p = currentPendingData;
                 const res = await fetch('https://n8n.srv1090894.hstgr.cloud/webhook/confirm-booking', {
-                    method: 'POST', headers: getAuthHeaders(),
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         request_id: p.request_id || p.id,
                         customer_id: p.id,
@@ -2037,7 +2515,7 @@
                         payment_method: method,
                         services: mGetServicesPayload(),
                         rooms: mGetRoomsPayload(),
-                        tenant_id: parseInt(localStorage.getItem('vp_tenant_id') || '0')
+                        tenant_id: parseInt(sessionStorage.getItem('vp_tenant_id') || '0')
                     })
                 });
                 if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -2056,7 +2534,7 @@
             try {
                 const p = currentPendingData;
                 const res = await fetch('https://n8n.srv1090894.hstgr.cloud/webhook/confirm-booking', {
-                    method: 'POST', headers: getAuthHeaders(),
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         request_id: p.request_id || p.id,
                         customer_id: p.id,
@@ -2064,7 +2542,7 @@
                         balance_due: total || 0,
                         services: mGetServicesPayload(),
                         rooms: mGetRoomsPayload(),
-                        tenant_id: parseInt(localStorage.getItem('vp_tenant_id') || '0')
+                        tenant_id: parseInt(sessionStorage.getItem('vp_tenant_id') || '0')
                     })
                 });
                 if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -2081,7 +2559,7 @@
                 const r = await fetch(CANCEL_PENDING_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-                    body: JSON.stringify({ customer_id: id, tenant_id: parseInt(localStorage.getItem('vp_tenant_id') || '0') })
+                    body: JSON.stringify({ customer_id: id, jwt: sessionStorage.getItem('vp_token') || '' })
                 });
                 if (!r.ok) throw new Error();
                 showToast(`${name}'s request cancelled`);
@@ -2090,43 +2568,128 @@
             } catch(e) { showToast('Failed to cancel', 'error'); }
         }
 
+        async function removeRequest(id, name) {
+            if (!confirm(`Permanently remove ${name} from the pending requests list?`)) return;
+            try {
+                const r = await fetch(CANCEL_PENDING_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                    body: JSON.stringify({ customer_id: id, jwt: sessionStorage.getItem('vp_token') || '' })
+                });
+                if (!r.ok) throw new Error();
+                showToast(`${name} removed from pending requests`);
+                closeModal();
+                setTimeout(() => { loadDashboard(); loadActivityFeed(); }, 800);
+            } catch(e) { showToast('Failed to remove request', 'error'); }
+        }
+
         // Single fetch for both Upcoming Events and Outstanding Payments
+        // Group multi-room bookings so each event appears once with aggregated rooms/amounts
+        function groupBookings(rows) {
+            if (!rows || !rows.length) return rows;
+            const grouped = {};
+            rows.forEach(b => {
+                const dateKey = (b.date_from || b.booking_date || '').toString().slice(0, 10);
+                const key = `${b.customer_id}|${dateKey}|${b.start_time || ''}|${b.end_time || ''}`;
+                if (!grouped[key]) {
+                    grouped[key] = {
+                        ...b,
+                        _roomNames: [b.room_name].filter(Boolean),
+                        total_amount: parseFloat(b.total_amount || 0),
+                        balance_due: parseFloat(b.balance_due || 0)
+                    };
+                } else {
+                    if (b.room_name && !grouped[key]._roomNames.includes(b.room_name)) {
+                        grouped[key]._roomNames.push(b.room_name);
+                    }
+                    grouped[key].total_amount += parseFloat(b.total_amount || 0);
+                    grouped[key].balance_due  += parseFloat(b.balance_due || 0);
+                }
+            });
+            return Object.values(grouped).map(b => ({
+                ...b,
+                room_name: b._roomNames.join(', ') || b.room_name || '—',
+                total_amount: b.total_amount.toFixed(2),
+                balance_due: b.balance_due.toFixed(2)
+            }));
+        }
+
+        // Dedicated outstanding payments loader — calls the get-outstanding-bookings endpoint which
+        // Returns BOTH single bookings (balance_due > 0) AND recurring series debt.
+        // Source 1: n8n get-outstanding-bookings webhook (legacy confirmed_bookings + recurring_series table).
+        // Source 2: db-api /recurring/next-due — phase3 recurring_payment_schedule pending/overdue rows.
+        // Results are merged; renderOutstandingPanel deduplicates by series_reference for recurring items.
+        async function loadOutstandingPayments() {
+            try {
+                // --- Source 1: n8n outstanding bookings (legacy path) ---
+                const res  = await fetch(OUTSTANDING_BOOKINGS_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jwt: sessionStorage.getItem('vp_token') || '' }) });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const json = await res.json();
+                const legacyItems = json.data || (Array.isArray(json) ? json : []);
+
+                // --- Source 2: db-api phase3 recurring schedule (next-due per series) ---
+                let phase3Items = [];
+                try {
+                    const tid     = _TID();
+                    const ndRes   = await fetch(`${RECURRING_NEXT_DUE_URL}?tenant_id=${encodeURIComponent(tid)}`);
+                    if (ndRes.ok) {
+                        const ndJson  = await ndRes.json();
+                        // Transform schedule rows into the shape renderCard / renderOutstandingPanel expects.
+                        phase3Items = (ndJson.data || []).map(row => ({
+                            booking_type:    'recurring',
+                            id:              row.schedule_id,
+                            customer_id:     row.series_id,      // used as dedup key fallback
+                            full_name:       row.customer_name,
+                            customer_name:   row.customer_name,
+                            customer_email:  row.customer_email,
+                            series_reference: row.series_reference,
+                            amount_due:      row.amount_due,
+                            balance_due:     row.amount_due,
+                            date_from:       row.due_date || row.period_start,
+                            booking_date:    row.due_date || row.period_start,
+                            status:          row.status,          // 'pending' | 'overdue'
+                            series_id:       row.series_id,
+                            cycle_number:    row.cycle_number,
+                            // phase3 flag — lets renderCard know this is a schedule-driven item
+                            phase3_recurring: true,
+                        }));
+                    }
+                } catch(ndErr) {
+                    console.warn('loadOutstandingPayments: next-due fetch failed (non-fatal)', ndErr);
+                }
+
+                // Merge: legacy items first, phase3 items appended.
+                // renderOutstandingPanel's dedup logic collapses same series_reference — safe to merge.
+                allOutstandingPayments = [...legacyItems, ...phase3Items];
+                renderOutstandingPanel();
+            } catch(e) {
+                console.error('loadOutstandingPayments error:', e);
+            }
+        }
+
         async function loadAllBookings() {
             try {
-                const res  = await fetch(ALL_BOOKINGS_URL + tidParam(), { headers: getAuthHeaders() });
+                const res  = await fetch(ALL_BOOKINGS_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jwt: sessionStorage.getItem('vp_token') || '' }) });
                 const json = await res.json();
-                const raw  = json.data || (Array.isArray(json) ? json : []);
+                const rawData = json.data || (Array.isArray(json) ? json : []);
+                const raw = groupBookings(rawData);
                 updateGlanceStats(raw);
-                
+
                 // Calculate monthly bookings
                 calculateMonthlyBookings(raw, bookingsMonth, bookingsYear);
-                
+
                 const now  = new Date(); now.setHours(0,0,0,0);
 
-                // --- OUTSTANDING PAYMENTS: future + balance outstanding ---
-                allOutstandingPayments = raw.filter(b => {
-                    if (b.status === 'cancelled') return false;
-                    const bDate   = new Date(b.date_to || b.booking_date); // use date_to so multi-day events stay visible until last day
-                    const balance = parseFloat(b.balance_due || 0);
-                    return bDate >= now && balance > 0;
-                }).sort((a, b) => new Date(a.date_from || a.booking_date) - new Date(b.date_from || b.booking_date));
+                // Outstanding payments are now loaded by loadOutstandingPayments() which calls
+                // the dedicated get-outstanding-bookings endpoint (includes recurring series debt).
+                // Do NOT override allOutstandingPayments here.
 
                 // --- UPCOMING EVENTS: all future confirmed bookings (any payment status) ---
-                const seenKeys = new Set();
-                const upcoming = raw.filter(b => {
+                allUpcomingEvents = raw.filter(b => {
                     if (b.status === 'cancelled') return false;
                     const bDate = new Date((b.date_to || b.booking_date).split('T')[0]+'T00:00:00'); // use date_to so multi-day events stay visible until last day
                     return bDate >= now;
                 }).sort((a, b) => new Date(a.date_from || a.booking_date) - new Date(b.date_from || b.booking_date));
-
-                allUpcomingEvents = [];
-                upcoming.forEach(b => {
-                    const key = b.id || (b.customer_name + b.booking_date + b.room_name);
-                    if (!seenKeys.has(key)) {
-                        seenKeys.add(key);
-                        allUpcomingEvents.push(b);
-                    }
-                });
 
                 // Render the unified view
                 renderCurrentView();
@@ -2160,7 +2723,29 @@
             document.getElementById('pm-customer').innerText = b.customer_name || '—';
             document.getElementById('pm-room').innerText     = b.room_name     || '—';
             document.getElementById('pm-date').innerText     = fmtBookingDate(b);
+            // Total booking value
+            const totalEl = document.getElementById('pm-total');
+            if (totalEl) totalEl.innerText = b.total_amount != null ? formatCurrency(parseFloat(b.total_amount)) : '—';
             document.getElementById('pm-balance').innerText  = formatCurrency(balance);
+            // Services from ##ENQUIRY_META## in notes
+            const _pmSvcRow  = document.getElementById('pm-services-row');
+            const _pmSvcList = document.getElementById('pm-services-list');
+            if (_pmSvcRow && _pmSvcList) {
+                let _pmMeta = null;
+                if (b.notes) { const _idx = b.notes.indexOf('##ENQUIRY_META##'); if (_idx !== -1) { try { _pmMeta = JSON.parse(b.notes.slice(_idx + 16)); } catch(e) {} } }
+                const _pmSvcs = _pmMeta && _pmMeta.services && _pmMeta.services.length ? _pmMeta.services : [];
+                if (_pmSvcs.length) {
+                    _pmSvcList.innerHTML = _pmSvcs.map(s =>
+                        `<span style="background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);border-radius:5px;padding:2px 9px;font-size:0.8rem;">`
+                        + (s.name || '') + (s.type === 'hourly' ? ` (${s.hours||0}h) — £${parseFloat(s.subtotal||0).toFixed(2)}` : ` — £${parseFloat(s.subtotal||s.price||0).toFixed(2)}`)
+                        + `</span>`
+                    ).join('');
+                    _pmSvcRow.style.display = 'flex';
+                } else {
+                    _pmSvcRow.style.display = 'none';
+                    _pmSvcList.innerHTML = '';
+                }
+            }
             // slider
             const slider = document.getElementById('pm-slider');
             const amtIn  = document.getElementById('pm-amount');
@@ -2230,7 +2815,9 @@
                         customer_id:       _payBooking.customer_id,
                         amount:            amount,
                         payment_method:    method,
-                        deposit_reference: _payBooking.deposit_reference || null
+                        deposit_reference: _payBooking.deposit_reference || null,
+                        tenant_id:         parseInt(_TID()),
+                        jwt:               sessionStorage.getItem('vp_token') || ''
                     })
                 });
                 const result = await res.json();
@@ -2260,110 +2847,27 @@
 
         // ---- RENDER HELPERS ----
         function fmtBookingDate(b, opts) {
-            const o = opts || {day:'numeric',month:'short',year:'numeric'};
-            const fmtD = d => { try { return new Date(d+'T00:00:00').toLocaleDateString('en-GB', o); } catch(e) { return d; } };
+            const o = opts || { day: 'numeric', month: 'short', year: 'numeric' };
+
+            // Robust guard: parse the date and reject anything clearly invalid
+            const rawDate = b.booking_date || b.event_date || b.date_from || '';
+            if (!rawDate) return 'TBC';
+            const _check = new Date(rawDate.includes('T') ? rawDate : rawDate + 'T00:00:00');
+            if (isNaN(_check.getTime()) || _check.getFullYear() < 2000) return 'TBC';
+        
+            const fmtD = d => { 
+                try { 
+                    const dateObj = new Date(d.includes('T') ? d : d + 'T00:00:00');
+                    return isNaN(dateObj.getTime()) ? 'TBC' : dateObj.toLocaleDateString('en-GB', o); 
+                } catch(e) { return 'TBC'; } 
+            };
+        
             const df = b.date_from ? b.date_from.split('T')[0] : null;
-            const dt = b.date_to   ? b.date_to.split('T')[0]   : null;
-            const ev = (b.booking_date || b.event_date || '').split('T')[0];
+            const dt = b.date_to ? b.date_to.split('T')[0] : null;
+            const ev = rawDate.split('T')[0];
+        
             if (df && dt && df !== dt) return fmtD(df) + ' – ' + fmtD(dt);
-            return ev ? fmtD(ev) : '—';
-        }
-
-        function renderUpcomingRows(list) {
-            upcomingFiltered = list || [];
-            const bookBody   = document.getElementById('table-bookings');
-            if (!upcomingFiltered.length) {
-                bookBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding: 2rem;">No matching bookings</td></tr>`;
-                updateUpcomingPagination();
-                return;
-            }
-            const totalPages = Math.ceil(upcomingFiltered.length / UPCOMING_PAGE_SIZE);
-            if (upcomingPage > totalPages) upcomingPage = totalPages;
-            const start = (upcomingPage - 1) * UPCOMING_PAGE_SIZE;
-            const page  = upcomingFiltered.slice(start, start + UPCOMING_PAGE_SIZE);
-            bookBody.innerHTML = page.map(b => {
-                const dataStr = encodeURIComponent(JSON.stringify(b));
-                return `<tr onclick="openBookingModal('${dataStr}')" style="cursor:pointer;">
-                    <td><div style="font-weight:600;">${fmtBookingDate(b, {day:'numeric',month:'short'})}</div></td>
-                    <td><div style="font-weight:500;">${esc(b.customer_name) || 'Guest'}</div>${b.customer_email ? `<div style="font-size:0.75rem; color:var(--text-muted);">${esc(b.customer_email)}</div>` : ''}</td>
-                    <td>${esc(b.room_name)}</td>
-                    <td><span class="status-badge ${parseFloat(b.balance_due) > 0 ? 'balance' : 'paid'}">${parseFloat(b.balance_due) > 0 ? formatCurrency(b.balance_due) + ' Due' : 'Paid'}</span></td>
-                </tr>`;
-            }).join('');
-            updateUpcomingPagination();
-        }
-
-        function updateUpcomingPagination() {
-            const bar = document.getElementById('upcoming-pagination');
-            const total = upcomingFiltered.length;
-            if (total <= UPCOMING_PAGE_SIZE) { bar.style.display = 'none'; return; }
-            const totalPages = Math.ceil(total / UPCOMING_PAGE_SIZE);
-            bar.style.display = 'flex';
-            document.getElementById('upcoming-page-info').innerText = `Page ${upcomingPage} of ${totalPages}  ·  ${total} bookings`;
-            document.getElementById('upcoming-prev').disabled = upcomingPage <= 1;
-            document.getElementById('upcoming-next').disabled = upcomingPage >= totalPages;
-        }
-
-        function changeUpcomingPage(delta) {
-            upcomingPage += delta;
-            renderUpcomingRows(upcomingFiltered);
-        }
-
-        function renderPreBookedCards(list) {
-            const container = document.getElementById('prebooked-list');
-            if (!list || list.length === 0) {
-                container.innerHTML = `<div style="text-align:center; padding:1.5rem; color:var(--text-muted);"><i class="fa-solid fa-check-circle" style="color:var(--success)"></i> No outstanding balances</div>`;
-                return;
-            }
-            container.innerHTML = list.map(b => {
-                const _pbStartDate = ((b.date_from || b.booking_date || '').split('T')[0]);
-                const d       = new Date(_pbStartDate + 'T00:00:00');
-                const day     = d.getDate();
-                const mon     = d.toLocaleString('default', { month: 'short' });
-                const balance = parseFloat(b.balance_due || 0);
-                const dataStr = encodeURIComponent(JSON.stringify(b));
-                return `<div class="prebooked-card" onclick="openBookingModal('${dataStr}')" style="cursor:pointer;">
-                    <div class="pb-left">
-                        <div class="pb-date"><div class="day">${day}</div><div class="mon">${mon}</div></div>
-                        <div class="pb-info">
-                            <h4>${b.customer_name || 'Guest'}</h4>
-                            <div class="pb-meta">
-                                <span><i class="fa-solid fa-layer-group"></i> ${b.room_name}</span>
-                                <span><i class="fa-solid fa-clock"></i> ${(b.start_time||'').slice(0,5)} – ${(b.end_time||'').slice(0,5)}</span>
-                                <span><i class="fa-solid fa-sterling-sign"></i> Total: ${formatCurrency(b.total_amount)}</span>
-                                ${b.customer_email ? `<span><i class="fa-solid fa-envelope"></i> ${b.customer_email}</span>` : ''}
-                                ${(b.date_from && b.date_to && b.date_from.split('T')[0] !== b.date_to.split('T')[0]) ? `<span><i class="fa-solid fa-calendar-week"></i> Until ${new Date(b.date_to.split('T')[0]+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</span>` : ''}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="pb-right">
-                        <span class="balance-pill"><i class="fa-solid fa-triangle-exclamation"></i> ${formatCurrency(balance)} due</span>
-                        <button class="pb-pay-btn" onclick="event.stopPropagation(); openPayModalByData('${dataStr}')"><i class="fa-solid fa-credit-card"></i> Pay</button>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        // ---- SEARCH FILTERS ----
-        function filterUpcoming() {
-            const term = document.getElementById('search-upcoming').value.toLowerCase().trim();
-            const filtered = term
-                ? allUpcomingEvents.filter(b =>
-                    (b.customer_name||'').toLowerCase().includes(term) ||
-                    (b.customer_email||'').toLowerCase().includes(term))
-                : allUpcomingEvents;
-            upcomingPage = 1;
-            renderUpcomingRows(filtered);
-        }
-
-        function filterPreBooked() {
-            const term = document.getElementById('search-prebooked').value.toLowerCase().trim();
-            const filtered = term
-                ? allOutstandingPayments.filter(b =>
-                    (b.customer_name||'').toLowerCase().includes(term) ||
-                    (b.customer_email||'').toLowerCase().includes(term))
-                : allOutstandingPayments;
-            renderPreBookedCards(filtered);
+            return ev ? fmtD(ev) : 'TBC';
         }
 
         // ---- BOOKING DETAIL MODAL ----
@@ -2402,8 +2906,8 @@
             if (!e || e.target.id === 'bookMod') document.getElementById('bookMod').classList.remove('open');
         }
 
-        startClock(); loadDashboard(); loadAllBookings(); loadAllInteractions(); loadActivityFeed(); setInterval(() => { loadDashboard(); loadAllBookings(); loadAllInteractions(); loadActivityFeed(); }, 60000);
-        window.addEventListener('pageshow', function(e) { if (e.persisted) { loadDashboard(); loadAllBookings(); loadAllInteractions(); loadActivityFeed(); } });
+        startClock(); loadDashboard(); loadAllBookings(); loadOutstandingPayments(); loadAllInteractions(); loadActivityFeed(); setInterval(() => { loadDashboard(); loadAllBookings(); loadOutstandingPayments(); loadAllInteractions(); loadActivityFeed(); }, 60000);
+        window.addEventListener('pageshow', function(e) { if (e.persisted) { loadDashboard(); loadAllBookings(); loadOutstandingPayments(); loadAllInteractions(); loadActivityFeed(); } });
 
         async function loadAllInteractions() {
             const INTERACTIONS_API = 'https://n8n.srv1090894.hstgr.cloud/webhook/customer-interactions';
@@ -2513,14 +3017,15 @@
             const tbody   = document.getElementById('modal-bh-tbody');
             loading.style.display = 'block'; stats.style.display = 'none'; tableW.style.display = 'none'; empty.style.display = 'none';
             try {
-                const res  = await fetch(BOOKINGS_API_URL + tidParam(), { headers: getAuthHeaders() });
+                const res  = await fetch(BOOKINGS_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jwt: sessionStorage.getItem('vp_token') || '' }) });
                 const json = await res.json();
                 const all  = json.data || (Array.isArray(json) ? json : []);
                 // Filter by customer_id (precise) with email as fallback for older data
-                const mine = all.filter(b => customerId
+                const mineRaw = all.filter(b => customerId
                     ? (b.customer_id === customerId)
                     : (b.customer_email || b.email || '').toLowerCase() === (email || '').toLowerCase()
                 );
+                const mine = groupBookings(mineRaw);
                 loading.style.display = 'none';
                 if (mine.length === 0) { empty.style.display = 'block'; return; }
                 const totalSpend  = mine.reduce((s,b) => s + parseFloat(b.total_amount||0), 0);
@@ -2530,7 +3035,33 @@
                 document.getElementById('modal-bh-outstanding').innerText = fmtCur(outstanding);
                 document.getElementById('modal-bh-outstanding').style.color = outstanding > 0 ? 'var(--warning)' : 'var(--success)';
                 stats.style.display = 'flex';
-                mine.sort((a,b) => new Date(b.booking_date) - new Date(a.booking_date));
+                mine.sort((a,b) => new Date(b.booking_date||b.date_from) - new Date(a.booking_date||a.date_from));
+
+                // Back-fill top modal fields from most recent booking when customer record lacks them
+                (function() {
+                    const latest = mine[0];
+                    if (!latest) return;
+                    const _fmtD = d => { try { return new Date(d+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); } catch(e){ return d||'—'; } };
+                    const _set = (id, val) => { const el = document.getElementById(id); if (el && (el.innerText === '—' || el.innerText === '--' || !el.innerText.trim())) el.innerText = val; };
+                    // Date
+                    const _df = (latest.date_from||latest.booking_date||'').split('T')[0];
+                    const _dt = (latest.date_to||'').split('T')[0];
+                    _set('m-date', (_df && _dt && _df !== _dt) ? _fmtD(_df)+' – '+_fmtD(_dt) : _df ? _fmtD(_df) : '—');
+                    // Time
+                    const _st = (latest.start_time||'').slice(0,5);
+                    const _et = (latest.end_time||'').slice(0,5);
+                    _set('m-time', (_st && _et) ? _st+' – '+_et : _st||'—');
+                    // Room
+                    _set('m-room', latest.room_name||'—');
+                    // Estimated cost
+                    const _cost = parseFloat(latest.total_amount||0);
+                    _set('m-cost', _cost > 0 ? '£'+_cost.toFixed(2) : '—');
+                    // Event type (fallback if customer record had none)
+                    if (latest.event_type) _set('m-event', latest.event_type);
+                    // Guest count fallback
+                    if (latest.guest_count) _set('m-guests', String(latest.guest_count));
+                })();
+
                 tbody.innerHTML = mine.map(b => {
                     const bal = parseFloat(b.balance_due||0);
                     const st  = b.status || 'unknown';
@@ -2660,7 +3191,8 @@
                         interaction_type: document.getElementById('log-type').value,
                         notes:            document.getElementById('log-notes').value,
                         timestamp:        new Date().toISOString(),
-                        staff_member:     localStorage.getItem('vp_user_name') || 'Staff Member'
+                        staff_member:     sessionStorage.getItem('vp_user_name') || 'Staff Member',
+                        tenant_id:        parseInt(_TID())
                     })
                 });
                 if (!res.ok) throw new Error('Save failed');
@@ -2722,7 +3254,7 @@
             const tbody = document.getElementById('cust-tbody');
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--text-muted);"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</td></tr>';
             try {
-                const res = await fetch(CUSTOMERS_API + tidParam(), { headers: getAuthHeaders() });
+                const res = await fetch(CUSTOMERS_API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jwt: sessionStorage.getItem('vp_token') || '' }) });
                 const json = await res.json();
                 allCustomersData = json.data || (Array.isArray(json) ? json : []);
                 custLoaded = true;
@@ -2803,7 +3335,35 @@
                     : (ev ? fmtD(ev) : '—');
             })();
             document.getElementById('m-guests').innerText = c.guest_count || c.guests_count || c.num_people || c.numPeople || '—';
-            document.getElementById('m-notes').innerText = c.notes || '—';
+            document.getElementById('m-time').innerText  = '—';
+            document.getElementById('m-cost').innerText  = '—';
+
+            // Parse ##ENQUIRY_META## from notes
+            const _meta = parseEnquiryMeta(c.notes);
+
+            // Room(s): use meta rooms array if available, fall back to room_name field
+            const _metaRooms = _meta && _meta.rooms && _meta.rooms.length ? _meta.rooms : null;
+            const _roomEl = document.getElementById('m-room');
+            if (_roomEl) _roomEl.innerText = _metaRooms ? _metaRooms.map(r => r.room_name).join(', ') : (c.room_name || '—');
+
+            // Services from meta — render as badges
+            const _svcWrap = document.getElementById('m-services-wrap');
+            const _svcEl   = document.getElementById('m-services');
+            const _metaSvcs = _meta && _meta.services && _meta.services.length ? _meta.services : [];
+            if (_metaSvcs.length && _svcEl) {
+                _svcEl.innerHTML = _metaSvcs.map(s =>
+                    `<span style="display:inline-block;background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);border-radius:6px;padding:2px 10px;font-size:0.82rem;margin:2px 4px 2px 0">`
+                    + esc(s.name) + (s.type === 'hourly' ? ' (' + (s.hours||0) + 'h) — £' + parseFloat(s.subtotal||0).toFixed(2) : ' — £' + parseFloat(s.subtotal||s.price||0).toFixed(2))
+                    + `</span>`
+                ).join('');
+                if (_svcWrap) _svcWrap.style.display = '';
+            } else {
+                if (_svcWrap) _svcWrap.style.display = 'none';
+            }
+
+            // Notes — strip ##ENQUIRY_META## block before displaying
+            document.getElementById('m-notes').innerText = stripEnquiryMeta(c.notes);
+
             const isBooked = ['booked','fully_paid','deposit_paid'].includes(c.status);
             document.getElementById('m-status').innerText = isBooked ? 'Booked' : (c.status || '—');
             const btnContainer = document.getElementById('modal-buttons');
@@ -2869,6 +3429,8 @@
                 phone:       getVal('m-phone'),
                 event_type:  getVal('m-event'),
                 notes:       getVal('m-notes'),
+                tenant_id:   parseInt(_TID()),
+                jwt:         sessionStorage.getItem('vp_token') || '',
             };
             const btnContainer = document.getElementById('modal-buttons');
             btnContainer.innerHTML = '<span style="color:var(--text-muted);font-size:0.9rem;"><i class="fa-solid fa-circle-notch fa-spin"></i> Saving...</span>';
@@ -2903,7 +3465,7 @@
 
         function toggleSidebarCollapse(){
             const col=document.body.classList.toggle('sidebar-collapsed');
-            localStorage.setItem('vp_sidebar_col',col?'1':'0');
+            sessionStorage.setItem('vp_sidebar_col',col?'1':'0');
         }
         // ── ACTIVITY FEED ──
         const ACT_CONFIG = {
@@ -2912,6 +3474,8 @@
             payment:     { bg:'rgba(6,182,212,0.15)',    color:'#06b6d4', icon:'fa-credit-card',    label:'Payment' },
             interaction: { bg:'rgba(139,92,246,0.15)',   color:'#8b5cf6', icon:'fa-comments',       label:'Interaction' },
             email:       { bg:'rgba(59,130,246,0.15)',   color:'#3b82f6', icon:'fa-envelope',       label:'Email' },
+            billing:     { bg:'rgba(245,158,11,0.15)',   color:'#f59e0b', icon:'fa-file-invoice-dollar', label:'Invoice Due' },
+            contract:    { bg:'rgba(139,92,246,0.15)',   color:'#8b5cf6', icon:'fa-file-contract',       label:'Contract' },
         };
         function actRelTime(ts) {
             if (!ts) return '—';
@@ -2950,6 +3514,65 @@
             if (!list) return;
 
             let items = allOutstandingPayments || [];
+
+            // Deduplicate outstanding items with type-aware logic:
+            //
+            // • RECURRING items — grouped by series_reference (never by customer_id).
+            //   Each distinct contract for a customer must appear as its own row.
+            //   Multiple API rows for the same series (e.g. one per unpaid session) are
+            //   collapsed into one row with the balance_due summed.
+            //   Recurring items are NEVER merged against single bookings.
+            //
+            // • SINGLE bookings — deduplicated by customer_id, keeping the nearest
+            //   upcoming date (same behaviour as before, prevents noise from customers
+            //   with many future sessions). accounts.html shows the full breakdown.
+            (function() {
+                const seenSingle   = new Map();  // customer_id → nearest single booking
+                const seenSeries   = new Map();  // series_reference → accumulated series row
+
+                items.forEach(function(b) {
+                    if (b.booking_type === 'recurring') {
+                        // Use series_reference (or rule_id as fallback) as the unique key.
+                        // Never let two different contracts collapse onto the same entry.
+                        const key = b.series_reference
+                                 || b.recurring_rule_id
+                                 || b.id
+                                 || (b.customer_id + '_recur_' + (b.series_reference || Math.random()));
+                        if (!seenSeries.has(key)) {
+                            seenSeries.set(key, Object.assign({}, b));
+                        } else {
+                            // Same series appearing more than once — accumulate the balance
+                            const existing = seenSeries.get(key);
+                            const combined = parseFloat(existing.balance_due || existing.amount_due || 0)
+                                           + parseFloat(b.balance_due || b.amount_due || 0);
+                            existing.balance_due = combined.toFixed(2);
+                            existing.amount_due  = combined.toFixed(2);
+                        }
+                    } else {
+                        // Single booking — keep one row per customer (nearest upcoming date)
+                        const key = b.customer_id || b.full_name || b.customer_name || '';
+                        if (!key) return;
+                        const existingDate = seenSingle.has(key)
+                            ? new Date(seenSingle.get(key).date_from || seenSingle.get(key).booking_date || 0)
+                            : null;
+                        const thisDate = new Date(b.date_from || b.booking_date || 0);
+                        if (!seenSingle.has(key) || thisDate < existingDate) {
+                            seenSingle.set(key, b);
+                        }
+                    }
+                });
+
+                // Sort each group independently then merge: recurring contracts first,
+                // then single bookings ordered by nearest date.
+                const recurItems  = Array.from(seenSeries.values()).sort(function(a, b) {
+                    return (a.series_reference || '').localeCompare(b.series_reference || '');
+                });
+                const singleItems = Array.from(seenSingle.values()).sort(function(a, b) {
+                    return new Date(a.date_from || a.booking_date || 0)
+                         - new Date(b.date_from || b.booking_date || 0);
+                });
+                items = [...recurItems, ...singleItems];
+            })();
 
             if (outSearchTerm) {
                 items = items.filter(b => {
@@ -2997,10 +3620,13 @@
             }
             list.innerHTML = slice.map(ev => {
                 const c = ACT_CONFIG[ev.type] || ACT_CONFIG.booking;
+                const contractPill = ev.isContract
+                    ? `<span class="act-type-badge" style="background:rgba(139,92,246,0.15);color:#8b5cf6;border:1px solid rgba(139,92,246,0.2)"><i class="fa-solid fa-file-contract" style="font-size:0.65rem"></i> Contract</span>`
+                    : '';
                 return `<div class="act-item">
                     <div class="act-dot" style="background:${c.bg}"><i class="fa-solid ${c.icon}" style="color:${c.color}"></i></div>
                     <div class="act-body">
-                        <div class="act-name">${ev.name} <span class="act-type-badge" style="background:${c.bg};color:${c.color};border:1px solid ${c.color}33">${c.label}</span></div>
+                        <div class="act-name">${ev.name} <span class="act-type-badge" style="background:${c.bg};color:${c.color};border:1px solid ${c.color}33">${c.label}</span>${contractPill}</div>
                         <div class="act-detail">${ev.detail||''}</div>
                     </div>
                     <div class="act-right"><div class="act-time">${actRelTime(ev.ts)}</div></div>
@@ -3015,10 +3641,11 @@
         async function loadActivityFeed() {
             const list = document.getElementById('act-feed-list');
             try {
-                const [dashR, txR, intR] = await Promise.allSettled([
-                    fetch('https://n8n.srv1090894.hstgr.cloud/webhook/staff-dashboard' + tidParam(),          {headers:getAuthHeaders()}),
-                    fetch('https://n8n.srv1090894.hstgr.cloud/webhook/accounts-data' + tidParam(),            {headers:getAuthHeaders()}),
+                const [dashR, txR, intR, billingR] = await Promise.allSettled([
+                    fetch('https://n8n.srv1090894.hstgr.cloud/webhook/staff-dashboard',  {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jwt:sessionStorage.getItem('vp_token')||''})}),
+                    fetch('https://n8n.srv1090894.hstgr.cloud/webhook/accounts-data',    {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jwt:sessionStorage.getItem('vp_token')||''})}),
                     fetch('https://n8n.srv1090894.hstgr.cloud/webhook/customer-interactions' + tidParam(),    {headers:getAuthHeaders()}),
+                    fetch('https://n8n.srv1090894.hstgr.cloud/webhook/get-outstanding-payments' + tidParam(), {headers:getAuthHeaders()}),
                 ]);
                 const evts = [];
                 if (dashR.status==='fulfilled' && dashR.value.ok) {
@@ -3041,6 +3668,24 @@
                         ia.forEach(i=>{ const isEmail=/email/i.test(i.interaction_type||''); evts.push({type:isEmail?'email':'interaction',ts:i.timestamp||i.created_at,name:i.customer_name||'—',detail:`${i.interaction_type||'Interaction'} · ${i.subject||''} · ${i.room_name||''}`.replace(/(·\s*){2,}/g,'· ').replace(/·\s*$/,'')}) });
                     } catch(e){}
                 }
+                if (billingR.status==='fulfilled' && billingR.value.ok) {
+                    try {
+                        const bj=await billingR.value.json(); const ba=(bj.data||(Array.isArray(bj)?bj:[]));
+                        ba.forEach(function(p){
+                            var due = p.due_date ? new Date(p.due_date+'T00:00:00Z').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '—';
+                            var cycleInfo = p.cycle_number && p.total_cycles ? ' · Cycle '+p.cycle_number+'/'+p.total_cycles : '';
+                            var seriesRef = p.series_reference ? ' · '+p.series_reference : '';
+                            evts.push({
+                                type: 'billing',
+                                ts: p.created_at||p.due_date,
+                                name: p.customer_name||'—',
+                                detail: 'Invoice due '+due+seriesRef+cycleInfo+' · '+(p.room_name||'')+' · £'+parseFloat(p.amount_due||0).toFixed(2),
+                                isContract: p.customer_type === 'contract',
+                                seriesRef: p.series_reference||null
+                            });
+                        });
+                    } catch(e){}
+                }
                 evts.sort((a,b)=>new Date(b.ts||0)-new Date(a.ts||0));
                 const _seenAct=new Set();
                 actEvents=evts.filter(e=>{const k=`${e.type}|${e.ts}|${e.name}`;if(_seenAct.has(k))return false;_seenAct.add(k);return true;});
@@ -3048,12 +3693,12 @@
                 renderActivityFeed();
             } catch(e) { if(list)list.innerHTML='<div style="padding:2rem;text-align:center;color:#ef4444">Failed to load activity</div>'; }
         }
-        (function(){if(localStorage.getItem('vp_sidebar_col')==='1')document.body.classList.add('sidebar-collapsed');})();
+        (function(){if(sessionStorage.getItem('vp_sidebar_col')==='1')document.body.classList.add('sidebar-collapsed');})();
         // ── THEME PERSISTENCE ──
-        (function(){ var t=localStorage.getItem('vp_theme'); if(t==='light') document.body.classList.add('light-mode'); })();
+        (function(){ var t=sessionStorage.getItem('vp_theme'); if(t==='light') document.body.classList.add('light-mode'); })();
         function toggleTheme(){
             var isLight = document.body.classList.toggle('light-mode');
-            localStorage.setItem('vp_theme', isLight ? 'light' : 'dark');
+            sessionStorage.setItem('vp_theme', isLight ? 'light' : 'dark');
             var btn = document.getElementById('theme-btn');
             if(btn) btn.innerHTML = isLight ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
         }
@@ -3065,6 +3710,9 @@
                 btn.innerHTML = isLight ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
             }
         });
+
+
 </script>
 </body>
 </html>
+
