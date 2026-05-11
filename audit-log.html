@@ -2,11 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; connect-src 'self' https://n8n.srv1090894.hstgr.cloud https://api.venuedesk.co.uk; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Audit Log | VenueDesk</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>if (!localStorage.getItem('vp_token')) { window.location.href = 'login.html'; }</script>
+    <script>(function() {
+        const _t = sessionStorage.getItem('vp_token');
+        if (!_t) { window.location.href = 'login.html?return=' + encodeURIComponent(location.pathname.split('/').pop()); return; }
+        try {
+            const _p = JSON.parse(atob(_t.split('.')[1]));
+            if (_p.exp && _p.exp * 1000 < Date.now()) {
+                sessionStorage.clear();
+                window.location.href = 'login.html';
+            }
+        } catch(e) { /* non-JWT token, skip expiry check */ }
+    })();</script>
     <style>
         :root{--bg-dark:#0f172a;--bg-card:rgba(30,41,59,0.7);--border:rgba(148,163,184,0.1);--primary:#6366f1;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;--text-main:#f8fafc;--text-muted:#94a3b8;--sidebar-width:260px}
         *{margin:0;padding:0;box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}
@@ -48,7 +59,9 @@
         .type-enquiry{background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3)}
         .type-interaction{background:rgba(139,92,246,0.15);color:#8b5cf6;border:1px solid rgba(139,92,246,0.3)}
         .type-email{background:rgba(59,130,246,0.15);color:#3b82f6;border:1px solid rgba(59,130,246,0.3)}
+        .type-membership{background:rgba(236,72,153,0.15);color:#ec4899;border:1px solid rgba(236,72,153,0.3)}
         .type-other{background:rgba(148,163,184,0.1);color:#94a3b8;border:1px solid rgba(148,163,184,0.2)}
+        .type-recurring{background:rgba(99,102,241,0.18);color:#a5b4fc;border:1px solid rgba(99,102,241,0.4)}
         .method-badge{padding:3px 8px;border-radius:8px;font-size:0.7rem;font-weight:600;background:rgba(0,0,0,0.3);border:1px solid var(--border);text-transform:capitalize}
         .pagination{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-top:1px solid var(--border)}
         .pg-btn{background:var(--bg-card);border:1px solid var(--border);color:var(--text-muted);padding:7px 14px;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:600;transition:0.2s;font-family:inherit}
@@ -104,7 +117,7 @@
         body.light-mode .theme-toggle:hover { color: #0f172a; border-color: #94a3b8; }
     
         /* ============================================================
-           RESPONSIVE DESIGN — VenuePro Full Coverage
+           RESPONSIVE DESIGN — VenueDesk Full Coverage
            Breakpoints: 1200 / 1024 / 900 / 768 / 480 / 360
         ============================================================ */
 
@@ -280,6 +293,297 @@
         body.light-mode.sidebar-collapsed .nav-link:hover::after { background: #fff; color: #1e293b; border-color: rgba(0,0,0,0.1); }
         @media (max-width: 768px) { body.sidebar-collapsed aside { width: var(--sidebar-width); padding: 2rem; } body.sidebar-collapsed main { margin-left: 0; } body.sidebar-collapsed .brand-text { opacity: 1; width: auto; } body.sidebar-collapsed .nav-label { opacity: 1; width: auto; } body.sidebar-collapsed .nav-link { justify-content: flex-start; gap: 12px; padding: 12px 16px; font-size: inherit; } }
         </style>
+  <style>
+    /* ═══════════════════════════════════════════════════════════
+       VENUEDESK BRAND LIGHT THEME  — palette from venuedesk.html
+       Colours: --bg #f8fafc  --white #fff  --text #1e293b
+                --dark #0f172a  --muted #64748b  --border #e2e8f0
+                --indigo #6366f1  --indigo-d #4f46e5  --indigo-l #eef2ff
+                --green #10b981  --amber #f59e0b
+       ═══════════════════════════════════════════════════════════ */
+
+    /* ── Body ── */
+    body.light-mode {
+      background: linear-gradient(135deg, #f0f4ff 0%, #fafbff 60%, #eff6ff 100%) !important;
+      background-attachment: fixed !important;
+      color: #1e293b !important;
+    }
+
+    /* ── Sidebar ── */
+    body.light-mode aside {
+      background: #ffffff !important;
+      border-right: 1px solid #e2e8f0 !important;
+      box-shadow: 2px 0 16px rgba(99,102,241,.07) !important;
+    }
+    body.light-mode .brand { color: #0f172a !important; }
+    body.light-mode .nav-link { color: #64748b !important; font-weight: 500 !important; }
+    body.light-mode .nav-link:hover {
+      background: #eef2ff !important;
+      color: #6366f1 !important;
+    }
+    body.light-mode .nav-link.active {
+      background: #eef2ff !important;
+      color: #6366f1 !important;
+      border-left: 3px solid #6366f1 !important;
+      font-weight: 700 !important;
+    }
+    body.light-mode.sidebar-collapsed .nav-link:hover::after {
+      background: #ffffff !important;
+      color: #1e293b !important;
+      border-color: #e2e8f0 !important;
+    }
+
+    /* ── Top bar / header ── */
+    body.light-mode header,
+    body.light-mode .top-bar {
+      background: rgba(255,255,255,0.92) !important;
+      border-bottom: 1px solid #e2e8f0 !important;
+      backdrop-filter: blur(16px) !important;
+    }
+    body.light-mode .header-title h1,
+    body.light-mode header h1,
+    body.light-mode h1, body.light-mode h2,
+    body.light-mode h3, body.light-mode h4 { color: #0f172a !important; }
+
+    /* ── Cards & containers ── */
+    body.light-mode .card,
+    body.light-mode .table-container,
+    body.light-mode .metric-card,
+    body.light-mode .booking-card,
+    body.light-mode .glance-card,
+    body.light-mode .sum-card,
+    body.light-mode .table-wrap,
+    body.light-mode .section-container,
+    body.light-mode .outstanding-panel,
+    body.light-mode .act-feed,
+    body.light-mode .transaction-container,
+    body.light-mode .chart-card {
+      background: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      box-shadow: 0 2px 12px rgba(99,102,241,.08) !important;
+      color: #1e293b !important;
+    }
+    body.light-mode .card:hover {
+      box-shadow: 0 6px 28px rgba(99,102,241,.14) !important;
+      border-color: rgba(99,102,241,.22) !important;
+    }
+    body.light-mode .card::after { background: none !important; }
+
+    /* ── Stats ── */
+    body.light-mode .stat-value, body.light-mode .glance-val,
+    body.light-mode .sum-val, body.light-mode .metric-value { color: #0f172a !important; }
+    body.light-mode .stat-label, body.light-mode .glance-lbl,
+    body.light-mode .sum-lbl, body.light-mode .b-meta,
+    body.light-mode .db-month, body.light-mode .metric-info p,
+    body.light-mode .metric-label, body.light-mode .table-header-sub { color: #64748b !important; }
+
+    /* ── Tables ── */
+    body.light-mode .table-header,
+    body.light-mode thead tr,
+    body.light-mode th {
+      background: #f1f5f9 !important;
+      color: #64748b !important;
+      border-color: #e2e8f0 !important;
+      font-weight: 600 !important;
+    }
+    body.light-mode td { color: #1e293b !important; border-color: #f1f5f9 !important; }
+    body.light-mode tbody tr:hover,
+    body.light-mode .log-tbody tr:hover { background: #f8fafc !important; }
+    body.light-mode .clickable:hover { background: #eef2ff !important; }
+
+    /* ── Inputs & filters ── */
+    body.light-mode .search-bar,
+    body.light-mode .sf-input, body.light-mode .sf-select,
+    body.light-mode .f-input, body.light-mode .f-select,
+    body.light-mode .menu-toggle {
+      background: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      color: #1e293b !important;
+    }
+    body.light-mode .search-bar input { color: #1e293b !important; }
+    body.light-mode .search-bar input::placeholder,
+    body.light-mode .sf-input::placeholder { color: #94a3b8 !important; }
+
+    body.light-mode .filter-btn {
+      background: #ffffff !important;
+      border: 1px solid #e2e8f0 !important;
+      color: #64748b !important;
+    }
+    body.light-mode .filter-btn:not(.active):hover {
+      background: #eef2ff !important;
+      border-color: rgba(99,102,241,.3) !important;
+      color: #6366f1 !important;
+    }
+    body.light-mode .filter-btn.active { border-color: transparent !important; }
+    body.light-mode .filter-requests.active,
+    body.light-mode .filter-outstanding.active { background: #f59e0b !important; color: #fff !important; box-shadow: 0 4px 14px rgba(245,158,11,.35) !important; }
+    body.light-mode .filter-upcoming.active { background: #10b981 !important; color: #fff !important; box-shadow: 0 4px 14px rgba(16,185,129,.35) !important; }
+    body.light-mode .filter-interactions.active,
+    body.light-mode .filter-customers.active { background: #6366f1 !important; color: #fff !important; box-shadow: 0 4px 14px rgba(99,102,241,.35) !important; }
+
+    /* ── Modals ── */
+    body.light-mode .pay-modal-card,
+    body.light-mode .modal-card,
+    body.light-mode .bd-modal-card,
+    body.light-mode .invoice-modal,
+    body.light-mode .receipt-card,
+    body.light-mode .log-int-card,
+    body.light-mode .qb-card {
+      background: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      box-shadow: 0 16px 48px rgba(99,102,241,.15) !important;
+      color: #1e293b !important;
+    }
+    body.light-mode .invoice-section-title { color: #0f172a !important; }
+    body.light-mode .invoice-header { border-color: #e2e8f0 !important; }
+    body.light-mode .invoice-body { background: transparent !important; }
+    body.light-mode .invoice-row .ilabel { color: #64748b !important; }
+    body.light-mode .invoice-row .ivalue { color: #1e293b !important; }
+    body.light-mode .invoice-total-row { background: #f1f5f9 !important; border-color: #e2e8f0 !important; }
+    body.light-mode .invoice-footer { border-color: #e2e8f0 !important; }
+
+    /* ── Customer / booking detail modal ── */
+    body.light-mode .detail-value {
+      background: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+      color: #1e293b !important;
+    }
+    body.light-mode .modal-edit-input {
+      background: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+      color: #0f172a !important;
+    }
+    body.light-mode .modal-edit-input:focus {
+      background: #ffffff !important;
+      border-color: #6366f1 !important;
+      box-shadow: 0 0 0 3px rgba(99,102,241,.12) !important;
+    }
+    body.light-mode .bh-title,
+    body.light-mode .modal-int-title { color: #0f172a !important; }
+    body.light-mode .bh-stat {
+      background: #f1f5f9 !important;
+      border-color: #e2e8f0 !important;
+    }
+    body.light-mode .bh-table td { color: #1e293b !important; }
+    body.light-mode .interaction-item {
+      background: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+    }
+    body.light-mode .interaction-item-subject,
+    body.light-mode .interaction-item-notes { color: #1e293b !important; }
+
+    /* ── Log interaction form ── */
+    body.light-mode .log-form-input,
+    body.light-mode .log-form-select,
+    body.light-mode .log-form-textarea,
+    body.light-mode .log-int-info-value { 
+      background: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+      color: #1e293b !important;
+    }
+    body.light-mode .log-int-title { color: #0f172a !important; }
+
+    /* ── Pay modal internals ── */
+    body.light-mode .pay-booking-info {
+      background: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+    }
+    body.light-mode .pay-amount-input {
+      background: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      color: #0f172a !important;
+    }
+    body.light-mode .info-row span { color: #64748b !important; }
+    body.light-mode .info-row strong { color: #0f172a !important; }
+
+    /* ── Booking cards ── */
+    body.light-mode .b-name,
+    body.light-mode .b-room { color: #0f172a !important; }
+    body.light-mode .b-meta { color: #64748b !important; }
+
+    /* ── Activity feed ── */
+    body.light-mode .act-name { color: #0f172a !important; }
+    body.light-mode .act-detail { color: #64748b !important; }
+    body.light-mode .act-time { color: #94a3b8 !important; }
+
+    /* ── Outstanding panel ── */
+    body.light-mode .outstanding-panel-header {
+      background: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+    }
+    body.light-mode .outstanding-panel-title { color: #0f172a !important; }
+
+    /* ── Calendar overrides ── */
+    body.light-mode #cal-container {
+      background: #ffffff !important;
+      border-color: #e2e8f0 !important;
+    }
+    body.light-mode .fc-col-header-cell {
+      background: #f1f5f9 !important;
+      color: #64748b !important;
+    }
+    body.light-mode .fc-list-day-cushion { background: #f1f5f9 !important; }
+    body.light-mode .fc-theme-standard td,
+    body.light-mode .fc-theme-standard th { border-color: #e2e8f0 !important; }
+    body.light-mode .fc-list-table td { color: #1e293b !important; border-color: #f1f5f9 !important; }
+    body.light-mode .fc-list-event-title a { color: #1e293b !important; }
+    body.light-mode .fc-toolbar-title { color: #0f172a !important; }
+    body.light-mode .fc-daygrid-day-number { color: #1e293b !important; }
+    body.light-mode .fc-daygrid-day.fc-day-today { background: #eef2ff !important; }
+    body.light-mode .fc-button-primary {
+      background: #6366f1 !important;
+      border-color: #6366f1 !important;
+    }
+    body.light-mode .fc-button-primary:hover { background: #4f46e5 !important; border-color: #4f46e5 !important; }
+    body.light-mode .fc-button-primary:not(.fc-button-active):not(:disabled) {
+      background: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      color: #64748b !important;
+    }
+    body.light-mode .modal-row { border-color: #f1f5f9 !important; }
+    body.light-mode .modal-label { color: #64748b !important; }
+    body.light-mode .modal-val { color: #0f172a !important; }
+    body.light-mode .e-pay-section,
+    body.light-mode .e-confirm-section {
+      background: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+    }
+    body.light-mode .qb-input, body.light-mode .qb-select {
+      background: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      color: #1e293b !important;
+    }
+
+    /* ── Accounts page ── */
+    body.light-mode .acc-metric-card {
+      background: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      box-shadow: 0 2px 12px rgba(99,102,241,.08) !important;
+    }
+    body.light-mode .ref-mono { color: #6366f1 !important; }
+    body.light-mode .linked-ref { color: #6366f1 !important; }
+
+    /* ── Misc UI ── */
+    body.light-mode .theme-toggle {
+      background: #eef2ff !important;
+      border-color: rgba(99,102,241,.25) !important;
+      color: #6366f1 !important;
+    }
+    body.light-mode .theme-toggle:hover {
+      background: #e0e7ff !important;
+      border-color: #6366f1 !important;
+      color: #4f46e5 !important;
+    }
+    body.light-mode .live-clock {
+      background: rgba(255,255,255,.85) !important;
+      border-color: #e2e8f0 !important;
+      color: #64748b !important;
+    }
+    body.light-mode .date-badge { background: #f1f5f9 !important; color: #64748b !important; }
+    body.light-mode ::-webkit-scrollbar-thumb { background: #cbd5e1 !important; }
+    body.light-mode ::-webkit-scrollbar-track { background: #f1f5f9 !important; }
+    /* END VENUEDESK BRAND LIGHT THEME */
+  </style>
 </head>
 <body>
     <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
@@ -287,9 +591,13 @@
         <div class="brand"><span><i class="fa-solid fa-layer-group"></i><span class="brand-text">VenueDesk</span></span><div style="display:flex;align-items:center;gap:2px;"><button class="sidebar-collapse-btn" onclick="toggleSidebarCollapse()" title="Collapse sidebar"><i class="fa-solid fa-chevron-left"></i></button><button class="close-sidebar" onclick="toggleMenu()"><i class="fa-solid fa-xmark"></i></button></div></div>
         <nav>
             <a href="index.html" class="nav-link" data-label="Dashboard"><i class="fa-solid fa-chart-pie"></i><span class="nav-label"> Dashboard</span></a>
-            <a href="audit-log.html" class="nav-link active" data-label="Audit Log"><i class="fa-solid fa-clock-rotate-left"></i><span class="nav-label"> Audit Log</span></a>
+            <a href="calendar.html" class="nav-link" data-label="Make Booking"><i class="fa-solid fa-calendar-alt"></i><span class="nav-label"> Calendar</span></a>
+            <a href="bookings.html" class="nav-link" data-label="Booking Stats"><i class="fa-solid fa-chart-line"></i><span class="nav-label"> Booking Stats</span></a>
+            <a href="recurring-bookings.html" class="nav-link" data-label="Recurring"><i class="fa-solid fa-repeat"></i><span class="nav-label"> Recurring</span></a>
             <a href="accounts.html" class="nav-link" data-label="Accounts"><i class="fa-solid fa-file-invoice-dollar"></i><span class="nav-label"> Accounts</span></a>
-            <a href="manual-booking.html" class="nav-link" data-label="Walk-In Booking"><i class="fa-solid fa-person-walking-arrow-right"></i><span class="nav-label"> Walk-In Booking</span></a>
+            <a href="audit-log.html" class="nav-link active" data-label="Audit Log"><i class="fa-solid fa-clock-rotate-left"></i><span class="nav-label"> Audit Log</span></a>
+            <a href="users.html" class="nav-link" data-label="Users"><i class="fa-solid fa-user-shield"></i><span class="nav-label"> Users</span></a>
+            <a href="admin-config.html" class="nav-link" data-label="Config"><i class="fa-solid fa-sliders"></i><span class="nav-label"> Config</span></a>
             <a href="#" onclick="logout()" class="nav-link" style="margin-top:auto;color:#ef4444;border-top:1px solid rgba(255,255,255,0.05)" data-label="Logout"><i class="fa-solid fa-right-from-bracket"></i><span class="nav-label"> Logout</span></a>
         </nav>
     </aside>
@@ -315,6 +623,7 @@
                 <option value="deposit">Deposit</option>
                 <option value="refund">Refund</option>
                 <option value="booking">Booking</option>
+                <option value="recurring">Recurring Series</option>
                 <option value="enquiry">Enquiry</option>
                 <option value="interaction">Interaction</option>
                 <option value="email">Email</option>
@@ -336,7 +645,7 @@
         <div class="table-wrap">
             <div class="table-inner">
                 <table>
-                    <thead><tr><th>Date &amp; Time</th><th>Customer</th><th>Room</th><th>Type</th><th>Details</th><th>Amount</th><th>Ref / Subject</th></tr></thead>
+                    <thead><tr><th>Date &amp; Time</th><th>Customer</th><th>Room</th><th>Type</th><th>Details</th><th>Amount</th><th>Series / Ref</th></tr></thead>
                     <tbody id="log-tbody"><tr><td colspan="7" style="text-align:center;padding:3rem;color:var(--text-muted)"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</td></tr></tbody>
                 </table>
             </div>
@@ -351,8 +660,10 @@
         const PAYMENTS_API      = 'https://n8n.srv1090894.hstgr.cloud/webhook/accounts-data';
         const INTERACTIONS_API  = 'https://n8n.srv1090894.hstgr.cloud/webhook/customer-interactions';
         const DASHBOARD_API     = 'https://n8n.srv1090894.hstgr.cloud/webhook/staff-dashboard';
+        const LEDGER_API        = 'https://n8n.srv1090894.hstgr.cloud/webhook/get-outstanding-payments';
         const fmt = n => new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP'}).format(parseFloat(n)||0);
-        function getAuthHeaders(){const tid=localStorage.getItem('vp_tenant_id')||'';return{'Authorization':'Bearer '+(localStorage.getItem('vp_token')||''),'X-Tenant-ID':tid,'X-Venue-ID':tid};}
+        function getAuthHeaders(){return{};}
+        function _TID(){return sessionStorage.getItem('vp_tenant_id')||'0';}
         function toggleMenu() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
@@ -365,16 +676,28 @@
             sidebar.classList.remove('active');
             if (overlay) overlay.classList.remove('active');
         }
-        function logout(){if(confirm("Log out?")){localStorage.removeItem('vp_token');window.location.href='login.html';}}
+        function logout(){if(confirm("Log out?")){sessionStorage.removeItem('vp_token');window.location.href='login.html';}}
 
         const TYPE_CONFIG = {
-            payment:     { cls:'type-payment',     label:'Payment',     icon:'fa-credit-card' },
-            deposit:     { cls:'type-deposit',     label:'Deposit',     icon:'fa-coins' },
-            refund:      { cls:'type-refund',      label:'Refund',      icon:'fa-rotate-left' },
-            booking:     { cls:'type-booking',     label:'Booking',     icon:'fa-calendar-check' },
-            enquiry:     { cls:'type-enquiry',     label:'Enquiry',     icon:'fa-inbox' },
-            interaction: { cls:'type-interaction', label:'Interaction', icon:'fa-comments' },
-            email:       { cls:'type-email',       label:'Email',       icon:'fa-envelope' },
+            payment:            { cls:'type-payment',          label:'Payment',           icon:'fa-credit-card' },
+            deposit:            { cls:'type-deposit',          label:'Deposit',           icon:'fa-coins' },
+            refund:             { cls:'type-refund',           label:'Refund',            icon:'fa-rotate-left' },
+            booking:            { cls:'type-booking',          label:'Booking',           icon:'fa-calendar-check' },
+            recurring:          { cls:'type-recurring',        label:'Recurring',         icon:'fa-repeat' },
+            // recurring_payment and series_payment are both classified as recurring
+            recurring_payment:  { cls:'type-recurring',        label:'Recurring Payment', icon:'fa-repeat' },
+            series_payment:     { cls:'type-recurring',        label:'Series Payment',    icon:'fa-repeat' },
+            enquiry:            { cls:'type-enquiry',          label:'Enquiry',           icon:'fa-inbox' },
+            interaction:        { cls:'type-interaction',      label:'Interaction',       icon:'fa-comments' },
+            email:              { cls:'type-email',            label:'Email',             icon:'fa-envelope' },
+            membership:         { cls:'type-membership',       label:'Membership',        icon:'fa-id-card' },
+            series_created:     { cls:'type-recurring',        label:'Series Created',    icon:'fa-file-contract' },
+            invoice_generated:  { cls:'type-deposit',          label:'Invoice Generated', icon:'fa-file-invoice-dollar' },
+            // interaction_type values written by the new DB: Log * Interaction nodes
+            booking_confirmed:  { cls:'type-booking',          label:'Booking Confirmed', icon:'fa-calendar-check' },
+            booking_cancelled:  { cls:'type-refund',           label:'Booking Cancelled', icon:'fa-calendar-xmark' },
+            payment_received:   { cls:'type-payment',          label:'Payment Received',  icon:'fa-credit-card' },
+            customer_updated:   { cls:'type-interaction',      label:'Customer Updated',  icon:'fa-user-pen' },
         };
         function getTypeCfg(t) { return TYPE_CONFIG[t] || {cls:'type-other',label:t||'Other',icon:'fa-circle'}; }
 
@@ -420,14 +743,29 @@
                 const cfg=getTypeCfg(t.type);
                 const dateStr=t.ts?(()=>{try{return new Date(t.ts).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){return t.ts;}})():'—';
                 const amountCell=t.amount?`<span style="font-weight:700;color:var(--success)">${fmt(t.amount)}</span>`:'<span style="color:var(--text-muted)">—</span>';
+                // Customer cell — show name, email, phone
+                const custCell = `<div style="font-weight:600">${t.customer_name||'—'}</div>`
+                    + (t.customer_email ? `<div style="font-size:0.73rem;color:var(--text-muted)">${t.customer_email}</div>` : '')
+                    + (t.customer_phone ? `<div style="font-size:0.72rem;color:#64748b"><i class="fa-solid fa-phone" style="margin-right:3px;font-size:.6rem"></i>${t.customer_phone}</div>` : '');
+                // Ref / Series column — for recurring events, show the series_reference prominently
+                const isRecurEvent = t.type === 'recurring' || t.type === 'series_created';
+                let refCell;
+                if (isRecurEvent && t.series_reference) {
+                    refCell = `<div style="display:flex;flex-direction:column;gap:3px;">
+                        <span style="font-family:monospace;font-size:0.72rem;background:rgba(139,92,246,.14);border:1px solid rgba(139,92,246,.3);color:#c4b5fd;padding:2px 7px;border-radius:5px;white-space:nowrap;" title="Series reference">${t.series_reference}</span>`
+                        + (t.recurring_rule_id ? `<span style="font-family:monospace;font-size:0.67rem;color:#64748b;" title="Recurring Rule ID">${String(t.recurring_rule_id).slice(0,8)}…</span>` : '')
+                        + `</div>`;
+                } else {
+                    refCell = `<span style="font-family:monospace;font-size:0.78rem;color:var(--text-muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;" title="${t.ref||''}">${t.ref||'—'}</span>`;
+                }
                 return `<tr>
                     <td style="font-size:0.82rem;color:var(--text-muted);white-space:nowrap">${dateStr}</td>
-                    <td><div style="font-weight:600">${t.customer_name||'—'}</div><div style="font-size:0.75rem;color:var(--text-muted)">${t.customer_email||''}</div></td>
+                    <td>${custCell}</td>
                     <td style="font-size:0.85rem">${t.room_name||'—'}</td>
                     <td><span class="type-pill ${cfg.cls}"><i class="fa-solid ${cfg.icon}" style="margin-right:4px"></i>${cfg.label}</span></td>
                     <td style="font-size:0.83rem;color:var(--text-muted)">${t.details||'—'}</td>
                     <td>${amountCell}</td>
-                    <td style="font-family:monospace;font-size:0.78rem;color:var(--text-muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.ref||''}">${t.ref||'—'}</td>
+                    <td>${refCell}</td>
                 </tr>`;
             }).join('');
             document.getElementById('pg-info').innerText=`Page ${page} of ${totalPages} (${filtered.length} records)`;
@@ -454,22 +792,52 @@
         async function loadData(){
             document.getElementById('log-tbody').innerHTML='<tr><td colspan="7" style="text-align:center;padding:3rem;color:var(--text-muted)"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</td></tr>';
             try{
-                const [txR,intR,dashR]=await Promise.allSettled([
-                    fetch(PAYMENTS_API,     {headers:getAuthHeaders()}),
-                    fetch(INTERACTIONS_API, {headers:getAuthHeaders()}),
-                    fetch(DASHBOARD_API,    {headers:getAuthHeaders()}),
+                const [txR,intR,dashR,ledgerR]=await Promise.allSettled([
+                    fetch(PAYMENTS_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jwt:sessionStorage.getItem('vp_token')||''})}),
+                    fetch(INTERACTIONS_API+'?tenant_id='+_TID(),{headers:getAuthHeaders()}),
+                    fetch(DASHBOARD_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jwt:sessionStorage.getItem('vp_token')||''})}),
+                    fetch(LEDGER_API+'?tenant_id='+_TID(),{headers:getAuthHeaders()}),
                 ]);
                 const events=[];
                 if(txR.status==='fulfilled'&&txR.value.ok){
                     try{
                         const tj=await txR.value.json();const td=tj.data||tj;
                         const txns=Array.isArray(td)?td:(td.transactions||td.payments||[]);
-                        txns.filter(t=>t&&t.amount).forEach(p=>{
+                        txns.filter(t=>{
+                            if(!t||!t.amount) return false;
+                            const raw=(t.payment_type||t.type||'').toLowerCase();
+                            // Skip £0 refunds — these are artefacts from cancelled recurring sessions with no deposit
+                            if(/refund/.test(raw)&&parseFloat(t.amount||0)===0) return false;
+                            return true;
+                        }).forEach(p=>{
                             const raw=(p.payment_type||p.type||'payment').toLowerCase();
                             let type='payment';
                             if(/deposit/.test(raw))type='deposit';
                             else if(/refund/.test(raw))type='refund';
-                            events.push({type,ts:p.payment_created_at||p.created_at||p.payment_date,customer_name:p.customer_name,customer_email:p.customer_email||p.email,room_name:p.room_name,details:(p.payment_method||'').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())||'—',amount:p.amount,method:p.payment_method,ref:p.reference||p.reference_number||p.deposit_reference||''});
+                            // recurring_payment and series_payment both map to the 'recurring' type
+                            // so they receive the type-recurring badge (indigo) instead of the
+                            // generic payment badge.
+                            else if(/recurring_payment|series_payment/.test(raw))type='recurring';
+                            const isRecurPmt = type === 'recurring';
+                            const seriesRef  = p.series_reference || '';
+                            const detailsStr = isRecurPmt && seriesRef
+                                ? (p.payment_method||'cash').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())
+                                  + ' · ' + seriesRef
+                                : (p.payment_method||'').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())||'—';
+                            events.push({
+                                type,
+                                ts:              p.payment_created_at||p.created_at||p.payment_date,
+                                customer_name:   p.customer_name,
+                                customer_email:  p.customer_email||p.email,
+                                room_name:       p.room_name,
+                                details:         detailsStr,
+                                amount:          p.amount,
+                                method:          p.payment_method,
+                                ref:             p.reference||p.reference_number||p.deposit_reference||'',
+                                // Pass series_reference through so the ref column renders it
+                                series_reference: seriesRef,
+                                recurring_rule_id: p.recurring_rule_id||''
+                            });
                         });
                     }catch(e){}
                 }
@@ -477,8 +845,52 @@
                     try{
                         const ij=await intR.value.json();const ia=ij.data||(Array.isArray(ij)?ij:[]);
                         ia.forEach(i=>{
-                            const isEmail=/email/i.test(i.interaction_type||'');
-                            events.push({type:isEmail?'email':'interaction',ts:i.timestamp||i.created_at,customer_name:i.customer_name,customer_email:i.customer_email||i.email,room_name:i.room_name,details:`${i.interaction_type||'Interaction'}${i.staff_member?' \u00b7 '+i.staff_member:''}`,amount:null,ref:i.subject||i.notes||''});
+                            const itype=(i.interaction_type||'').toLowerCase();
+                            // Map interaction_type to display type — prefer specific named types so
+                            // TYPE_CONFIG can assign the right badge colour/icon
+                            const evType = /recurring/i.test(itype)   ? 'recurring'
+                                         : /membership/i.test(itype)  ? 'membership'
+                                         : /email/i.test(itype)       ? 'email'
+                                         : itype === 'booking_confirmed' ? 'booking_confirmed'
+                                         : itype === 'booking_cancelled' ? 'booking_cancelled'
+                                         : itype === 'payment_received'  ? 'payment_received'
+                                         : itype === 'customer_updated'  ? 'customer_updated'
+                                         : 'interaction';
+                            let evDetails;
+                            if (evType === 'recurring') {
+                                const notes = i.notes || '';
+                                // Extract series_reference (RB-XXXX) from notes or subject
+                                const seriesM = notes.match(/Series:\s*(RB-\d+)/i)
+                                             || (i.subject||'').match(/(RB-\d+)/)
+                                             || notes.match(/·\s*(RB-\d+)/i);
+                                const sessM   = notes.match(/(\d+)\s+sessions/i);
+                                const freqM   = (i.subject||'').replace(/Recurring (booking|contract) created:\s*/i,'').replace(/(RB-\d+)/,'').trim();
+                                evDetails = [freqM||'Recurring', sessM?sessM[1]+' sessions':'', i.staff_member?'by '+i.staff_member:''].filter(Boolean).join(' \u00b7 ');
+                                const seriesRef = i.series_reference || (seriesM && seriesM[1]) || '';
+                                events.push({
+                                    type:evType, ts:i.timestamp||i.created_at,
+                                    customer_name:i.customer_name, customer_email:i.customer_email||i.email,
+                                    customer_phone:i.customer_phone||i.phone||'',
+                                    room_name:i.room_name, details:evDetails, amount:null,
+                                    ref:i.subject||i.notes||'',
+                                    series_reference:seriesRef,
+                                    recurring_rule_id:i.recurring_rule_id||i.booking_id||''
+                                });
+                            } else {
+                                // Use subject as the human-readable detail (set by our new log nodes).
+                                // Fall back to notes, then to a formatted interaction_type label.
+                                const itypeLabel = itype.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+                                evDetails = i.subject
+                                    || i.notes
+                                    || `${itypeLabel}${i.staff_member?' \u00b7 '+i.staff_member:''}`;
+                                events.push({
+                                    type:evType, ts:i.timestamp||i.created_at,
+                                    customer_name:i.customer_name, customer_email:i.customer_email||i.email,
+                                    customer_phone:i.customer_phone||i.phone||'',
+                                    room_name:i.room_name, details:evDetails, amount:null,
+                                    ref:i.subject||i.notes||''
+                                });
+                            }
                         });
                     }catch(e){}
                 }
@@ -486,7 +898,29 @@
                     try{
                         const dj=await dashR.value.json();const dd=dj.data||dj;
                         (dd.recent_customers||[]).forEach(c=>events.push({type:'enquiry',ts:c.created_at||c.requested_date,customer_name:c.full_name||c.customer_name,customer_email:c.email,room_name:c.room_name,details:`${c.event_type||''} \u00b7 ${c.guests_count||c.guest_count||'?'} guests`.replace(/^\s*\u00b7\s*/,''),amount:null,ref:c.notes||''}));
-                        (dd.upcoming_bookings||[]).forEach(b=>events.push({type:'booking',ts:b.booking_created_at||b.booking_date||b.date_from,customer_name:b.customer_name,customer_email:b.customer_email,room_name:b.room_name,details:`${(b.status||'confirmed').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())} \u00b7 ${b.guest_count||'?'} guests`,amount:b.total_amount,ref:b.id||''}));
+                        // Skip individual recurring sessions — they create noise (one event per session per series)
+                        // Recurring series activity is captured via the customer-interactions log instead
+                        (dd.upcoming_bookings||[]).filter(b=>!b.is_recurring&&!b.recurring_rule_id).forEach(b=>events.push({type:'booking',ts:b.booking_created_at||b.booking_date||b.date_from,customer_name:b.customer_name,customer_email:b.customer_email,room_name:b.room_name,details:`${(b.status||'confirmed').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())} \u00b7 ${b.guest_count||'?'} guests`,amount:b.total_amount,ref:b.id||''}));
+                    }catch(e){}
+                }
+                if(ledgerR.status==='fulfilled'&&ledgerR.value.ok){
+                    try{
+                        const lj=await ledgerR.value.json();const la=lj.data||(Array.isArray(lj)?lj:[]);
+                        la.forEach(p=>{
+                            const cycleStr=p.cycle_number&&p.total_cycles?` · Cycle ${p.cycle_number}/${p.total_cycles}`:'';
+                            const seriesStr=p.series_reference?` · ${p.series_reference}`:'';
+                            const dueStr=p.due_date?new Date(p.due_date+'T00:00:00Z').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'—';
+                            events.push({
+                                type:'invoice_generated',
+                                ts:p.created_at||p.due_date,
+                                customer_name:p.customer_name||'—',
+                                customer_email:p.customer_email||'',
+                                room_name:p.room_name||'—',
+                                details:`Due ${dueStr}${seriesStr}${cycleStr}`,
+                                amount:p.amount_due,
+                                ref:p.series_reference||''
+                            });
+                        });
                     }catch(e){}
                 }
                 events.sort((a,b)=>new Date(b.ts||0)-new Date(a.ts||0));
@@ -503,14 +937,14 @@
 
         function toggleSidebarCollapse(){
             const col=document.body.classList.toggle('sidebar-collapsed');
-            localStorage.setItem('vp_sidebar_col',col?'1':'0');
+            sessionStorage.setItem('vp_sidebar_col',col?'1':'0');
         }
-        (function(){if(localStorage.getItem('vp_sidebar_col')==='1')document.body.classList.add('sidebar-collapsed');})();
+        (function(){if(sessionStorage.getItem('vp_sidebar_col')==='1')document.body.classList.add('sidebar-collapsed');})();
         // ── THEME PERSISTENCE ──
-        (function(){ var t=localStorage.getItem('vp_theme'); if(t==='light') document.body.classList.add('light-mode'); })();
+        (function(){ var t=sessionStorage.getItem('vp_theme'); if(t==='light') document.body.classList.add('light-mode'); })();
         function toggleTheme(){
             var isLight = document.body.classList.toggle('light-mode');
-            localStorage.setItem('vp_theme', isLight ? 'light' : 'dark');
+            sessionStorage.setItem('vp_theme', isLight ? 'light' : 'dark');
             var btn = document.getElementById('theme-btn');
             if(btn) btn.innerHTML = isLight ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
         }

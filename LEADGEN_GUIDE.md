@@ -82,7 +82,7 @@ The following are **deployed and active** in your n8n instance at `https://n8n.s
 | VenueDesk — API: Send Email to Lead | **Live** | Manual send button |
 | VenueDesk — AI Lead Generator (Daily) | **Inactive ⏸** | Needs credentials — see below |
 
-The `leads` and `lead_activity` database tables are already created in your `myadmin_db` Postgres database (separate from the VenuePro `bookings` database).
+The `leads` and `lead_activity` database tables are already created in your `myadmin_db` Postgres database (separate from the VenueDesk `bookings` database).
 
 ---
 
@@ -119,7 +119,7 @@ See [Adding Leads](#adding-leads) below.
 
 ## Using the Dashboard
 
-Open `leadgen-dashboard.html` in your browser (or serve it from the VenuePro folder).
+Open `leadgen-dashboard.html` in your browser (or serve it from the VenueDesk folder).
 
 ### Stats Bar
 
